@@ -1,0 +1,10 @@
+*.pyc
+*.pyd
+*.dylib
+*.so
+coverage.html/*
+.coverage
+dist/*
+build/*
+*egg-info/*
+_doc/auto_examples/*

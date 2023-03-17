@@ -1,0 +1,15 @@
+black
+coverage
+flake8
+furo
+joblib
+matplotlib
+onnxruntime
+pandas
+pyquickhelper
+pytest
+scikit-learn
+sphinx
+sphinx-gallery
+tqdm
+wheel
