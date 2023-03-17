@@ -1,5 +1,6 @@
 
 .. image:: https://github.com/sdpython/onnx-array-api/raw/main/_doc/_static/logo.png
+    :width: 50
 
 onnx-array-api: (Numpy) Array API for ONNX
 ==========================================
@@ -22,9 +23,6 @@ onnx-array-api: (Numpy) Array API for ONNX
     :target: https://github.com/sdpython/onnx-array-api/
     :alt: size
 
-
-.. image:: https://raw.githubusercontent.com/sdpython/onnx-array-api/main/doc/_static/logo.png
-    :width: 50
 
 `documentation <http://www.xavierdupre.fr/app/onnx-array-api/helpsphinx/index.html>`_
 
