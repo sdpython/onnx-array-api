@@ -1,6 +1,6 @@
 
 .. image:: https://github.com/sdpython/onnx-array-api/raw/main/_doc/_static/logo.png
-    :width: 50
+    :width: 120
 
 onnx-array-api: (Numpy) Array API for ONNX
 ==========================================
