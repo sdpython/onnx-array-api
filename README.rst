@@ -1,4 +1,9 @@
 
+.. image:: https://github.com/sdpython/onnx-array-api/raw/main/_doc/_static/logo.png
+
+onnx-array-api: (Numpy) Array API for ONNX
+==========================================
+
 .. image:: https://dev.azure.com/xavierdupre3/onnx-array-api/_apis/build/status/sdpython.onnx-array-api
     :target: https://dev.azure.com/xavierdupre3/onnx-array-api/
 
@@ -17,8 +22,6 @@
     :target: https://github.com/sdpython/onnx-array-api/
     :alt: size
 
-onnx-array-api: (Numpy) Array API for ONNX
-==========================================
 
 .. image:: https://raw.githubusercontent.com/sdpython/onnx-array-api/main/doc/_static/logo.png
     :width: 50
