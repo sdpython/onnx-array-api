@@ -100,5 +100,5 @@ It supports eager mode as well:
 The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
 and its documentation is published at
-`onnx-array-api: (Numpy) Array API for ONNX
+`(Numpy) Array API for ONNX
 <http://www.xavierdupre.fr/app/onnx-array-api/helpsphinx/index.html>`_.
