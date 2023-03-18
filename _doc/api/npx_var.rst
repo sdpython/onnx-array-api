@@ -1,7 +1,7 @@
 .. _l-api-npx-var:
 
-npx
-===
+npx.npx_var
+===========
 
 Var
 +++

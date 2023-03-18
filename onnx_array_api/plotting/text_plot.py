@@ -33,7 +33,7 @@ def onnx_text_plot_tree(node):
 
     .. runpython::
         :showcode:
-        :warningout: DeprecationWarning
+        :warningout: DeprecationWarning, FutureWarning
 
         import numpy
         from sklearn.datasets import load_iris
@@ -530,7 +530,7 @@ def onnx_simple_text_plot(
 
     .. runpython::
         :showcode:
-        :warningout: DeprecationWarning
+        :warningout: DeprecationWarning, FutureWarning
 
         import numpy
         from sklearn.cluster import KMeans
@@ -550,7 +550,7 @@ def onnx_simple_text_plot(
 
     .. runpython::
         :showcode:
-        :warningout: DeprecationWarning
+        :warningout: DeprecationWarning, FutureWarning
 
         import numpy
         from sklearn.cluster import KMeans
@@ -1053,7 +1053,7 @@ def onnx_text_plot_io(model, verbose=False, att_display=None):
 
     .. runpython::
         :showcode:
-        :warningout: DeprecationWarning
+        :warningout: DeprecationWarning, FutureWarning
 
         import numpy
         from sklearn.cluster import KMeans

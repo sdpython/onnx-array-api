@@ -9,7 +9,7 @@ OrtTensor
 .. autoclass:: onnx_array_api.ort.ort_tensors.EagerOrtTensor
     :members:
 
-.. autoclass:: onnx_array_api.ort.ort_tensors.EagerOrtTensor
+.. autoclass:: onnx_array_api.ort.ort_tensors.JitOrtTensor
     :members:
 
 .. autoclass:: onnx_array_api.ort.ort_tensors.OrtTensor

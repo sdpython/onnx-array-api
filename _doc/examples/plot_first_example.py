@@ -112,10 +112,10 @@ eager_myloss = eager_onnx(myloss)
 x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
 y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
 
-##############################
+#################################
 # First execution and conversion to ONNX.
 # The wrapper caches many Onnx graphs corresponding to
-# simple opeator, (+, -, /, *, ..), reduce functions,
+# simple opeator, (`+`, `-`, `/`, `*`, ...), reduce functions,
 # any other function from the API.
 # It reuses it if the input types and the number of dimension are the same.
 # It creates a new one otherwise and keep the old ones.

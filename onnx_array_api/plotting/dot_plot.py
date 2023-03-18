@@ -56,41 +56,60 @@ def to_dot(
 
     One example:
 
-    .. exref::
-        :title: Convert ONNX into DOT
+    .. runpython::
+        :showcode:
+        :warningout: DeprecationWarning, FutureWarning
 
-        An example on how to convert an :epkg:`ONNX`
-        graph into :epkg:`DOT`.
+        import numpy as np
+        from onnx_array_api.npx import absolute, jit_onnx
+        from onnx_array_api.plotting.dot_plot import to_dot
 
-        .. runpython::
-            :showcode:
-            :warningout: DeprecationWarning
-
-            import numpy as np
-            from onnx_array_api.npx import absolute, jit_onnx
-            from onnx_array_api.plotting.dot_plot import to_dot
-
-            def l1_loss(x, y):
-                return absolute(x - y).sum()
+        def l1_loss(x, y):
+            return absolute(x - y).sum()
 
 
-            def l2_loss(x, y):
-                return ((x - y) ** 2).sum()
+        def l2_loss(x, y):
+            return ((x - y) ** 2).sum()
 
 
-            def myloss(x, y):
-                return l1_loss(x[:, 0], y[:, 0]) + l2_loss(x[:, 1], y[:, 1])
+        def myloss(x, y):
+            return l1_loss(x[:, 0], y[:, 0]) + l2_loss(x[:, 1], y[:, 1])
 
 
-            jitted_myloss = jit_onnx(myloss)
+        jitted_myloss = jit_onnx(myloss)
 
-            x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-            y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
-            res = jitted_myloss(x, y)
-            print(to_dot(jitted_myloss.get_onnx()))
+        x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+        y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
+        res = jitted_myloss(x, y)
+        print(res)
 
-        See an example of representation in notebook
-        :ref:`onnxvisualizationrst`.
+    .. gdot::
+        :script: DOT-SECTION
+        :process:
+
+        # to_dot
+        import numpy as np
+        from onnx_array_api.npx import absolute, jit_onnx
+        from onnx_array_api.plotting.dot_plot import to_dot
+
+        def l1_loss(x, y):
+            return absolute(x - y).sum()
+
+
+        def l2_loss(x, y):
+            return ((x - y) ** 2).sum()
+
+
+        def myloss(x, y):
+            return l1_loss(x[:, 0], y[:, 0]) + l2_loss(x[:, 1], y[:, 1])
+
+
+        jitted_myloss = jit_onnx(myloss)
+
+        x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+        y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
+        res = jitted_myloss(x, y)
+        print(to_dot(jitted_myloss.get_onnx()))
     """
     clean_label_reg1 = re.compile("\\\\x\\{[0-9A-F]{1,6}\\}")
     clean_label_reg2 = re.compile("\\\\p\\{[0-9P]{1,6}\\}")
