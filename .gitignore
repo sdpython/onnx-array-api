@@ -6,6 +6,7 @@ coverage.html/*
 .coverage
 dist/*
 build/*
+.eggs/*
 *egg-info/*
 _doc/auto_examples/*
 _doc/examples/plot_*.png

@@ -571,6 +571,7 @@ def onnx_simple_text_plot(
     .. gdot::
         :script: DOT-SECTION
 
+        # onnx_simple_text_plot
         import numpy
         from sklearn.cluster import KMeans
         from mlprodict.onnxrt import OnnxInference

@@ -21,7 +21,7 @@ try:
 except FileNotFoundError:
     requirements = []
 if len(requirements) == 0 or requirements == [""]:
-    requirements = []
+    requirements = ["numpy", "scipy", "onnx"]
 
 long_description = ""
 
@@ -47,8 +47,8 @@ setup(
     packages=packages,
     package_dir=package_dir,
     package_data=package_data,
-    setup_requires=["numpy", "scipty"],
-    install_requires=["numpy", "scipty"],
+    setup_requires=["numpy", "scipy"],
+    install_requires=requirements,
     classifiers=[
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
