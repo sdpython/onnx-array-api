@@ -23,9 +23,13 @@ except FileNotFoundError:
 if len(requirements) == 0 or requirements == [""]:
     requirements = ["numpy", "scipy", "onnx"]
 
-long_description = ""
+try:
+    with open(os.path.join(here, "README.rst"), "r", encoding='utf-8') as f:
+        long_description = "onnx-array-api:" + f.read().split('onnx-array-api:')[1]
+except FileNotFoundError:
+    long_description = ""
 
-version_str = "0.0.1"
+version_str = "0.1.0"
 with open(os.path.join(here, "onnx_array_api/__init__.py"), "r") as f:
     line = [
         _
@@ -43,7 +47,7 @@ setup(
     long_description=long_description,
     author="Xavier Dupré",
     author_email="xavier.dupre@gmail.com",
-    url="https://github.com/sdpython/onnx_array_api",
+    url="https://github.com/sdpython/onnx-array-api",
     packages=packages,
     package_dir=package_dir,
     package_data=package_data,
