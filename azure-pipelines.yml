@@ -31,7 +31,7 @@ jobs:
       ruff .
     displayName: 'Ruff'
   - script: |
-      black --check .
+      black --verbose --check .
     displayName: 'Black'
   - script: |
       python -m pytest -v
@@ -67,12 +67,6 @@ jobs:
     displayName: 'Install Requirements'
   - script: pip install -r requirements-dev.txt
     displayName: 'Install Requirements dev'
-  - script: |
-      ruff .
-    displayName: 'Ruff'
-  - script: |
-      black --check .
-    displayName: 'Black'
   - script: |
       python -m pytest -v
     displayName: 'Runs Unit Tests'
@@ -128,12 +122,6 @@ jobs:
     displayName: 'Install Requirements'
   - script: pip install -r requirements-dev.txt
     displayName: 'Install Requirements dev'
-  - script: |
-      ruff .
-    displayName: 'Ruff'
-  - script: |
-      black --check .
-    displayName: 'Black'
   - script: |
       python -m pytest -v -v
     displayName: 'Runs Unit Tests'
