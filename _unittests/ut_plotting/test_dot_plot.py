@@ -82,7 +82,6 @@ class TestDotPlot(ExtTestCase):
         self.assertIn("Le_LeakyRelu -> Y;", dot)
 
     def test_to_dot_if(self):
-
         opv = TARGET_OPSET
         x1 = numpy.array([[0, 3], [7, 0]], dtype=numpy.float32)
         x2 = numpy.array([[1, 0], [2, 0]], dtype=numpy.float32)
