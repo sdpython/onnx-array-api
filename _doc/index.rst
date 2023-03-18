@@ -23,8 +23,8 @@ onnx-array-api: (Numpy) Array API for ONNX
 .. toctree::
     :maxdepth: 2
 
-    tutorial
-    api
+    tutorial/index
+    api/index
     auto_examples/index
 
 Sources available on

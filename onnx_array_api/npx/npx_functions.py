@@ -27,7 +27,7 @@ def _cstv(x):
 
 @npxapi_inline
 def abs(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.abs`."
+    "See :func:`numpy.abs`."
     return var(x, op="Abs")
 
 
@@ -35,13 +35,13 @@ def abs(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, 
 def absolute(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.abs`."
+    "See :func:`numpy.abs`."
     return var(x, op="Abs")
 
 
 @npxapi_inline
 def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arccos`."
+    "See :func:`numpy.arccos`."
     return var(x, op="Acos")
 
 
@@ -49,7 +49,7 @@ def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numeric
 def arccosh(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arccosh`."
+    "See :func:`numpy.arccosh`."
     return var(x, op="Acosh")
 
 
@@ -60,7 +60,7 @@ def amax(
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.amax`.
+    See :func:`numpy.amax`.
     """
     return var(x, op="ArgMax", axis=axis, keepdims=keepdims)
 
@@ -72,7 +72,7 @@ def amin(
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.amin`.
+    See :func:`numpy.amin`.
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
 
@@ -84,7 +84,7 @@ def arange(
     step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
     dtype=None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arccos`."
+    "See :func:`numpy.arccos`."
     if stop_or_step is None:
         v = var(
             cst(np.array(0, dtype=np.int64)),
@@ -110,7 +110,7 @@ def argmax(
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.amax`.
+    See :func:`numpy.amax`.
     """
     return var(x, op="ArgMax", axis=axis, keepdims=keepdims)
 
@@ -122,14 +122,14 @@ def argmin(
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.argmin`.
+    See :func:`numpy.argmin`.
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
 
 
 @npxapi_inline
 def arcsin(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arcsin`."
+    "See :func:`numpy.arcsin`."
     return var(x, op="Asin")
 
 
@@ -137,13 +137,13 @@ def arcsin(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numeric
 def arcsinh(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arcsinh`."
+    "See :func:`numpy.arcsinh`."
     return var(x, op="Asinh")
 
 
 @npxapi_inline
 def arctan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arctan`."
+    "See :func:`numpy.arctan`."
     return var(x, op="Atan")
 
 
@@ -151,7 +151,7 @@ def arctan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numeric
 def arctanh(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.arctanh`."
+    "See :func:`numpy.arctanh`."
     return var(x, op="Atanh")
 
 
@@ -169,7 +169,7 @@ def cdist(
 
 @npxapi_inline
 def ceil(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.ceil`."
+    "See :func:`numpy.ceil`."
     return var(x, op="Ceil")
 
 
@@ -179,7 +179,7 @@ def clip(
     a_min: TensorType[ElemType.numerics, "T"] = None,
     a_max: TensorType[ElemType.numerics, "T"] = None,
 ):
-    "See :func:`np.clip`."
+    "See :func:`numpy.clip`."
     args = [x]
     if a_min is not None:
         args.append(_cstv(a_min))
@@ -197,7 +197,7 @@ def compress(
     axis: OptParType[int] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.compress`.
+    See :func:`numpy.compress`.
     `np.compress(condition, x)` or `npnx.compress(x, condition)`.
     """
     if axis is None:
@@ -212,8 +212,8 @@ def compute(
     name: ParType[str] = None,
 ) -> TupleType[TensorType[ElemType.numerics, "T"]]:
     """
-    Operator concat, handle :func:`np.vstack` and
-    :func:`np.hstack`.
+    Operator concat, handle :func:`numpy.vstack` and
+    :func:`numpy.hstack`.
     """
     return var(*x, op=proto, name=name)
 
@@ -223,8 +223,8 @@ def concat(
     *x: SequenceType[TensorType[ElemType.numerics, "T"]], axis: ParType[int] = 0
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    Operator concat, handle :func:`np.vstack` and
-    :func:`np.hstack`.
+    Operator concat, handle :func:`numpy.vstack` and
+    :func:`numpy.hstack`.
     """
     if len(x) <= 1:
         raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
@@ -233,13 +233,13 @@ def concat(
 
 @npxapi_inline
 def cos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.cos`."
+    "See :func:`numpy.cos`."
     return var(x, op="Cos")
 
 
 @npxapi_inline
 def cosh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.cosh`."
+    "See :func:`numpy.cosh`."
     return var(x, op="Cosh")
 
 
@@ -248,7 +248,7 @@ def cumsum(
     x: TensorType[ElemType.numerics, "T"],
     axis: Optional[TensorType[ElemType.int64, "I"]] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.cumsum`."
+    "See :func:`numpy.cumsum`."
     if axis is None:
         m1 = cst(np.array([-1], dtype=np.int64))
         flat = var(x, m1, op="Reshape")
@@ -263,7 +263,7 @@ def cumsum(
 
 @npxapi_inline
 def det(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.linalg:det`."
+    "See :func:`numpy.linalg:det`."
     return var(x, op="Det")
 
 
@@ -272,7 +272,7 @@ def dot(
     a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    See :func:`np.dot`
+    See :func:`numpy.dot`
     dot is equivalent to `npx.matmul == np.matmul != np.dot`
     with arrays with more than 3D dimensions.
     """
@@ -283,19 +283,19 @@ def dot(
 def einsum(
     *x: SequenceType[TensorType[ElemType.numerics, "T"]], equation: ParType[str]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.einsum`."
+    "See :func:`numpy.einsum`."
     return var(*x, op="Einsum", equation=equation)
 
 
 @npxapi_inline
 def erf(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :epkg:`scipy:special:erf`."
+    "See :func:`scipy.special.erf`."
     return var(x, op="Erf")
 
 
 @npxapi_inline
 def exp(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.exp`."
+    "See :func:`numpy.exp`."
     return var(x, op="Exp")
 
 
@@ -303,7 +303,7 @@ def exp(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, 
 def expand_dims(
     x: TensorType[ElemType.numerics, "T"], axis: TensorType[ElemType.int64, "I"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.expand_dims`."
+    "See :func:`numpy.expand_dims`."
     if isinstance(axis, int):
         axis = (axis,)
     if isinstance(axis, tuple):
@@ -313,13 +313,13 @@ def expand_dims(
 
 @npxapi_inline
 def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :epkg:`scipy:special:expit`."
+    "See :func:`scipy.special.expit`."
     return var(x, op="Sigmoid")
 
 
 @npxapi_inline
 def floor(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.floor`."
+    "See :func:`numpy.floor`."
     return var(x, op="Floor")
 
 
@@ -327,7 +327,7 @@ def floor(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 def hstack(
     *x: SequenceType[TensorType[ElemType.numerics, "T"]]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.hstack`."
+    "See :func:`numpy.hstack`."
     if len(x) <= 1:
         raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
     return var(*x, op="Concat", axis=-1)
@@ -353,19 +353,19 @@ def identity(n: ParType[int], dtype=None) -> TensorType[ElemType.numerics, "T"]:
 
 @npxapi_inline
 def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T"]:
-    "See :func:`np.isnan`."
+    "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
 
 
 @npxapi_inline
 def log(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.log`."
+    "See :func:`numpy.log`."
     return var(x, op="Log")
 
 
 @npxapi_inline
 def log1p(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.log1p`."
+    "See :func:`numpy.log1p`."
     x1 = var(x, var(cst(np.array([1])), x, op="CastLike"), op="Add")
     return var(x1, op="Log")
 
@@ -374,7 +374,7 @@ def log1p(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 def matmul(
     a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.matmul`."
+    "See :func:`numpy.matmul`."
     return var(a, b, op="MatMul")
 
 
@@ -387,7 +387,7 @@ def pad(
     mode: ParType[str] = "constant",
 ):
     """
-    It does not implement :func:`np.pad` but the ONNX version.
+    It does not implement :func:`numpy.pad` but the ONNX version.
     """
     if constant_value is None:
         if axes is None:
@@ -402,7 +402,7 @@ def pad(
 def reciprocal(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.reciprocal`."
+    "See :func:`numpy.reciprocal`."
     return var(x, op="Reciprocal")
 
 
@@ -414,7 +414,7 @@ def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 
 @npxapi_inline
 def round(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.round`."
+    "See :func:`numpy.round`."
     return var(x, op="Round")
 
 
@@ -422,31 +422,31 @@ def round(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 def sigmoid(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :epkg:`scipy:special:expit`."
+    "See :func:`scipy.special.expit`."
     return var(x, op="Sigmoid")
 
 
 @npxapi_inline
 def sign(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.sign`."
+    "See :func:`numpy.sign`."
     return var(x, op="Sign")
 
 
 @npxapi_inline
 def sin(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.sin`."
+    "See :func:`numpy.sin`."
     return var(x, op="Sin")
 
 
 @npxapi_inline
 def sinh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.sinh`."
+    "See :func:`numpy.sinh`."
     return var(x, op="Sinh")
 
 
 @npxapi_inline
 def sqrt(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.sqrt`."
+    "See :func:`numpy.sqrt`."
     return var(x, op="Sqrt")
 
 
@@ -455,7 +455,7 @@ def squeeze(
     x: TensorType[ElemType.numerics, "T"],
     axis: Optional[TensorType[ElemType.int64, "I"]] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.squeeze`."
+    "See :func:`numpy.squeeze`."
     if axis is None:
         shape = x.shape
         zero = cst(np.array([0], dtype=np.int64))
@@ -471,13 +471,13 @@ def squeeze(
 
 @npxapi_inline
 def tan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.tan`."
+    "See :func:`numpy.tan`."
     return var(x, op="Tan")
 
 
 @npxapi_inline
 def tanh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.tanh`."
+    "See :func:`numpy.tanh`."
     return var(x, op="Tanh")
 
 
@@ -489,7 +489,7 @@ def topk(
     largest: OptParType[int] = 1,
     sorted: OptParType[int] = 1,
 ) -> TupleType[TensorType[ElemType.numerics, "T"], TensorType[ElemType.int64, "I"]]:
-    "See :func:`np.argsort`."
+    "See :func:`numpy.argsort`."
     return make_tuple(2, x, k, op="TopK", axis=axis, largest=largest, sorted=sorted)
 
 
@@ -497,7 +497,7 @@ def topk(
 def transpose(
     x: TensorType[ElemType.numerics, "T"], perm: ParType[Tuple[int, ...]] = (1, 0)
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.transpose`."
+    "See :func:`numpy.transpose`."
     return var(x, op="Transpose", perm=list(perm))
 
 
@@ -505,7 +505,7 @@ def transpose(
 def unsqueeze(
     x: TensorType[ElemType.numerics, "T"], axis: TensorType[ElemType.int64, "I"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.expand_dims`."
+    "See :func:`numpy.expand_dims`."
     if isinstance(axis, int):
         axis = (axis,)
     if isinstance(axis, tuple):
@@ -517,7 +517,7 @@ def unsqueeze(
 def vstack(
     *x: SequenceType[TensorType[ElemType.numerics, "T"]]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.vstack`."
+    "See :func:`numpy.vstack`."
     if len(x) <= 1:
         raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
     return var(*x, op="Concat", axis=0)
@@ -529,5 +529,5 @@ def where(
     x: TensorType[ElemType.numerics, "T"],
     y: TensorType[ElemType.numerics, "T"],
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`np.where`."
+    "See :func:`numpy.where`."
     return var(cond, x, y, op="Where")

@@ -65,8 +65,10 @@ epkg_dictionary = {
     "onnx-array-api": (
         "http://www.xavierdupre.fr/app/" "onnx-array-api/helpsphinx/index.html"
     ),
+    "pyinstrument": "https://github.com/joerick/pyinstrument",
     "python": "https://www.python.org/",
     "scikit-learn": "https://scikit-learn.org/stable/",
+    "scipy": "https://scipy.org/",
     "sphinx-gallery": "https://github.com/sphinx-gallery/sphinx-gallery",
     "torch": "https://pytorch.org/docs/stable/torch.html",
 }

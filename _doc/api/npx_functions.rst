@@ -1,10 +1,7 @@
-.. _l-api-npx:
+.. _l-api-npx-functions:
 
-npx
-===
-
-Functions
-+++++++++
+npx.npx_functions
+=================
 
 .. autofunction:: onnx_array_api.npx.npx_functions.abs
 
@@ -111,102 +108,3 @@ Functions
 .. autofunction:: onnx_array_api.npx.npx_functions.vstack
 
 .. autofunction:: onnx_array_api.npx.npx_functions.where
-
-Var
-+++
-
-.. autoclass:: onnx_array_api.npx.npx_var.Var
-    :members:
-
-Cst, Input
-++++++++++
-
-.. autoclass:: onnx_array_api.npx.npx_var.Cst
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_var.Input
-    :members:
-
-API
-+++
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.var
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.cst
-
-.. autofunction:: onnx_array_api.npx.npx_jit_eager.jit_eager
-
-.. autofunction:: onnx_array_api.npx.npx_jit_eager.jit_onnx
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.make_tuple
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.tuple_var
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.npxapi_inline
-
-.. autofunction:: onnx_array_api.npx.npx_core_api.npxapi_function
-
-JIT, Eager
-++++++++++
-
-.. autoclass:: onnx_array_api.npx.npx_jit_eager.JitEager
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_jit_eager.JitOnnx
-    :members:
-
-Tensors
-+++++++
-
-.. autoclass:: onnx_array_api.npx.npx_tensors.NumpyTensor
-    :members:
-
-Annotations
-+++++++++++
-
-.. autoclass:: onnx_array_api.npx.npx_types.ElemType
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_types.ParType
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_types.OptParType
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_types.TensorType
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_types.SequenceType
-    :members:
-
-.. autoclass:: onnx_array_api.npx.npx_types.TupleType
-    :members:
-
-Shortcuts
-+++++++++
-
-.. autoclass:: onnx_array_api.npx.npx_types.Bool
-
-.. autoclass:: onnx_array_api.npx.npx_types.BFloat16
-
-.. autoclass:: onnx_array_api.npx.npx_types.Float16
-
-.. autoclass:: onnx_array_api.npx.npx_types.Float32
-
-.. autoclass:: onnx_array_api.npx.npx_types.Float64
-
-.. autoclass:: onnx_array_api.npx.npx_types.Int8
-
-.. autoclass:: onnx_array_api.npx.npx_types.Int16
-
-.. autoclass:: onnx_array_api.npx.npx_types.Int32
-
-.. autoclass:: onnx_array_api.npx.npx_types.Int64
-
-.. autoclass:: onnx_array_api.npx.npx_types.UInt8
-
-.. autoclass:: onnx_array_api.npx.npx_types.UInt16
-
-.. autoclass:: onnx_array_api.npx.npx_types.UInt32
-
-.. autoclass:: onnx_array_api.npx.npx_types.UInt64

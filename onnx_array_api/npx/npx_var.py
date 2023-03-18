@@ -852,7 +852,7 @@ class Var(ArrayApi):
         axis: TensorType[ElemType.int64, "I"] = None,
         keepdims: ParType[int] = 0,
     ) -> "Var":
-        "See :func:`np.sum` or any other reduce function."
+        "See :func:`numpy.sum` or any other reduce function."
         var = Var.get_cst_var()[1]
 
         if axis is None:
@@ -868,31 +868,31 @@ class Var(ArrayApi):
     def sum(
         self, axis: TensorType[ElemType.int64, "I"] = None, keepdims: ParType[int] = 0
     ) -> "Var":
-        "See :func:`np.sum`."
+        "See :func:`numpy.sum`."
         return self.reduce_function("ReduceSum", axis=axis, keepdims=keepdims)
 
     def mean(
         self, axis: OptParType[TupleType[int]] = None, keepdims: ParType[int] = 0
     ) -> "Var":
-        "See :func:`np.mean`."
+        "See :func:`numpy.mean`."
         return self.reduce_function("ReduceMean", axis=axis, keepdims=keepdims)
 
     def min(
         self, axis: TensorType[ElemType.int64, "I"] = None, keepdims: ParType[int] = 0
     ) -> "Var":
-        "See :func:`np.min`."
+        "See :func:`numpy.min`."
         return self.reduce_function("ReduceMin", axis=axis, keepdims=keepdims)
 
     def max(
         self, axis: TensorType[ElemType.int64, "I"] = None, keepdims: ParType[int] = 0
     ) -> "Var":
-        "See :func:`np.max`."
+        "See :func:`numpy.max`."
         return self.reduce_function("ReduceMax", axis=axis, keepdims=keepdims)
 
     def prod(
         self, axis: TensorType[ElemType.int64, "I"] = None, keepdims: ParType[int] = 0
     ) -> "Var":
-        "See :func:`np.prod`."
+        "See :func:`numpy.prod`."
         return self.reduce_function("ReduceProd", axis=axis, keepdims=keepdims)
 
     def copy(self) -> "Var":
@@ -905,7 +905,7 @@ class Var(ArrayApi):
 
     def flatten(self) -> "Var":
         """
-        Flattens a matrix (see :epkg:`numpy:ndarray:flatten`).
+        Flattens a matrix (see :meth:`numpy.ndarray.flatten`).
 
         :param axis: only flatten from axis to the end.
         :return: :class:`Var`

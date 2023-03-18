@@ -100,4 +100,12 @@ piv
 # Plots
 # +++++
 
-piv.plot(title="Comparison between numpy and onnxruntime", logx=True, logy=True)
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+piv.plot(
+    title="Comparison between numpy and onnxruntime", logx=True, logy=True, ax=ax[0]
+)
+piv["ort/numpy"] = piv["ort"] / piv["numpy"]
+piv["ort/numpy"].plot(title="Ratio ort/numpy", logx=True, ax=ax[1])
+fig.savefig("plot_onnxruntime.png")

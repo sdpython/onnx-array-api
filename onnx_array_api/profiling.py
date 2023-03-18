@@ -650,48 +650,45 @@ def profile2graph(
     :param fLOG: logging function
     :return: an instance of class @see cl ProfileNode
 
-    .. exref::
-        :title: Hierarchical display for a profiling
+    :epkg:`pyinstrument` has a nice display to show
+    time spent and call stack at the same time. This function
+    tries to replicate that display based on the results produced
+    by module :mod:`cProfile`. Here is an example.
 
-        :epkg:`pyinstrument` has a nice display to show
-        time spent and call stack at the same time. This function
-        tries to replicate that display based on the results produced
-        by module :mod:`cProfile`. Here is an example.
+    .. runpython::
+        :showcode:
 
-        .. runpython::
-            :showcode:
-
-            import time
-            from onnx_array_api.profiling import profile, profile2graph
+        import time
+        from onnx_array_api.profiling import profile, profile2graph
 
 
-            def fct0(t):
-                time.sleep(t)
+        def fct0(t):
+            time.sleep(t)
 
 
-            def fct1(t):
-                time.sleep(t)
+        def fct1(t):
+            time.sleep(t)
 
 
-            def fct2():
-                fct1(0.1)
-                fct1(0.01)
+        def fct2():
+            fct1(0.1)
+            fct1(0.01)
 
 
-            def fct3():
-                fct0(0.2)
-                fct1(0.5)
+        def fct3():
+            fct0(0.2)
+            fct1(0.5)
 
 
-            def fct4():
-                fct2()
-                fct3()
+        def fct4():
+            fct2()
+            fct3()
 
 
-            ps = profile(fct4)[0]
-            root, nodes = profile2graph(ps, clean_text=lambda x: x.split('/')[-1])
-            text = root.to_text()
-            print(text)
+        ps = profile(fct4)[0]
+        root, nodes = profile2graph(ps, clean_text=lambda x: x.split('/')[-1])
+        text = root.to_text()
+        print(text)
     """
     if clean_text is None:
         clean_text = lambda x: x

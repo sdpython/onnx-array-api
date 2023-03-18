@@ -8,3 +8,4 @@ dist/*
 build/*
 *egg-info/*
 _doc/auto_examples/*
+_doc/examples/plot_*.png
