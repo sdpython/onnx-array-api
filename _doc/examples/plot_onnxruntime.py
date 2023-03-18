@@ -97,5 +97,7 @@ piv = df.pivot(index="n", columns="name", values="average")
 piv
 
 ############################
+# Plots
+# +++++
 
-print(piv)
+piv.plot(title="Comparison between numpy and onnxruntime", logx=True, logy=True)

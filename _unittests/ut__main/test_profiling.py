@@ -5,7 +5,6 @@ import os
 import sys
 import time
 import unittest
-import warnings
 from io import StringIO
 from pstats import SortKey
 
