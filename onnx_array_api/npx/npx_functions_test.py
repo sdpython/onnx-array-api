@@ -2,22 +2,10 @@ from typing import Tuple
 
 import numpy as np
 
-from .npx_core_api import (
-    cst,
-    make_tuple,
-    npxapi_function,
-    npxapi_inline,
-    tuple_var,
-    var,
-)
-from .npx_types import (
-    ElemType,
-    OptParType,
-    ParType,
-    SequenceType,
-    TensorType,
-    TupleType,
-)
+from .npx_core_api import (cst, make_tuple, npxapi_function, npxapi_inline,
+                           tuple_var, var)
+from .npx_types import (ElemType, OptParType, ParType, SequenceType,
+                        TensorType, TupleType)
 
 
 @npxapi_function
@@ -112,7 +100,7 @@ def topk(
     k: TensorType[ElemType.int64, "I", (1,)],
     axis: OptParType[int] = -1,
     largest: OptParType[int] = 1,
-    sorted: OptParType[int] = 1,  # pylint: disable=redefined-builtin
+    sorted: OptParType[int] = 1,
 ) -> TupleType[TensorType[ElemType.numerics, "T"], TensorType[ElemType.int64, "I"]]:
     "See :func:`numpy.argsort`."
     return make_tuple(2, x, k, op="TopK", axis=axis, largest=largest, sorted=sorted)

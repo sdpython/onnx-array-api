@@ -2,12 +2,14 @@ black
 coverage
 flake8
 furo
+isort
 joblib
 matplotlib
 onnxruntime
 pandas
 pyquickhelper
 pytest
+ruff
 scikit-learn
 sphinx
 sphinx-gallery

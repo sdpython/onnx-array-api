@@ -106,7 +106,7 @@ is available with class `OrtTensor
     from onnxruntime.capi._pybind_state import OrtDevice as C_OrtDevice
     from onnxruntime.capi._pybind_state import OrtMemType
     from onnxruntime.capi._pybind_state import (
-        OrtValue as C_OrtValue,  # pylint: disable=E0611
+        OrtValue as C_OrtValue,
     )
     from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 

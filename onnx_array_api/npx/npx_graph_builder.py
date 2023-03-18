@@ -1,56 +1,26 @@
-# pylint: disable=too-many-branches,protected-access,too-many-statements
-
 from inspect import Parameter, signature
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-
-from onnx import (  # pylint: disable=E0611
-    IR_VERSION,
-    AttributeProto,
-    FunctionProto,
-    ModelProto,
-    NodeProto,
-    TypeProto,
-    ValueInfoProto,
-)
+from onnx import (IR_VERSION, AttributeProto, FunctionProto, ModelProto,
+                  NodeProto, TypeProto, ValueInfoProto)
 from onnx.checker import C as onnxC
 from onnx.checker import check_model, check_node, check_value_info
 from onnx.defs import onnx_opset_version
-from onnx.helper import (
-    OP_SET_ID_VERSION_MAP,
-    make_attribute,
-    make_function,
-    make_graph,
-    make_model,
-    make_node,
-    make_opsetid,
-    make_tensor_value_info,
-)
+from onnx.helper import (OP_SET_ID_VERSION_MAP, make_attribute, make_function,
+                         make_graph, make_model, make_node, make_opsetid,
+                         make_tensor_value_info)
 from onnx.numpy_helper import from_array
-from onnx.onnx_cpp2py_export.checker import (  # pylint: disable=E0611,E0401
-    ValidationError,
-)
-from onnx.onnx_cpp2py_export.shape_inference import (  # pylint: disable=E0611,E0401
-    InferenceError,
-)
+from onnx.onnx_cpp2py_export.checker import ValidationError
+from onnx.onnx_cpp2py_export.shape_inference import InferenceError
 from onnx.shape_inference import infer_shapes
+
 from .npx_constants import _OPSET_TO_IR_VERSION, FUNCTION_DOMAIN, ONNX_DOMAIN
 from .npx_function_implementation import get_function_implementation
-from .npx_helper import (
-    iter_nodes,
-    onnx_convert_model_for_opsets,
-    onnx_model_to_function,
-    rename_in_onnx_graph,
-)
-from .npx_types import (
-    ElemType,
-    OptParType,
-    ParType,
-    SequenceType,
-    TensorType,
-    TupleType,
-)
+from .npx_helper import (iter_nodes, onnx_convert_model_for_opsets,
+                         onnx_model_to_function, rename_in_onnx_graph)
+from .npx_types import (ElemType, OptParType, ParType, SequenceType,
+                        TensorType, TupleType)
 from .npx_var import Cst, Input, ManyIdentity, Par, Var
 
 
@@ -181,12 +151,12 @@ class _GraphBuilder:
         self.functions_[key] = values
 
     def _reset(self):
-        self.inputs_ = []  # pylint: disable=attribute-defined-outside-init
-        self.outputs_ = []  # pylint: disable=attribute-defined-outside-init
-        self.nodes_ = []  # pylint: disable=attribute-defined-outside-init
-        self.functions_ = {}  # pylint: disable=attribute-defined-outside-init
-        self.attributes_ = []  # pylint: disable=attribute-defined-outside-init
-        self.onnx_names_ = {}  # pylint: disable=attribute-defined-outside-init
+        self.inputs_ = []
+        self.outputs_ = []
+        self.nodes_ = []
+        self.functions_ = {}
+        self.attributes_ = []
+        self.onnx_names_ = {}
 
     def make_node(
         self,
@@ -345,7 +315,8 @@ class _GraphBuilder:
             info = value_info_proto
         else:
             # Every runtime must allow inputs of different shapes but
-            # with fixed rank. This can be changed here and in methods `make_key`.
+            # with fixed rank. This can be changed here and in methods
+            # `make_key`.
             shape = [None for _ in tensor_type.shape]
             info = make_tensor_value_info(name, tensor_type.dtypes[0].dtype, shape)
             # check_value_info fails if the shape is left undefined
@@ -597,9 +568,7 @@ class _GraphBuilder:
                         if new_g is None:
                             atts.append(att)
                             continue
-                        att = make_attribute(
-                            att.name, new_g
-                        )  # pylint: disable=undefined-variable
+                        att = make_attribute(att.name, new_g)
                     atts.append(att)
 
                 self.make_node(
@@ -840,9 +809,9 @@ class _GraphBuilder:
         # the output is the last variable
         last_vars = output_vars or [self._vars[-1]]
         possible_outputs = []
-        for var in last_vars:  # pylint: disable=consider-using-enumerate
+        for var in last_vars:
             if isinstance(var, ManyIdentity):
-                for i in range(len(var)):  # pylint: disable=C0200
+                for i in range(len(var)):
                     possible_outputs.append((var[i], var.input_indices[i], None))
             else:
                 possible_outputs.extend(
@@ -876,13 +845,13 @@ class _GraphBuilder:
                 if dt is None and not self.as_function:
                     if isinstance(var, ManyIdentity):
                         raise RuntimeError("Cannot add multiple variables.")
-                    if isinstance(var, Var):  # pylint: disable=consider-using-get
+                    if isinstance(var, Var):
                         k = id(var), index
-                        if k in map_types:  # pylint: disable=R1715
+                        if k in map_types:
                             dt = map_types[k]
                     else:
                         k = id(var[0]), var[1]
-                        if k in map_types:  # pylint: disable=R1715
+                        if k in map_types:
                             dt = map_types[k]
                 new_possible_outputs.append((var, index, dt))
             possible_outputs = new_possible_outputs

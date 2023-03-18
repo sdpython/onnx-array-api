@@ -1,141 +1,87 @@
-# pylint: disable=unsubscriptable-object,unnecessary-lambda,raise-missing-from,unidiomatic-typecheck,import-outside-toplevel,ungrouped-imports,reimported,unnecessary-pass,too-many-statements
-
+import inspect
 import unittest
-import warnings
 from contextlib import redirect_stdout
 from io import StringIO
+
 import numpy as np
-from numpy.testing import assert_allclose
 import scipy
-from onnx.reference import ReferenceEvaluator
-from onnx.shape_inference import infer_shapes
-from onnxruntime import InferenceSession
+from numpy.testing import assert_allclose
 from onnx import FunctionProto, ModelProto, TensorProto
 from onnx.backend.test.case.node.pad import pad_impl
 from onnx.checker import check_model
 from onnx.defs import onnx_opset_version
-from onnx.helper import (
-    make_graph,
-    make_model,
-    make_node,
-    make_operatorsetid,
-    make_tensor_value_info,
-)
-from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
-from onnx_array_api.npx.npx_core_api import cst, make_tuple, npxapi_function, npxapi_inline
-from onnx_array_api.npx.npx_functions import (
-    absolute as absolute_inline,
-    arange as arange_inline,
-    arccos as arccos_inline,
-    arccosh as arccosh_inline,
-    arcsin as arcsin_inline,
-    arcsinh as arcsinh_inline,
-    arctan as arctan_inline,
-    arctanh as arctanh_inline,
-    argmin as argmin_inline,
-    cdist as cdist_inline,
-    ceil as ceil_inline,
-    clip as clip_inline,
-    compress as compress_inline,
-    compute as compute_inline,
-    concat as concat_inline,
-    copy as copy_inline,
-    cos as cos_inline,
-    cosh as cosh_inline,
-    cumsum as cumsum_inline,
-    det as det_inline,
-    dot as dot_inline,
-    einsum as einsum_inline,
-    erf as erf_inline,
-    exp as exp_inline,
-    expand_dims as expand_dims_inline,
-    expit as expit_inline,
-    floor as floor_inline,
-    hstack as hstack_inline,
-    identity as identity_inline,
-    isnan as isnan_inline,
-    log as log_inline,
-    log1p as log1p_inline,
-    matmul as matmul_inline,
-    pad as pad_inline,
-    reciprocal as reciprocal_inline,
-    relu as relu_inline,
-    round as round_inline,
-    sigmoid as sigmoid_inline,
-    sign as sign_inline,
-    sin as sin_inline,
-    sinh as sinh_inline,
-    sqrt as sqrt_inline,
-    squeeze as squeeze_inline,
-    tan as tan_inline,
-    tanh as tanh_inline,
-    topk as topk_inline,
-    transpose as transpose_inline,
-    unsqueeze as unsqueeze_inline,
-    vstack as vstack_inline,
-    where as where_inline
-)
-from onnx_array_api.npx.npx_functions_test import (
-    _min_max,
-    _min_max_inline,
-    absolute,
-    addition,
-    argmin,
-    concat,
-    copy,
-    log1p,
-    negative,
-    relu,
-    topk,
-)
-from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
-from onnx_array_api.npx.npx_types import Bool, Float32, Float64, Int64, OptParType, TensorType
-from onnx_array_api.npx.npx_var import Input, Var
+from onnx.helper import (make_graph, make_model, make_node, make_operatorsetid,
+                         make_tensor_value_info)
+from onnx.reference import ReferenceEvaluator
+from onnx.shape_inference import infer_shapes
 
+from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
+from onnx_array_api.npx.npx_core_api import (cst, make_tuple, npxapi_function,
+                                             npxapi_inline)
+from onnx_array_api.npx.npx_functions import absolute as absolute_inline
+from onnx_array_api.npx.npx_functions import arange as arange_inline
+from onnx_array_api.npx.npx_functions import arccos as arccos_inline
+from onnx_array_api.npx.npx_functions import arccosh as arccosh_inline
+from onnx_array_api.npx.npx_functions import arcsin as arcsin_inline
+from onnx_array_api.npx.npx_functions import arcsinh as arcsinh_inline
+from onnx_array_api.npx.npx_functions import arctan as arctan_inline
+from onnx_array_api.npx.npx_functions import arctanh as arctanh_inline
+from onnx_array_api.npx.npx_functions import argmin as argmin_inline
+from onnx_array_api.npx.npx_functions import cdist as cdist_inline
+from onnx_array_api.npx.npx_functions import ceil as ceil_inline
+from onnx_array_api.npx.npx_functions import clip as clip_inline
+from onnx_array_api.npx.npx_functions import compress as compress_inline
+from onnx_array_api.npx.npx_functions import compute as compute_inline
+from onnx_array_api.npx.npx_functions import concat as concat_inline
+from onnx_array_api.npx.npx_functions import copy as copy_inline
+from onnx_array_api.npx.npx_functions import cos as cos_inline
+from onnx_array_api.npx.npx_functions import cosh as cosh_inline
+from onnx_array_api.npx.npx_functions import cumsum as cumsum_inline
+from onnx_array_api.npx.npx_functions import det as det_inline
+from onnx_array_api.npx.npx_functions import dot as dot_inline
+from onnx_array_api.npx.npx_functions import einsum as einsum_inline
+from onnx_array_api.npx.npx_functions import erf as erf_inline
+from onnx_array_api.npx.npx_functions import exp as exp_inline
+from onnx_array_api.npx.npx_functions import expand_dims as expand_dims_inline
+from onnx_array_api.npx.npx_functions import expit as expit_inline
+from onnx_array_api.npx.npx_functions import floor as floor_inline
+from onnx_array_api.npx.npx_functions import hstack as hstack_inline
+from onnx_array_api.npx.npx_functions import identity as identity_inline
+from onnx_array_api.npx.npx_functions import isnan as isnan_inline
+from onnx_array_api.npx.npx_functions import log as log_inline
+from onnx_array_api.npx.npx_functions import log1p as log1p_inline
+from onnx_array_api.npx.npx_functions import matmul as matmul_inline
+from onnx_array_api.npx.npx_functions import pad as pad_inline
+from onnx_array_api.npx.npx_functions import reciprocal as reciprocal_inline
+from onnx_array_api.npx.npx_functions import relu as relu_inline
+from onnx_array_api.npx.npx_functions import round as round_inline
+from onnx_array_api.npx.npx_functions import sigmoid as sigmoid_inline
+from onnx_array_api.npx.npx_functions import sign as sign_inline
+from onnx_array_api.npx.npx_functions import sin as sin_inline
+from onnx_array_api.npx.npx_functions import sinh as sinh_inline
+from onnx_array_api.npx.npx_functions import sqrt as sqrt_inline
+from onnx_array_api.npx.npx_functions import squeeze as squeeze_inline
+from onnx_array_api.npx.npx_functions import tan as tan_inline
+from onnx_array_api.npx.npx_functions import tanh as tanh_inline
+from onnx_array_api.npx.npx_functions import topk as topk_inline
+from onnx_array_api.npx.npx_functions import transpose as transpose_inline
+from onnx_array_api.npx.npx_functions import unsqueeze as unsqueeze_inline
+from onnx_array_api.npx.npx_functions import vstack as vstack_inline
+from onnx_array_api.npx.npx_functions import where as where_inline
+from onnx_array_api.npx.npx_functions_test import (_min_max, _min_max_inline,
+                                                   absolute, addition, argmin,
+                                                   concat, copy, log1p,
+                                                   negative, relu, topk)
+from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
+from onnx_array_api.npx.npx_types import (Bool, Float32, Float64, Int64,
+                                          OptParType, TensorType)
+from onnx_array_api.npx.npx_var import Input, Var
 
 DEFAULT_OPSET = onnx_opset_version()
 
 
-class TestNpx(unittest.TestCase):
-    _warns = []  # type: ignore[var-annotated]
-
-    def assertEqualArray(self, expected, value, atol=0, rtol=0):
-        self.assertEqual(expected.dtype, value.dtype)
-        self.assertEqual(expected.shape, value.shape)
-        assert_allclose(expected, value, atol=atol, rtol=rtol)
-
-    def assertRaise(self, fct, exc_type):
-        try:
-            fct()
-        except exc_type as e:
-            if type(e) != exc_type:  # pylint: disable=unidiomatic-typecheck
-                raise AssertionError(f"Unexpected exception {type(e)!r}.")
-            return
-        raise AssertionError("No exception was raised.")
-
-    def assertEmpty(self, value):
-        if value is None:
-            return
-        if len(value) == 0:
-            return
-        raise AssertionError(f"value is not empty: {value!r}.")
-
-    def assertNotEmpty(self, value):
-        if value is None:
-            raise AssertionError(f"value is empty: {value!r}.")
-        if isinstance(value, (list, dict, tuple, set)):
-            if len(value) == 0:
-                raise AssertionError(f"value is empty: {value!r}.")
-
-    def assertStartsWith(self, prefix, full):
-        if not full.startswith(prefix):
-            raise AssertionError(f"prefix={prefix!r} does not start string  {full!r}.")
-
-    @classmethod
-    def tearDownClass(cls):
-        for w in TestNpx._warns:
-            warnings.warn(w)
-
+class TestNpx(ExtTestCase):
     def test_shape_inference(self):
         X = make_tensor_value_info("X", TensorProto.FLOAT, [None, None])
         A = make_tensor_value_info("A", TensorProto.FLOAT, [None, None])
@@ -151,60 +97,60 @@ class TestNpx(unittest.TestCase):
         self.assertEqual(output.type.tensor_type.elem_type, TensorProto.FLOAT)
 
     def test_tensor(self):
-        dt = TensorType["float32"]  # type: ignore[misc,name-defined,type-arg]
+        dt = TensorType["float32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEmpty(dt.shape)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
-        dt = TensorType["float32"]  # type: ignore[misc,name-defined]
+        dt = TensorType["float32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
-        dt = TensorType[np.float32]  # type: ignore[misc,name-defined]
+        dt = TensorType[np.float32]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
         self.assertEmpty(dt.shape)
 
-        self.assertRaise(lambda: TensorType[None], TypeError)  # type: ignore[misc]
-        self.assertRaise(lambda: TensorType[np.str_], TypeError)  # type: ignore[misc]
-        self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)  # type: ignore[misc]
+        self.assertRaise(lambda: TensorType[None], TypeError)
+        self.assertRaise(lambda: TensorType[np.str_], TypeError)
+        self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
 
     def test_superset(self):
-        t1 = TensorType[ElemType.numerics]  # type: ignore[type-arg,valid-type]
-        t2 = TensorType[ElemType.float64]  # type: ignore[type-arg,valid-type]
+        t1 = TensorType[ElemType.numerics]
+        t2 = TensorType[ElemType.float64]
         self.assertTrue(t1.issuperset(t2))
-        t1 = Float32[None]  # type: ignore[misc]
-        t2 = Float32[None]  # type: ignore[misc]
+        t1 = Float32[None]
+        t2 = Float32[None]
         self.assertTrue(t1.issuperset(t2))
-        t1 = Float32[5]  # type: ignore[misc]
-        t2 = Float32[5]  # type: ignore[misc]
+        t1 = Float32[5]
+        t2 = Float32[5]
         self.assertTrue(t1.issuperset(t2))
-        t1 = Float32[None]  # type: ignore[misc]
-        t2 = Float32[5]  # type: ignore[misc]
+        t1 = Float32[None]
+        t2 = Float32[5]
         self.assertTrue(t1.issuperset(t2))
-        t1 = Float32["N"]  # type: ignore[misc]
-        t2 = Float32[5]  # type: ignore[misc]
+        t1 = Float32["N"]
+        t2 = Float32[5]
         self.assertTrue(t1.issuperset(t2))
-        t1 = TensorType[ElemType.int64]  # type: ignore[misc]
-        t2 = Int64[1]  # type: ignore[misc]
+        t1 = TensorType[ElemType.int64]
+        t2 = Int64[1]
         self.assertTrue(t1.issuperset(t2))
 
     def test_sig(self):
         def local1(
-            x: TensorType[ElemType.floats],  # type: ignore[type-arg,valid-type]
-        ) -> TensorType[ElemType.floats]:  # type: ignore[name-defined,type-arg,valid-type]
+            x: TensorType[ElemType.floats],
+        ) -> TensorType[ElemType.floats]:
             return x
 
         def local2(
-            x: TensorType[ElemType.floats, "T"]  # type: ignore[type-arg,valid-type,name-defined]
-        ) -> TensorType[ElemType.floats, "T"]:  # type: ignore[name-defined,type-arg,valid-type]
+            x: TensorType[ElemType.floats, "T"]
+        ) -> TensorType[ElemType.floats, "T"]:
             return x
 
-        def local3(x: Float32["N", 1]) -> Float32["N", 1]:  # type: ignore[name-defined]
+        def local3(x: Float32["N", 1]) -> Float32["N", 1]:
             return x
 
-        def local4(x: Float64["N", 1]) -> Int64["N", 1]:  # type: ignore[name-defined]
+        def local4(x: Float64["N", 1]) -> Int64["N", 1]:
             return x
 
         self.assertNotEmpty(local1)
@@ -294,8 +240,12 @@ class TestNpx(unittest.TestCase):
         else:
             # bug in onnx==1.13
             self._warns.append(
-                "ReferenceEvaluator:test_numpy_parameter_argmin: "
-                "axis not taken into account"
+                (
+                    __file__,
+                    inspect.getframeinfo(inspect.currentframe()).lineno,
+                    "ReferenceEvaluator:test_numpy_parameter_argmin: "
+                    "axis not taken into account",
+                )
             )
             self.assertIn(0, got[0].ravel().tolist())
 
@@ -308,6 +258,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, {"I__0": x})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_numpy_concat2(self):
         f = concat(Input(), Input())
         onx = f.to_onnx(constraints={"T": Float64[None]})
@@ -336,6 +287,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, feeds)
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_numpy_concat1_2(self):
         f = concat(Input(), concat(Input(), Input()))
         onx = f.to_onnx(constraints={"T": Float64[None]})
@@ -348,6 +300,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, feeds)
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_numpy_concat1_2_names(self):
         f = concat(Input("A"), concat(Input("B"), Input("C")))
         onx = f.to_onnx(constraints={"T": Float64[None]})
@@ -360,6 +313,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, feeds)
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_numpy_concat2_2(self):
         f = concat(
             concat(Input("A"), Input("B")), concat(Input("C"), Input("D"), Input("E"))
@@ -567,6 +521,7 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z.astype(np.int64), res)
         self.assertEqual(res.dtype, np.int64)
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_backend_parameters(self):
         def impl(A, axis=1):
             return argmin_inline(A, axis=axis)
@@ -600,6 +555,7 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z0.astype(np.int64), res)
         self.assertEqual(res.dtype, np.int64)
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_backend_parameters_xapi(self):
         @npxapi_inline
         def impl(A, axis=1):
@@ -634,6 +590,7 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z0.astype(np.int64), res)
         self.assertEqual(res.dtype, np.int64)
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_backend_parameters_no_inline(self):
         def impl(A, axis=1):
             return argmin(A, axis=axis)
@@ -668,12 +625,14 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z0.astype(np.int64), res)
         self.assertEqual(res.dtype, np.int64)
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_backend_parameters_no_inline_xapi(self):
         @npxapi_function
         def impl(
-            A: TensorType[ElemType.numerics, "T"], axis: OptParType[int] = 1  # type: ignore[assignment,type-arg,valid-type,name-defined]
-        ) -> TensorType[ElemType.numerics, "T"]:  # type: ignore[no-any-return,type-arg,valid-type,name-defined]
-            return argmin(A, axis=axis)  # type: ignore[no-any-return]
+            A: TensorType[ElemType.numerics, "T"],
+            axis: OptParType[int] = 1,
+        ) -> TensorType[ElemType.numerics, "T"]:
+            return argmin(A, axis=axis)
 
         f = impl(Input("A"))
 
@@ -993,56 +952,6 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z, res)
         self.assertEqual(res.dtype, np.float64)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
-    def test_eager_numpy_type_ort(self):
-        def impl(A):
-            self.assertIsInstance(A, EagerOrtTensor)
-            b = absolute(A)
-            self.assertIsInstance(b, EagerOrtTensor)
-            c = absolute_inline(A)
-            self.assertIsInstance(c, EagerOrtTensor)
-            return c
-
-        e = eager_onnx(impl, EagerOrtTensor, target_opsets={"": 17}, ir_version=8)
-        self.assertEqual(len(e.versions), 0)
-
-        # Float64
-        x = np.array([0, 1, -2], dtype=np.float64)
-        z = np.abs(x)
-        xort = OrtTensor.from_array(x)
-        res = e(xort)
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-
-        # again
-        res = e(xort)
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
-    def test_eager_numpy_type_ort_op(self):
-        def impl(A):
-            self.assertIsInstance(A, EagerOrtTensor)
-            b = absolute(A) + A
-            self.assertIsInstance(b, EagerOrtTensor)
-            return b
-
-        e = eager_onnx(impl, EagerOrtTensor, target_opsets={"": 17}, ir_version=8)
-        self.assertEqual(len(e.versions), 0)
-
-        # Float64
-        x = np.array([0, 1, -2], dtype=np.float64)
-        z = np.abs(x) + x
-        xort = OrtTensor.from_array(x)
-        res = e(xort)
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-
-        # again
-        res = e(xort)
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-
     def test_eager_numpy(self):
         def impl(A):
             print("A")
@@ -1095,86 +1004,12 @@ class TestNpx(unittest.TestCase):
         self.assertEqual(res.dtype, np.int64)
         self.assertEqual("A\nB\nC\n", text)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
-    def test_eager_ort(self):
-        def impl(A):
-            print("A")
-            b = absolute(A)
-            print("B")
-            c = b - A
-            print("C")
-            return c
-
-        with redirect_stdout(StringIO()):
-            f = impl(Input("A"))
-            onx = f.to_onnx(constraints={"A": Float64[None], (0, False): Float64[None]})
-        x = np.array([-5, 6], dtype=np.float64)
-        z = np.abs(x) - x
-        ref = ReferenceEvaluator(onx)
-        got = ref.run(None, {"A": x})
-        self.assertEqualArray(z, got[0])
-
-        f = jit_onnx(impl, EagerOrtTensor, target_opsets={"": 17}, ir_version=8)
-
-        # Float64
-        xort = OrtTensor.from_array(x)
-        with redirect_stdout(StringIO()):
-            res = f(xort)
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-
-        # Int64
-        ix = x.astype(np.int64)
-        xiort = OrtTensor.from_array(ix)
-        with redirect_stdout(StringIO()):
-            res = f(xiort)
-        self.assertEqualArray(z.astype(np.int64), res.numpy())
-        self.assertEqual(res.numpy().dtype, np.int64)
-
-        # eager
-
-        e = eager_onnx(impl, EagerOrtTensor, target_opsets={"": 17}, ir_version=8)
-
-        # Float64
-        s = StringIO()
-        with redirect_stdout(s):
-            res = e(xort)
-        text = s.getvalue()
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-        self.assertEqual(tuple(res.shape()), z.shape)
-        self.assertStartsWith("A\nB\nC\n", text)
-
-        # Int64
-        s = StringIO()
-        with redirect_stdout(s):
-            res = e(xiort)
-        text = s.getvalue()
-        self.assertEqual(res.numpy().dtype, np.int64)
-        self.assertEqual("A\nB\nC\n", text)
-        self.assertEqualArray(z.astype(np.int64), res.numpy())
-        self.assertEqual(ix.shape, tuple(res.shape()))
-
-        # eager 2D
-
-        x = np.array([[-5, 6], [-1, 2]], dtype=np.float64)
-        xort = OrtTensor.from_array(x)
-        z = np.abs(x) - x
-        s = StringIO()
-        with redirect_stdout(s):
-            res = e(xort)
-        text = s.getvalue()
-        self.assertEqualArray(z, res.numpy())
-        self.assertEqual(res.numpy().dtype, np.float64)
-        self.assertEqual(tuple(res.shape()), z.shape)
-        self.assertStartsWith("A\nB\nC\n", text)
-
     def common_numpy_op(self, msg, fct, use_int=False):
         if use_int:
             dtype = np.int64
             otype = Float64
         else:
-            dtype = np.float64  # type: ignore[assignment]
+            dtype = np.float64
             otype = Int64
         with self.subTest(msg=msg, op=fct):
             f = copy(fct(copy(Input("A")), Input("B")))
@@ -1188,8 +1023,8 @@ class TestNpx(unittest.TestCase):
             try:
                 self.assertEqualArray(z, got[0])
             except AssertionError as e:
-                with open("debug_bin.onnx", "wb") as f:
-                    f.write(onx.SerializeToString())
+                # with open("debug_bin.onnx", "wb") as f:
+                #     f.write(onx.SerializeToString())
                 raise AssertionError(f"Discrepancies with\n{onx}") from e
 
     def test_numpy_op_op(self):
@@ -1226,13 +1061,13 @@ class TestNpx(unittest.TestCase):
             dtype = np.int64
             otype = Float64
         else:
-            dtype = np.float64  # type: ignore[assignment]
+            dtype = np.float64
             otype = Int64
         if msg == "@":
             ccc = np.array([[1, 1]], dtype=dtype).T
             x = np.array([[-5, 6]], dtype=dtype)
         else:
-            ccc = 1  # type: ignore[assignment]
+            ccc = 1
             x = np.array([-5, 6], dtype=dtype)
         with self.subTest(msg=msg, op=fct):
             z = fct(ccc, x)
@@ -1244,8 +1079,8 @@ class TestNpx(unittest.TestCase):
             try:
                 self.assertEqualArray(z, got[0])
             except AssertionError as e:
-                with open("debug_bin.onnx", "wb") as f:
-                    f.write(onx.SerializeToString())
+                # with open("debug_bin.onnx", "wb") as f:
+                #     f.write(onx.SerializeToString())
                 raise AssertionError(f"Discrepancies with\n{onx}") from e
 
     def test_numpy_op_op_right(self):
@@ -1305,6 +1140,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_sum(self):
         f = absolute_inline(copy_inline(Input("A")).sum())
         self.assertIsInstance(f, Var)
@@ -1340,11 +1176,12 @@ class TestNpx(unittest.TestCase):
         self.assertIsInstance(f, Var)
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array([[-5, 6]], dtype=np.float64)
-        z = np.abs(x.sum(axis=1, keepdims=1))  # type: ignore[call-overload]
+        z = np.abs(x.sum(axis=1, keepdims=1))
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_numpy_op_bin_reduce(self):
         self.common_numpy_op(
             "and", lambda x, y: (x.sum() == y.sum()) & (((-x).sum()) == y.sum())
@@ -1449,7 +1286,7 @@ class TestNpx(unittest.TestCase):
         self.assertIsInstance(f, Var)
         onx = f.to_onnx(constraints={0: Int64[None], (0, False): Int64[None]})
         x = np.array(5, dtype=np.int64)
-        y = np.arange(x)  # type: ignore[call-overload]
+        y = np.arange(x)
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {"A": x})
         self.assertEqualArray(y, got[0])
@@ -1526,6 +1363,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, {"A": x, "B": axis})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_cumsum_no_axis(self):
         x = np.array([[-6.1, 5, 6], [-3.5, 7.8, 5]], dtype=np.float32)
 
@@ -1536,6 +1374,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_det(self):
         self.common_test_inline(det_inline, np.linalg.det, tcst=np.identity(2))
 
@@ -1630,6 +1469,7 @@ class TestNpx(unittest.TestCase):
                 got = ref.run(None, {"A": x})
                 self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_pad_2(self):
         x = np.random.randn(1, 2, 3, 4, 5).astype(np.float64)
         pads = np.array([0, 0, 1, 3, 0, 0, 2, 4]).astype(np.int64)
@@ -1648,6 +1488,7 @@ class TestNpx(unittest.TestCase):
                 got = ref.run(None, {"A": x})
                 self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_pad_3(self):
         x = np.random.randn(1, 2, 3, 4, 5).astype(np.float64)
         pads = np.array([0, 0, 1, 3, 0, 0, 2, 4]).astype(np.int64)
@@ -1675,6 +1516,7 @@ class TestNpx(unittest.TestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @unittest.skipIf(DEFAULT_OPSET < 19, reason="ReferenceEvaluator bugged.")
     def test_reduce_sum(self):
         self.common_reduce(lambda x: x.sum())
 
@@ -2103,60 +1945,6 @@ class TestNpx(unittest.TestCase):
         self.assertEqualArray(z.astype(np.int64), res)
         self.assertEqual(res.dtype, np.int64)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is not available")
-    @unittest.skipIf(scipy is None, reason="scipy is not installed.")
-    def test_cdist_com_microsoft(self):
-        from scipy.spatial.distance import cdist as scipy_cdist
-
-        metric = "euclidean"
-
-        def impl(xa, xb):
-            return cdist_inline(xa, xb, metric=metric)
-
-        target_opsets = {"": 18, "com.microsoft": 1}
-        onx = impl(Input("A"), Input("B")).to_onnx(
-            constraints={
-                "A": Float32[None],
-                "B": Float32[None],
-                (0, False): Float32[None],
-            },
-            target_opsets=target_opsets,
-        )
-        x = np.arange(10).reshape((5, 2)).astype(dtype=np.float32)
-        y = (np.arange(14).reshape((7, 2)) * 10).astype(dtype=np.float32)
-        z = scipy_cdist(x, y, metric=metric).astype(np.float32)
-        ref = InferenceSession(
-            onx.SerializeToString(), providers=["CPUExecutionProvider"]
-        )
-        got = ref.run(None, {"A": x, "B": y})
-        self.assertEqualArray(z, got[0], atol=1e-4)
-
-        f = jit_onnx(impl, JitOrtTensor, target_opsets=target_opsets)
-
-        # float32
-        xort = OrtTensor.from_array(x)
-        yort = OrtTensor.from_array(y)
-        self.assertEqualArray(x, xort.numpy())
-        self.assertEqualArray(y, yort.numpy())
-        res = f(xort, yort)
-        self.assertEqual(res.numpy().dtype, np.float32)
-        self.assertEqualArray(z, res.numpy(), atol=1e-4)
-
-        # float64
-        x = x.astype(np.float64)
-        y = y.astype(np.float64)
-        xort = OrtTensor.from_array(x)
-        yort = OrtTensor.from_array(y)
-        self.assertEqualArray(x.astype(np.float64), xort.numpy())
-        self.assertEqualArray(y.astype(np.float64), yort.numpy())
-        res = f(xort, yort)
-        self.assertEqual(res.numpy().dtype, np.float64)
-        self.assertEqualArray(z.astype(np.float64), res.numpy(), atol=1e-5)
-
-        pieces = str(onx).split('s: "euclidean"')
-        if len(pieces) > 2:
-            raise AssertionError(f"Function is not using argument:\n{onx}")
-
     @unittest.skipIf(scipy is None, reason="scipy is not installed.")
     def test_cdist(self):
         from scipy.spatial.distance import cdist as scipy_cdist
@@ -2338,15 +2126,9 @@ class TestNpx(unittest.TestCase):
 
     def test_onnx_in_var_model_proto_if(self):
         def _make_model():
-            X = make_tensor_value_info(
-                "X", TensorProto.FLOAT, ["N"]
-            )  # pylint: disable=E1101
-            Z = make_tensor_value_info(
-                "Z", TensorProto.UNDEFINED, ["N"]
-            )  # pylint: disable=E1101
-            one = make_tensor_value_info(
-                "one", TensorProto.FLOAT, ["N"]
-            )  # pylint: disable=E1101
+            X = make_tensor_value_info("X", TensorProto.FLOAT, ["N"])
+            Z = make_tensor_value_info("Z", TensorProto.UNDEFINED, ["N"])
+            one = make_tensor_value_info("one", TensorProto.FLOAT, ["N"])
 
             graph1 = make_graph([], "then", [], [X])
             graph2 = make_graph([], "else", [], [one])

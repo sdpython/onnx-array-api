@@ -1,0 +1,24 @@
+[tool.ruff]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".eggs",
+    ".git",
+    "build",
+    "dist",
+]
+
+# Same as Black.
+line-length = 88
+
+[tool.ruff.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.ruff.per-file-ignores]
+"onnx_array_api/npx/__init__.py" = ["F401", "F403"]
+"onnx_array_api/npx/npx_functions.py" = ["F821"]
+"onnx_array_api/npx/npx_functions_test.py" = ["F821"]
+"onnx_array_api/npx/npx_var.py" = ["F821"]
+"_unittests/ut_npx/test_npx.py" = ["F821"]
+

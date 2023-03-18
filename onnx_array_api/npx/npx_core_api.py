@@ -1,9 +1,9 @@
-# pylint: disable=too-many-statements,too-many-branches,import-outside-toplevel
-
 from inspect import _empty, signature
 from typing import Any, Callable, Dict, Sequence, Union
+
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto
+
 from .npx_tensors import EagerTensor
 from .npx_types import ElemType, OptParType, ParType, TupleType
 from .npx_var import Cst, Input, ManyIdentity, Par, Var
@@ -125,7 +125,8 @@ def _xapi(fn: Callable, inline: bool):
                     tensor_class = x.__class__
             if tensor_class is None:
                 raise RuntimeError(
-                    f"Unable to find an EagerTensor in types {[type(x) for x in inputs]}."
+                    f"Unable to find an EagerTensor in types "
+                    f"{[type(x) for x in inputs]}."
                 )
 
             if tensor_class not in eager_onnx_tensor_classes:

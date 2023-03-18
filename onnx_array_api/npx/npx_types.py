@@ -1,6 +1,5 @@
-# pylint: disable=unnecessary-pass,too-many-branches,too-many-statements
-
 from typing import Any, Tuple, Union
+
 import numpy as np
 from onnx import AttributeProto
 
@@ -414,7 +413,7 @@ class TensorType:
         try:
             return ElemType.set_names[s]
         except KeyError:
-            raise RuntimeError(  # pylint: disable=W0707
+            raise RuntimeError(
                 f"Unable to guess element type name for {s}: "
                 f"{repr(self)} in {ElemType.set_names}."
             )
@@ -539,9 +538,7 @@ class TupleType:
 
 
 def _make_type(name: str, elem_type: int):
-    def class_getitem(
-        cls, shape: Union[int, ShapeType]  # pylint: disable=unused-argument
-    ) -> TensorType:
+    def class_getitem(cls, shape: Union[int, ShapeType]) -> TensorType:
         if isinstance(shape, int):
             shape = (shape,)
         return TensorType[elem_type, shape]

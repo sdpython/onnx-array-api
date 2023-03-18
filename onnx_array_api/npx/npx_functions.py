@@ -1,25 +1,13 @@
-# pylint: disable=too-many-statements
-# type: ignore[arg-type]
-
 from typing import Optional, Tuple, Union
+
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto
 from onnx.numpy_helper import from_array
+
 from .npx_constants import FUNCTION_DOMAIN
-from .npx_core_api import (  # pylint: disable=W0611
-    cst,
-    make_tuple,
-    npxapi_inline,
-    var,
-)
-from .npx_types import (  # pylint: disable=W0611
-    ElemType,
-    OptParType,
-    ParType,
-    SequenceType,
-    TensorType,
-    TupleType,
-)
+from .npx_core_api import cst, make_tuple, npxapi_inline, var
+from .npx_types import (ElemType, OptParType, ParType, SequenceType,
+                        TensorType, TupleType)
 from .npx_var import Var
 
 
@@ -32,9 +20,7 @@ def _cstv(x):
 
 
 @npxapi_inline
-def abs(  # pylint: disable=redefined-builtin
-    x: TensorType[ElemType.numerics, "T"]
-) -> TensorType[ElemType.numerics, "T"]:
+def abs(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`np.abs`."
     return var(x, op="Abs")
 
@@ -235,9 +221,7 @@ def concat(
     :func:`np.hstack`.
     """
     if len(x) <= 1:
-        raise RuntimeError(  # pragma: no cover
-            f"N={len(x)}<=1 elements to concatenate."
-        )
+        raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
     return var(*x, op="Concat", axis=axis)
 
 
@@ -339,9 +323,7 @@ def hstack(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`np.hstack`."
     if len(x) <= 1:
-        raise RuntimeError(  # pragma: no cover
-            f"N={len(x)}<=1 elements to concatenate."
-        )
+        raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
     return var(*x, op="Concat", axis=-1)
 
 
@@ -425,9 +407,7 @@ def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 
 
 @npxapi_inline
-def round(  # pylint: disable=redefined-builtin
-    x: TensorType[ElemType.numerics, "T"]
-) -> TensorType[ElemType.numerics, "T"]:
+def round(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`np.round`."
     return var(x, op="Round")
 
@@ -501,7 +481,7 @@ def topk(
     k: TensorType[ElemType.int64, "I", (1,)],
     axis: OptParType[int] = -1,
     largest: OptParType[int] = 1,
-    sorted: OptParType[int] = 1,  # pylint: disable=redefined-builtin
+    sorted: OptParType[int] = 1,
 ) -> TupleType[TensorType[ElemType.numerics, "T"], TensorType[ElemType.int64, "I"]]:
     "See :func:`np.argsort`."
     return make_tuple(2, x, k, op="TopK", axis=axis, largest=largest, sorted=sorted)
@@ -533,9 +513,7 @@ def vstack(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`np.vstack`."
     if len(x) <= 1:
-        raise RuntimeError(  # pragma: no cover
-            f"N={len(x)}<=1 elements to concatenate."
-        )
+        raise RuntimeError(f"N={len(x)}<=1 elements to concatenate.")
     return var(*x, op="Concat", axis=0)
 
 

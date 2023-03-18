@@ -1,6 +1,5 @@
-# pylint: disable=unnecessary-pass,import-outside-toplevel
-
 from typing import Any
+
 from .npx_array_api import ArrayApi
 
 
@@ -70,9 +69,7 @@ class EagerTensor(ArrayApi):
         meth = getattr(Var, method_name)
         return meth(obj, index)
 
-    def generic_method(  # pylint: disable=too-many-branches
-        self, method_name, *args: Any, **kwargs: Any
-    ) -> Any:
+    def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         """
         The method converts the method into an ONNX graph build by the
         corresponding method in class Var.

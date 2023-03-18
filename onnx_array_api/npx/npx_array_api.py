@@ -1,5 +1,7 @@
 from typing import Any
+
 import numpy as np
+
 from .npx_types import OptParType, ParType, TupleType
 
 
@@ -10,8 +12,10 @@ class ArrayApi:
 
     def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError(
-            f"Method {method_name!r} must be overwritten for class {self.__class__.__name__!r}. "
-            f"Method 'generic_method' can be overwritten as well to change the behaviour "
+            f"Method {method_name!r} must be overwritten "
+            f"for class {self.__class__.__name__!r}. "
+            f"Method 'generic_method' can be overwritten "
+            f"as well to change the behaviour "
             f"for all methods supported by class ArrayApi."
         )
 

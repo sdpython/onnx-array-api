@@ -1,13 +1,9 @@
 from typing import Dict, Iterator, List, Optional, Sequence, Tuple
-from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProto
-from onnx.helper import (
-    make_attribute,
-    make_function,
-    make_graph,
-    make_node,
-    make_operatorsetid,
-    make_value_info,
-)
+
+from onnx import (AttributeProto, FunctionProto, GraphProto, ModelProto,
+                  NodeProto)
+from onnx.helper import (make_attribute, make_function, make_graph, make_node,
+                         make_operatorsetid, make_value_info)
 from onnx.numpy_helper import from_array
 from onnx.version_converter import convert_version
 
@@ -71,11 +67,11 @@ def rename_in_onnx_graph(
     new_inputs = []
     for inp in graph.input:
         if inp.name in replacements:
-            new = make_value_info(replacements.get(inp.name, inp.name), inp.t)  # type: ignore[attr-defined]
-            new_inputs.append(new)  # type: ignore[arg-type]
+            new = make_value_info(replacements.get(inp.name, inp.name), inp.t)
+            new_inputs.append(new)
             continue
-        new_inputs.append(inp)  # type: ignore[arg-type]
-    new_graph = make_graph(nodes, graph.name, new_inputs, graph.output)  # type: ignore[arg-type]
+        new_inputs.append(inp)
+    new_graph = make_graph(nodes, graph.name, new_inputs, graph.output)
     return new_graph
 
 
@@ -104,7 +100,7 @@ def onnx_convert_model_for_opsets(
         )
     if len(domains) == 1 and domains[0][0] == "":
         # Use the conversion.
-        new_model = convert_version(model, domains[0][2])  # type: ignore[arg-type]
+        new_model = convert_version(model, domains[0][2])
     elif len(domains) > 1:
         msg = ", ".join(
             f"domain={b!r}, from {before} -> {after}" for b, before, after in domains
@@ -165,7 +161,7 @@ def onnx_model_to_function(
         if doc_string is None:
             doc_string = onx.doc_string
         fp, lf = onnx_model_to_function(
-            onx.graph,  # type: ignore[arg-type]
+            onx.graph,
             name=name,
             domain=domain,
             opset_imports=opset_imports,
@@ -174,7 +170,7 @@ def onnx_model_to_function(
         return fp, lf + list(onx.functions)
 
     if not isinstance(onx, GraphProto):
-        raise TypeError(f"Unexpected type {type(onx)!r} for onx.")  # pragma: no cover
+        raise TypeError(f"Unexpected type {type(onx)!r} for onx.")
 
     if name is None:
         name = onx.name

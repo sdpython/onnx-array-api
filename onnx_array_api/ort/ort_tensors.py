@@ -3,18 +3,19 @@ This is an example of a backend for classes :class:`JitOnnx` and :class:`JitEage
 using onnxruntime as a runtime. It is provided as an example.
 """
 from typing import Any, Callable, List, Optional, Tuple, Union
+
 import numpy as np
 from onnx import ModelProto, TensorProto
 from onnx.defs import onnx_opset_version
 from onnxruntime import InferenceSession, RunOptions, get_available_providers
 from onnxruntime.capi._pybind_state import OrtDevice as C_OrtDevice
 from onnxruntime.capi._pybind_state import OrtMemType
-from onnxruntime.capi._pybind_state import (
-    OrtValue as C_OrtValue,  # pylint: disable=E0611
-)
+from onnxruntime.capi._pybind_state import OrtValue as C_OrtValue
 from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
-from .npx.npx_tensors import EagerTensor, JitTensor
-from .npx.npx_types import TensorType
+
+from ..npx.npx_tensors import EagerTensor, JitTensor
+from ..npx.npx_types import TensorType
+
 
 class OrtTensor:
     """
@@ -65,7 +66,7 @@ class OrtTensor:
         """
         Converts the :class:`OrtValue` into numpy array.
         """
-        return self._tensor.numpy()  # type: ignore[no-any-return]
+        return self._tensor.numpy()
 
     class Evaluator:
         """
@@ -73,13 +74,11 @@ class OrtTensor:
         to have a signature closer to python function.
         """
 
-        def __init__(
-            self, tensor_class: type, input_names: List[str], onx: ModelProto
-        ):
+        def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
             try:
                 self.ref = InferenceSession(
-                    onx.SerializeToString(),  # type: ignore[attr-defined]
-                    providers=tensor_class.providers,  # type: ignore[attr-defined]
+                    onx.SerializeToString(),
+                    providers=tensor_class.providers,
                 )
             except InvalidArgument as e:
                 if (
@@ -88,15 +87,14 @@ class OrtTensor:
                     == TensorProto.UNDEFINED
                 ):
                     # ShapeInference cannot use python function for unknown node type.
-                    # Let's give the only output the same type as the first input.
-                    onx.graph.output[
-                        0
-                    ].type.tensor_type.elem_type = onx.graph.input[
+                    # Let's give the only output the same type as the first
+                    # input.
+                    onx.graph.output[0].type.tensor_type.elem_type = onx.graph.input[
                         0
                     ].type.tensor_type.elem_type
                     self.ref = InferenceSession(
-                        onx.SerializeToString(),  # type: ignore[attr-defined]
-                        providers=tensor_class.providers,  # type: ignore[attr-defined]
+                        onx.SerializeToString(),
+                        providers=tensor_class.providers,
                     )
                 else:
                     if len(onx.graph.node) <= 3:
@@ -123,8 +121,8 @@ class OrtTensor:
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
-                feeds[name] = inp.value  # type: ignore[attr-defined]
-            res = self.ref._sess.run_with_ort_values(  # pylint: disable=protected-access
+                feeds[name] = inp.value
+            res = self.ref._sess.run_with_ort_values(
                 feeds, self.output_names, self.run_options
             )
             return list(map(inputs[0].__class__, res))
@@ -140,7 +138,7 @@ class OrtTensor:
     @property
     def shape(self) -> Tuple[int, ...]:
         "Returns the shape of the tensor."
-        return self._tensor.shape()  # type: ignore[no-any-return]
+        return self._tensor.shape()
 
     @property
     def dtype(self) -> Any:
@@ -160,7 +158,7 @@ class OrtTensor:
     @property
     def tensor_type(self) -> TensorType:
         "Returns the tensor type of this tensor."
-        return TensorType[self.dtype]  # type: ignore[misc,no-any-return]
+        return TensorType[self.dtype]
 
     @property
     def dims(self):
@@ -184,12 +182,10 @@ class OrtTensor:
         Different keys usually means same ONNX graph but different
         input shapes.
         """
-        return TensorType[self.dtype, self.dims]  # type: ignore[misc,no-any-return]
+        return TensorType[self.dtype, self.dims]
 
     @classmethod
-    def create_function(
-        cls: Any, input_names: List[str], onx: ModelProto
-    ) -> Callable:
+    def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:
         """
         Creates a python function calling the onnx backend
         used by this class.
@@ -197,7 +193,8 @@ class OrtTensor:
         :param onx: onnx model
         :return: python function
         """
-        return cls.Evaluator(cls, input_names, onx)  # type: ignore[return-value]
+        return cls.Evaluator(cls, input_names, onx)
+
 
 class OrtCommon:
     """
@@ -220,12 +217,14 @@ class OrtCommon:
             return 8
         return min(ir_version, 8)
 
+
 class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
     """
     Defines a value for a specific backend.
     """
 
     pass
+
 
 class JitOrtTensor(OrtTensor, OrtCommon, JitTensor):
     """

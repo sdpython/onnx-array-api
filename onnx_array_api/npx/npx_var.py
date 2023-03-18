@@ -1,14 +1,9 @@
-# pylint: disable=import-outside-toplevel,too-many-statements,too-many-branches
-
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 import numpy as np
-from onnx import (  # pylint: disable=E0611
-    FunctionProto,
-    ModelProto,
-    NodeProto,
-    TensorProto,
-)
+from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import np_dtype_to_tensor_dtype
+
 from .npx_array_api import ArrayApi
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
 from .npx_types import ElemType, OptParType, ParType, TensorType, TupleType
@@ -159,7 +154,7 @@ class ManyIdentity:
         done = set()
         outputs = []
         for var in self.inputs:
-            vs = var._get_vars()  # pylint: disable=protected-access
+            vs = var._get_vars()
             for var2 in vs:
                 key = id(var2)
                 if key in done:
@@ -186,7 +181,7 @@ class ManyIdentity:
         return onx
 
 
-class Var(ArrayApi):  # pylint: disable=abstract-method
+class Var(ArrayApi):
     """
     Defines a variable, a result...
 
@@ -251,17 +246,16 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
             elif isinstance(index, int):
                 start, stop, step = index, index + 1, 1
             else:
-                raise NotImplementedError(  # pragma: no cover
-                    f"Unable to assign new values due to unexpected type {type(index)!r}."
+                raise NotImplementedError(
+                    f"Unable to assign new values due to "
+                    f"unexpected type {type(index)!r}."
                 )
 
             inp = self.parent
             if stop is None and isinstance(new_values, np.ndarray):
                 stop = start + new_values.size
             if stop is None:
-                raise NotImplementedError(  # pragma: no cover
-                    f"No implementation if stop is  {stop}."
-                )
+                raise NotImplementedError(f"No implementation if stop is  {stop}.")
             indices = np.arange(start, stop, step or 1).astype(np.int64)
             if isinstance(new_values, np.ndarray):
                 values = new_values
@@ -323,7 +317,7 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
             if not isinstance(inp, np.ndarray):
                 continue
             if inp.size > 0 and isinstance(inp.ravel()[0], (np.ndarray, Var)):
-                raise TypeError(  # pragma: no cover
+                raise TypeError(
                     f"Unexpected type for input {i}: {type(inp)}, "
                     f"{inp.ravel()[0]}, op={op!r}"
                 )
@@ -384,7 +378,7 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
             n_var_outputs=self.n_var_outputs,
             **self.onnx_op_kwargs,
         )
-        new_var._prefix = self._prefix  # pylint: disable=protected-access
+        new_var._prefix = self._prefix
         return new_var
 
     def __repr__(self) -> str:
@@ -794,19 +788,18 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
     def T(self) -> "Var":
         "Transpose."
         var = Var.get_cst_var()[1]
-
-        return var(self.self_var, op="Transpose", perm=[1, 0])  # type: ignore[type-arg]
+        return var(self.self_var, op="Transpose", perm=[1, 0])
 
     def astype(self, dtype) -> "Var":
         "Cast"
         var = Var.get_cst_var()[1]
 
         if isinstance(dtype, Var):
-            return var(self.self_var, dtype, op="CastLike")  # type: ignore[type-arg]
+            return var(self.self_var, dtype, op="CastLike")
         if not isinstance(dtype, int):
             try:
                 dtype = np_dtype_to_tensor_dtype(dtype)
-            except KeyError:  # pylint: disable=E1101
+            except KeyError:
                 if dtype == np.float32:
                     dtype = TensorProto.FLOAT
                 elif dtype == np.float64:
@@ -834,18 +827,16 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
                 elif dtype in (str, np.str_):
                     dtype = TensorProto.STRING
                 else:
-                    raise RuntimeError(  # pylint: disable=W0707
-                        f"Unable to guess type for dtype={dtype}."
-                    )
+                    raise RuntimeError(f"Unable to guess type for dtype={dtype}.")
 
-        return var(self.self_var, op="Cast", to=dtype)  # type: ignore[type-arg]
+        return var(self.self_var, op="Cast", to=dtype)
 
     @property
     def shape(self) -> "Var":
         "Shape"
         var = Var.get_cst_var()[1]
 
-        return var(self.self_var, op="Shape")  # type: ignore[type-arg]
+        return var(self.self_var, op="Shape")
 
     def reshape(self, shape: "Var") -> "Var":
         "Reshape"
@@ -853,13 +844,13 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
 
         if isinstance(shape, (tuple, list)):
             shape = np.array(shape, dtype=np.int64)
-        return var(self.self_var, shape, op="Reshape")  # type: ignore[type-arg]
+        return var(self.self_var, shape, op="Reshape")
 
-    def reduce_function(  # type: ignore[type-arg]
+    def reduce_function(
         self,
         reduce_op,
-        axis: TensorType[ElemType.int64, "I"] = None,  # type: ignore[type-arg]
-        keepdims: ParType[int] = 0,  # type: ignore[type-arg]
+        axis: TensorType[ElemType.int64, "I"] = None,
+        keepdims: ParType[int] = 0,
     ) -> "Var":
         "See :func:`np.sum` or any other reduce function."
         var = Var.get_cst_var()[1]
@@ -867,12 +858,12 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
         if axis is None:
             return var(self.self_var, op=reduce_op, keepdims=keepdims)
         if isinstance(axis, int):
-            axis = [axis]  # type: ignore[assignment]
+            axis = [axis]
         if isinstance(axis, (tuple, list)):
             cst = Var.get_cst_var()[0]
 
             axis = cst(np.array(axis, dtype=np.int64))
-        return var(self.self_var, axis, op=reduce_op, keepdims=keepdims)  # type: ignore[type-arg]
+        return var(self.self_var, axis, op=reduce_op, keepdims=keepdims)
 
     def sum(
         self, axis: TensorType[ElemType.int64, "I"] = None, keepdims: ParType[int] = 0
@@ -910,7 +901,7 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
         """
         var = Var.get_cst_var()[1]
 
-        return var(self.self_var, op="Identity")  # type: ignore[arg-type]
+        return var(self.self_var, op="Identity")
 
     def flatten(self) -> "Var":
         """
@@ -922,9 +913,9 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
         cst, var = Var.get_cst_var()
 
         return var(
-            var(self.self_var, op="Flatten", axis=0),  # type: ignore[assignment,arg-type]
+            var(self.self_var, op="Flatten", axis=0),
             cst(np.array([0], dtype=np.int64)),
-            op="Squeeze",  # type: ignore[arg-type]
+            op="Squeeze",
         )
 
     def get(self, index: int) -> "Var":
@@ -935,7 +926,7 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
         :param index: index of the output to select
         :return: Var
         """
-        if index < 0 or index >= self.n_var_outputs:  # type: ignore[assignment,arg-type,operator]
+        if index < 0 or index >= self.n_var_outputs:
             raise ValueError(
                 f"index={index} must be positive and < {self.n_var_outputs} "
                 f"for var={self!r}."
@@ -971,11 +962,11 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
             new_shape = cst(np.array([-1], dtype=np.int64))
             new_self = self.reshape(new_shape)
             new_index = index.reshape(new_shape)
-            return var(new_self, new_index, op="Compress")  # type: ignore[assignment,arg-type]
+            return var(new_self, new_index, op="Compress")
 
         if isinstance(index, int):
             # Use Gather instead.
-            return var(self, cst(np.array(index, dtype=np.int64)), axis=0, op="Gather")  # type: ignore[assignment,arg-type]
+            return var(self, cst(np.array(index, dtype=np.int64)), axis=0, op="Gather")
 
         if not isinstance(index, tuple):
             index = (index,)
@@ -1005,7 +996,7 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
 
         if ni is not None and ax is not None:
             # Use Gather instead.
-            return var(self, cst(np.array(ni, dtype=np.int64)), axis=ax, op="Gather")  # type: ignore[assignment,arg-type]
+            return var(self, cst(np.array(ni, dtype=np.int64)), axis=ax, op="Gather")
 
         # scenario 1
         starts = []
@@ -1035,19 +1026,17 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
                 if isinstance(end, tuple):
                     needs_shape.append(len(ends) - 1)
                 elif isinstance(end, Var):
-                    needs_shape.append(end)  # type: ignore[arg-type]
+                    needs_shape.append(end)
                 continue
-            raise NotImplementedError(  # pragma: no cover
-                f"Not implemented for type {type(ind)!r}."
-            )
+            raise NotImplementedError(f"Not implemented for type {type(ind)!r}.")
 
         if max(steps) == min(steps) == 1:
-            steps = None  # type: ignore[assignment,arg-type]
+            steps = None
         else:
-            steps = np.array(steps, dtype=np.int64)  # type: ignore[assignment,arg-type]
+            steps = np.array(steps, dtype=np.int64)
 
-        starts = np.array(starts, dtype=np.int64)  # type: ignore[assignment,arg-type]
-        axes = np.array(axes, dtype=np.int64)  # type: ignore[assignment,arg-type]
+        starts = np.array(starts, dtype=np.int64)
+        axes = np.array(axes, dtype=np.int64)
 
         if len(needs_shape) > 0:
             shape = self.shape
@@ -1063,30 +1052,32 @@ class Var(ArrayApi):  # pylint: disable=abstract-method
                     conc.append(np.array([e], dtype=np.int64))
             if len(conc) > 1:
                 conc_cst = [v if isinstance(v, Var) else cst(v) for v in conc]
-                ends = var(*conc_cst, op="Concat", axis=0)  # type: ignore[assignment,arg-type]
+                ends = var(*conc_cst, op="Concat", axis=0)
             else:
                 ends = conc[0]
         else:
-            ends = np.array(ends, dtype=np.int64)  # type: ignore[assignment,arg-type]
+            ends = np.array(ends, dtype=np.int64)
 
         sliced_args = [starts, ends, axes]
         if steps is not None:
             sliced_args.append(steps)
         sliced_args_cst = [v if isinstance(v, Var) else cst(v) for v in sliced_args]
-        sliced = var(self.self_var, *sliced_args_cst, op="Slice")  # type: ignore[assignment,arg-type]
+        sliced = var(self.self_var, *sliced_args_cst, op="Slice")
         if len(axis_squeeze) > 0:
             return var(
-                sliced, cst(np.array(axis_squeeze, dtype=np.int64)), op="Squeeze"  # type: ignore[assignment,arg-type]
+                sliced,
+                cst(np.array(axis_squeeze, dtype=np.int64)),
+                op="Squeeze",
             )
         return sliced
 
     def __setitem__(self, index, values):
         new_op = self.set[index](values)
         self.current_var_ = new_op
-        self.input_indices = None  # type: ignore[assignment]
+        self.input_indices = None
 
 
-class Input(Var):  # pylint: disable=abstract-method
+class Input(Var):
     """
     Defines an input, a placeholder.
 
@@ -1096,29 +1087,29 @@ class Input(Var):  # pylint: disable=abstract-method
     def __init__(self, name=None):
         Var.__init__(self)
         self.name = name
-        self._prefix = name or "I"  # type: ignore[assignment]
+        self._prefix = name or "I"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name!r})"
 
 
-class Cst(Var):  # pylint: disable=abstract-method
+class Cst(Var):
     """
     Defines a constant.
     """
 
     def __init__(self, cst: Any):
         if isinstance(cst, np.ndarray):
-            Var.__init__(self, cst, op="Identity")  # type: ignore[arg-type]
+            Var.__init__(self, cst, op="Identity")
         elif isinstance(cst, int):
-            Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")  # type: ignore[arg-type]
+            Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
         elif isinstance(cst, float):
-            Var.__init__(self, np.array(cst, dtype=np.float32), op="Identity")  # type: ignore[arg-type]
+            Var.__init__(self, np.array(cst, dtype=np.float32), op="Identity")
         elif isinstance(cst, list):
             if all(map(lambda t: isinstance(t, int), cst)):
-                Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")  # type: ignore[arg-type]
+                Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
             elif all(map(lambda t: isinstance(t, (float, int)), cst)):
-                Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")  # type: ignore[arg-type]
+                Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
             else:
                 raise ValueError(
                     f"Unable to convert cst (type={type(cst)}), " f"value={cst}."
@@ -1128,4 +1119,4 @@ class Cst(Var):  # pylint: disable=abstract-method
                 f"Constant of type {type(cst)} are not implemented yet. "
                 f"You should not use 'float32(x)' but 'array(x, dtype=float32)'."
             )
-        self._prefix = "cst"  # type: ignore[assignment]
+        self._prefix = "cst"

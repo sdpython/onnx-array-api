@@ -1,9 +1,9 @@
-# pylint: disable=unnecessary-pass
-
 from typing import Any, Callable, List, Tuple
+
 import numpy as np
 from onnx import ModelProto
 from onnx.reference import ReferenceEvaluator
+
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import TensorType
 

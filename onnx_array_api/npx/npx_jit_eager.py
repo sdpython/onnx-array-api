@@ -1,8 +1,8 @@
-# pylint: disable=import-outside-toplevel
-
 from inspect import signature
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 import numpy as np
+
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import TensorType
 from .npx_var import Cst, Input, Var
@@ -78,7 +78,7 @@ class JitEager:
         return self.onxs[key]
 
     @staticmethod
-    def make_key(*values, **kwargs):  # pylint: disable=too-many-branches
+    def make_key(*values, **kwargs):
         """
         Builds a key based on the input types and parameters.
         Every set of inputs or parameters producing the same
@@ -212,7 +212,8 @@ class JitEager:
             res = fct.run(*values)
         except Exception as e:
             raise RuntimeError(
-                f"Unable to run function for key={key!r}, types={[type(x) for x in values]}, "
+                f"Unable to run function for key={key!r}, "
+                f"types={[type(x) for x in values]}, "
                 f"onnx={self.onxs[key]}."
             ) from e
         return res
@@ -329,7 +330,8 @@ class EagerOnnx(JitEager):
             # elif isinstance(n, tuple):
             #    if any(map(lambda t: isinstance(t, Var), n)):
             #        raise TypeError(
-            #            f"Unexpected types in tuple ({[type(t) for t in n]}) for input {i}, "
+            #            f"Unexpected types in tuple "
+            #            f"({[type(t) for t in n]}) for input {i}, "
             #            f"function {self.f} from module {self.f.__module__!r}."
             #        )
             #    new_args.append(n)
@@ -398,8 +400,10 @@ class EagerOnnx(JitEager):
             ):
                 if already_eager:
                     raise TypeError(
-                        f"EagerTensor ({type(res)}) is not expected for function {self.f} "
-                        f"from module {self.f.__module__!r}, type of first input is {type(args[0])}."
+                        f"EagerTensor ({type(res)}) is not "
+                        f"expected for function {self.f} "
+                        f"from module {self.f.__module__!r}, "
+                        f"type of first input is {type(args[0])}."
                     )
             elif isinstance(res, Var) or any(map(lambda x: isinstance(x, Var), res)):
                 # The function returns instance of type Var.
