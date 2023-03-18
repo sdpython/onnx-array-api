@@ -47,7 +47,6 @@ jobs:
       artifactName: 'wheel-linux-$(python.version)'
       targetPath: 'dist'
 
-jobs:
 - job: 'TestWindows'
   pool:
     vmImage: 'windows-latest'
