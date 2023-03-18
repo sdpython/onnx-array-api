@@ -36,7 +36,8 @@ well as to execute it.
     auto_examples/index
 
 Sources available on
-`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
+`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_,
+see also `code coverage <cov/index.html>`_.
 
 .. runpython::
     :showcode:
@@ -68,6 +69,7 @@ Sources available on
 
 .. gdot::
     :script: DOT-SECTION
+    :process:
 
     # index
     import numpy as np
@@ -93,4 +95,3 @@ Sources available on
     y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
     res = jitted_myloss(x, y)
     print(to_dot(jitted_myloss.get_onnx()))
-
