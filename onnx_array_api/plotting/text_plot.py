@@ -574,8 +574,8 @@ def onnx_simple_text_plot(
         # onnx_simple_text_plot
         import numpy
         from sklearn.cluster import KMeans
-        from mlprodict.onnxrt import OnnxInference
-        from mlprodict.onnx_conv import to_onnx
+        from skl2onnx import to_onnx
+        from onnx_array_api.plotting.dot_plot import to_dot
 
         x = numpy.random.randn(10, 3)
         y = numpy.random.randn(10)
@@ -583,9 +583,7 @@ def onnx_simple_text_plot(
         model.fit(x, y)
         model_onnx = to_onnx(model, x.astype(numpy.float32),
                              target_opset=15)
-        oinf = OnnxInference(model_onnx, inplace=False)
-
-        print("DOT-SECTION", oinf.to_dot())
+        print("DOT-SECTION", to_dot(model_onnx))
     """
     use_indentation = indent
     if att_display is None:
@@ -1060,7 +1058,6 @@ def onnx_text_plot_io(model, verbose=False, att_display=None):
         from sklearn.cluster import KMeans
         from skl2onnx import to_onnx
         from onnx_array_api.plotting.text_plot import onnx_text_plot_io
-        from mlprodict.plotting.plotting import onnx_text_plot_io
 
         x = numpy.random.randn(10, 3)
         y = numpy.random.randn(10)
