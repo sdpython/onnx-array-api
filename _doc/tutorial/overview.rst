@@ -24,6 +24,10 @@ loss functions for example without knowing too much about ONNX.
 Overview
 ========
 
+.. toctree::
+
+    auto_examples/plot_first_example
+
 Example
 +++++++
 

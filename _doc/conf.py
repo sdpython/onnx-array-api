@@ -62,6 +62,9 @@ epkg_dictionary = {
     "onnxruntime": "https://onnxruntime.ai/",
     "numpy": "https://numpy.org/",
     "numba": "https://numba.pydata.org/",
+    "onnx-array-api": (
+        "http://www.xavierdupre.fr/app/" "onnx-array-api/helpsphinx/index.html"
+    ),
     "python": "https://www.python.org/",
     "scikit-learn": "https://scikit-learn.org/stable/",
     "sphinx-gallery": "https://github.com/sphinx-gallery/sphinx-gallery",

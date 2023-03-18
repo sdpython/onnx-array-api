@@ -2,14 +2,28 @@ from inspect import Parameter, signature
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from onnx import (IR_VERSION, AttributeProto, FunctionProto, ModelProto,
-                  NodeProto, TypeProto, ValueInfoProto)
+from onnx import (
+    IR_VERSION,
+    AttributeProto,
+    FunctionProto,
+    ModelProto,
+    NodeProto,
+    TypeProto,
+    ValueInfoProto,
+)
 from onnx.checker import C as onnxC
 from onnx.checker import check_model, check_node, check_value_info
 from onnx.defs import onnx_opset_version
-from onnx.helper import (OP_SET_ID_VERSION_MAP, make_attribute, make_function,
-                         make_graph, make_model, make_node, make_opsetid,
-                         make_tensor_value_info)
+from onnx.helper import (
+    OP_SET_ID_VERSION_MAP,
+    make_attribute,
+    make_function,
+    make_graph,
+    make_model,
+    make_node,
+    make_opsetid,
+    make_tensor_value_info,
+)
 from onnx.numpy_helper import from_array
 from onnx.onnx_cpp2py_export.checker import ValidationError
 from onnx.onnx_cpp2py_export.shape_inference import InferenceError
@@ -17,10 +31,20 @@ from onnx.shape_inference import infer_shapes
 
 from .npx_constants import _OPSET_TO_IR_VERSION, FUNCTION_DOMAIN, ONNX_DOMAIN
 from .npx_function_implementation import get_function_implementation
-from .npx_helper import (iter_nodes, onnx_convert_model_for_opsets,
-                         onnx_model_to_function, rename_in_onnx_graph)
-from .npx_types import (ElemType, OptParType, ParType, SequenceType,
-                        TensorType, TupleType)
+from .npx_helper import (
+    iter_nodes,
+    onnx_convert_model_for_opsets,
+    onnx_model_to_function,
+    rename_in_onnx_graph,
+)
+from .npx_types import (
+    ElemType,
+    OptParType,
+    ParType,
+    SequenceType,
+    TensorType,
+    TupleType,
+)
 from .npx_var import Cst, Input, ManyIdentity, Par, Var
 
 

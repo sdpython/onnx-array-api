@@ -15,8 +15,7 @@ from onnx_array_api.npx.npx_functions import cdist as cdist_inline
 from onnx_array_api.npx.npx_functions_test import absolute
 from onnx_array_api.npx.npx_types import Float32, Float64
 from onnx_array_api.npx.npx_var import Input
-from onnx_array_api.ort.ort_tensors import (EagerOrtTensor, JitOrtTensor,
-                                            OrtTensor)
+from onnx_array_api.ort.ort_tensors import EagerOrtTensor, JitOrtTensor, OrtTensor
 
 DEFAULT_OPSET = onnx_opset_version()
 

@@ -2,10 +2,22 @@ from typing import Tuple
 
 import numpy as np
 
-from .npx_core_api import (cst, make_tuple, npxapi_function, npxapi_inline,
-                           tuple_var, var)
-from .npx_types import (ElemType, OptParType, ParType, SequenceType,
-                        TensorType, TupleType)
+from .npx_core_api import (
+    cst,
+    make_tuple,
+    npxapi_function,
+    npxapi_inline,
+    tuple_var,
+    var,
+)
+from .npx_types import (
+    ElemType,
+    OptParType,
+    ParType,
+    SequenceType,
+    TensorType,
+    TupleType,
+)
 
 
 @npxapi_function

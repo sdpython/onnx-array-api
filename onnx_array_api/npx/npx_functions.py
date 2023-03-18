@@ -6,8 +6,14 @@ from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, var
-from .npx_types import (ElemType, OptParType, ParType, SequenceType,
-                        TensorType, TupleType)
+from .npx_types import (
+    ElemType,
+    OptParType,
+    ParType,
+    SequenceType,
+    TensorType,
+    TupleType,
+)
 from .npx_var import Var
 
 

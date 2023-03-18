@@ -1,9 +1,14 @@
 from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 
-from onnx import (AttributeProto, FunctionProto, GraphProto, ModelProto,
-                  NodeProto)
-from onnx.helper import (make_attribute, make_function, make_graph, make_node,
-                         make_operatorsetid, make_value_info)
+from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProto
+from onnx.helper import (
+    make_attribute,
+    make_function,
+    make_graph,
+    make_node,
+    make_operatorsetid,
+    make_value_info,
+)
 from onnx.numpy_helper import from_array
 from onnx.version_converter import convert_version
 

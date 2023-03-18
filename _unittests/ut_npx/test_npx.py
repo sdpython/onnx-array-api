@@ -10,15 +10,24 @@ from onnx import FunctionProto, ModelProto, TensorProto
 from onnx.backend.test.case.node.pad import pad_impl
 from onnx.checker import check_model
 from onnx.defs import onnx_opset_version
-from onnx.helper import (make_graph, make_model, make_node, make_operatorsetid,
-                         make_tensor_value_info)
+from onnx.helper import (
+    make_graph,
+    make_model,
+    make_node,
+    make_operatorsetid,
+    make_tensor_value_info,
+)
 from onnx.reference import ReferenceEvaluator
 from onnx.shape_inference import infer_shapes
 
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
-from onnx_array_api.npx.npx_core_api import (cst, make_tuple, npxapi_function,
-                                             npxapi_inline)
+from onnx_array_api.npx.npx_core_api import (
+    cst,
+    make_tuple,
+    npxapi_function,
+    npxapi_inline,
+)
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
 from onnx_array_api.npx.npx_functions import arange as arange_inline
 from onnx_array_api.npx.npx_functions import arccos as arccos_inline
@@ -69,13 +78,28 @@ from onnx_array_api.npx.npx_functions import transpose as transpose_inline
 from onnx_array_api.npx.npx_functions import unsqueeze as unsqueeze_inline
 from onnx_array_api.npx.npx_functions import vstack as vstack_inline
 from onnx_array_api.npx.npx_functions import where as where_inline
-from onnx_array_api.npx.npx_functions_test import (_min_max, _min_max_inline,
-                                                   absolute, addition, argmin,
-                                                   concat, copy, log1p,
-                                                   negative, relu, topk)
+from onnx_array_api.npx.npx_functions_test import (
+    _min_max,
+    _min_max_inline,
+    absolute,
+    addition,
+    argmin,
+    concat,
+    copy,
+    log1p,
+    negative,
+    relu,
+    topk,
+)
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
-from onnx_array_api.npx.npx_types import (Bool, Float32, Float64, Int64,
-                                          OptParType, TensorType)
+from onnx_array_api.npx.npx_types import (
+    Bool,
+    Float32,
+    Float64,
+    Int64,
+    OptParType,
+    TensorType,
+)
 from onnx_array_api.npx.npx_var import Input, Var
 
 DEFAULT_OPSET = onnx_opset_version()
