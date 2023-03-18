@@ -43,7 +43,7 @@ from onnx_array_api.plotting.text_plot import (
 TARGET_OPSET = 18
 
 
-class TestPlotTextPlotting(ExtTestCase):
+class TestTextPlot(ExtTestCase):
     def test_onnx_text_plot_tree_reg(self):
         iris = load_iris()
         X, y = iris.data.astype(numpy.float32), iris.target

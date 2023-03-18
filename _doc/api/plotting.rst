@@ -3,6 +3,11 @@
 plotting
 ========
 
+Dot
++++
+
+.. autofunction:: onnx_array_api.plotting.dot_plot.to_dot
+
 Text
 ++++
 

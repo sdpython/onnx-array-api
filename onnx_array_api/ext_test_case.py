@@ -76,7 +76,7 @@ def measure_time(
     if context is None:
         context = {}
 
-    import numpy  # pylint: disable=C0415
+    import numpy
 
     if isinstance(stmt, str):
         tim = Timer(stmt, globals=context)
@@ -113,7 +113,7 @@ def measure_time(
         dev = (((ave - mean) ** 2 * res[:, 0]).sum() / tw) ** 0.5
         mes = dict(
             average=mean,
-            deviation=dev,  # pylint: disable=R1735
+            deviation=dev,
             min_exec=numpy.min(ave),
             max_exec=numpy.max(ave),
             repeat=1,
@@ -130,7 +130,7 @@ def measure_time(
         dev = (dev - mean**2) ** 0.5
         mes = dict(
             average=mean,
-            deviation=dev,  # pylint: disable=R1735
+            deviation=dev,
             min_exec=numpy.min(res),
             max_exec=numpy.max(res),
             repeat=repeat,
@@ -142,7 +142,7 @@ def measure_time(
         if hasattr(context["values"], "shape"):
             mes["size"] = context["values"].shape[0]
         else:
-            mes["size"] = len(context["values"])  # pragma: no cover
+            mes["size"] = len(context["values"])
     else:
         mes["context_size"] = sys.getsizeof(context)
     return mes

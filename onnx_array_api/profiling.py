@@ -5,18 +5,8 @@ import os
 import site
 from collections import OrderedDict, deque
 from io import StringIO
+from pstats import SortKey, Stats
 from typing import Any, Callable, Dict, List, Optional
-from pstats import Stats
-
-try:
-    from pstarts import SortKey
-except ImportError:  # pragma: no cover
-    # Python < 3.7
-
-    class SortKey:
-        LINE = "line"
-        CUMULATIVE = "cumulative"
-        TIME = "time"
 
 
 class ProfileNode:
@@ -43,9 +33,7 @@ class ProfileNode:
         tall: float,
     ):
         if "method 'disable' of '_lsprof.Profiler'" in func_name:
-            raise RuntimeError(  # pragma: no cover
-                f"Function not allowed in the profiling: {func_name!r}."
-            )
+            raise RuntimeError(f"Function not allowed in the profiling: {func_name!r}.")
         self.filename = filename
         self.line = line
         self.func_name = func_name
@@ -577,7 +565,7 @@ def profile(
     res = s.getvalue()
     try:
         pack = site.getsitepackages()
-    except AttributeError:  # pragma: no cover
+    except AttributeError:
         import numpy
 
         pack = os.path.normpath(
@@ -599,7 +587,7 @@ def profile(
                     elif isinstance(sub, tuple) and len(sub) == 2:
                         res = res.replace(sub[0], sub[1])
                     else:
-                        raise TypeError(  # pragma: no cover
+                        raise TypeError(
                             "rootrem must contains strings or tuple not {0}"
                             ".".format(rootrem)
                         )
@@ -729,9 +717,7 @@ def profile2graph(
             tall=v[3],
         )
         if node.key in nodes:
-            raise RuntimeError(  # pragma: no cover
-                f"Key {node.key!r} is already present, node={node!r}."
-            )
+            raise RuntimeError(f"Key {node.key!r} is already present, node={node!r}.")
         nodes[node.key] = node
 
     for k, v in ps.stats.items():
@@ -747,7 +733,7 @@ def profile2graph(
             name = clean_text(f[0].replace("\\", "/"))
             key = ProfileNode._key(name, f[1], f[2])
             if key not in nodes:
-                raise RuntimeError(  # pragma: no cover
+                raise RuntimeError(
                     "Unable to find key %r into\n%s" % (key, "\n".join(sorted(nodes)))
                 )
             if k[0] == "~" and len(v) == 0:

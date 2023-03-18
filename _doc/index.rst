@@ -30,9 +30,3 @@ onnx-array-api: (Numpy) Array API for ONNX
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
 
-.. toctree::
-
-    :maxdepth: 1
-    
-    tutorial/index
-    api/index

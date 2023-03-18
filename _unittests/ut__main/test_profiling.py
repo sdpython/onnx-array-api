@@ -26,12 +26,12 @@ class TestProfiling(ExtTestCase):
         rootrem = os.path.normpath(
             os.path.abspath(os.path.join(os.path.dirname(rootfile), ".."))
         )
-        ps, res = profile(simple, rootrem=rootrem)  # pylint: disable=W0632
+        ps, res = profile(simple, rootrem=rootrem)
         res = res.replace("\\", "/")
         self.assertIn("function calls", res)
         self.assertNotEmpty(ps)
 
-        ps, res = profile(simple)  # pylint: disable=W0632
+        ps, res = profile(simple)
         res = res.replace("\\", "/")
         self.assertIn("function calls", res)
         self.assertNotEmpty(ps)
@@ -53,7 +53,7 @@ class TestProfiling(ExtTestCase):
         rootrem = os.path.normpath(
             os.path.abspath(os.path.join(os.path.dirname(rootfile), ".."))
         )
-        ps, df = profile(simple, rootrem=rootrem, as_df=True)  # pylint: disable=W0632
+        ps, df = profile(simple, rootrem=rootrem, as_df=True)
         self.assertIsInstance(df, pandas.DataFrame)
         self.assertEqual(df.loc[0, "namefct"].split("-")[-1], "simple")
         self.assertNotEmpty(ps)
@@ -89,7 +89,7 @@ class TestProfiling(ExtTestCase):
             f2()
             f3()
 
-        ps = profile(f4)[0]  # pylint: disable=W0632
+        ps = profile(f4)[0]
         df = self.capture(lambda: profile2df(ps, verbose=True, fLOG=print))[0]
         dfi = df.set_index("fct")
         self.assertEqual(dfi.loc["f4", "ncalls1"], 1)
@@ -122,7 +122,7 @@ class TestProfiling(ExtTestCase):
             f2()
             f3()
 
-        ps = profile(f4)[0]  # pylint: disable=W0632
+        ps = profile(f4)[0]
         profile2df(ps, verbose=False, clean_text=lambda x: x.split("/")[-1])
         root, nodes = profile2graph(ps, clean_text=lambda x: x.split("/")[-1])
         self.assertEqual(len(nodes), 6)
@@ -162,7 +162,7 @@ class TestProfiling(ExtTestCase):
         def f4():
             f1(0.3)
 
-        ps = profile(f4)[0]  # pylint: disable=W0632
+        ps = profile(f4)[0]
         profile2df(ps, verbose=False, clean_text=lambda x: x.split("/")[-1])
         root, nodes = profile2graph(ps, clean_text=lambda x: x.split("/")[-1])
         self.assertEqual(len(nodes), 4)
@@ -181,7 +181,7 @@ class TestProfiling(ExtTestCase):
         def f4():
             f0(0.15)
 
-        ps = profile(f4)[0]  # pylint: disable=W0632
+        ps = profile(f4)[0]
         profile2df(ps, verbose=False, clean_text=lambda x: x.split("/")[-1])
         root, nodes = profile2graph(ps, clean_text=lambda x: x.split("/")[-1])
         self.assertEqual(len(nodes), 3)

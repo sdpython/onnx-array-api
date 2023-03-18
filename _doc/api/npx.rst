@@ -116,16 +116,16 @@ Var
 +++
 
 .. autoclass:: onnx_array_api.npx.npx_var.Var
-    :class:
+    :members:
 
 Cst, Input
 ++++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_var.Cst
-    :class:
+    :members:
 
 .. autoclass:: onnx_array_api.npx.npx_var.Input
-    :class:
+    :members:
 
 API
 +++
@@ -150,16 +150,16 @@ JIT, Eager
 ++++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_jit_eager.JitEager
-    :class:
+    :members:
 
 .. autoclass:: onnx_array_api.npx.npx_jit_eager.JitOnnx
-    :class:
+    :members:
 
 Tensors
 +++++++
 
 .. autoclass:: onnx_array_api.npx.npx_tensors.NumpyTensor
-    :class:
+    :members:
 
 Annotations
 +++++++++++
