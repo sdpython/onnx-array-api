@@ -23,6 +23,9 @@ onnx-array-api: (Numpy) Array API for ONNX
     :target: https://github.com/sdpython/onnx-array-api/
     :alt: size
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
 **onnx-array-api** implements a numpy API for ONNX.
 It gives the user the ability to convert functions written
 following the numpy API to convert that function into ONNX as

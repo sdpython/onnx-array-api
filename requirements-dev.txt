@@ -11,6 +11,7 @@ pyquickhelper
 pytest
 ruff
 scikit-learn
+skl2onnx
 sphinx
 sphinx-gallery
 tqdm
