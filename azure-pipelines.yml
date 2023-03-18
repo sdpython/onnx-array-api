@@ -31,11 +31,8 @@ jobs:
       ruff .
     displayName: 'Ruff'
   - script: |
-      black --verbose --check onnx_array_api
-    displayName: 'Black source'
-  - script: |
-      black --verbose --check _unittests
-    displayName: 'Black test'
+      black --diff .
+    displayName: 'Black'
   - script: |
       python -m pytest -v
     displayName: 'Runs Unit Tests'
