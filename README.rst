@@ -28,10 +28,9 @@ It gives the user the ability to convert functions written
 following the numpy API to convert that function into ONNX as
 well as to execute it.
 
-::
+.. code-block:: python
 
     import numpy as np
-
     from onnx_array_api.npx import absolute, jit_onnx
     from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
@@ -59,10 +58,9 @@ well as to execute it.
 
 It supports eager mode as well:
 
-::
+.. code-block:: python
 
     import numpy as np
-
     from onnx_array_api.npx import absolute, eager_onnx
 
 
