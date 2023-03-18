@@ -4,11 +4,13 @@ import warnings
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from timeit import Timer
+from typing import Any, Callable, Dict, List, Optional
 
+import numpy
 from numpy.testing import assert_allclose
 
 
-def ignore_warnings(warns):
+def ignore_warnings(warns: List[Warning]) -> Callable:
     """
     Catches warnings.
     @param      warns   warnings to ignore
@@ -29,8 +31,13 @@ def ignore_warnings(warns):
 
 
 def measure_time(
-    stmt, context=None, repeat=10, number=50, div_by_number=True, max_time=None
-):
+    stmt: Callable,
+    context: Optional[Dict[str, Any]] = None,
+    repeat: int = 10,
+    number: int = 50,
+    div_by_number: bool = True,
+    max_time: Optional[float] = None,
+) -> Dict[str, Any]:
     """
     Measures a statement and returns the results as a dictionary.
 
@@ -47,7 +54,7 @@ def measure_time(
     .. runpython::
         :showcode:
 
-        from cpyquickhelper.numbers import measure_time
+        from onnx_array_api.ext_test_case import measure_time
         from math import cos
 
         res = measure_time(lambda: cos(0.5))
@@ -144,12 +151,18 @@ def measure_time(
 class ExtTestCase(unittest.TestCase):
     _warns = []
 
-    def assertEqualArray(self, expected, value, atol=0, rtol=0):
+    def assertEqualArray(
+        self,
+        expected: numpy.ndarray,
+        value: numpy.ndarray,
+        atol: float = 0,
+        rtol: float = 0,
+    ):
         self.assertEqual(expected.dtype, value.dtype)
         self.assertEqual(expected.shape, value.shape)
         assert_allclose(expected, value, atol=atol, rtol=rtol)
 
-    def assertRaise(self, fct, exc_type):
+    def assertRaise(self, fct: Callable, exc_type: Exception):
         try:
             fct()
         except exc_type as e:
@@ -158,21 +171,21 @@ class ExtTestCase(unittest.TestCase):
             return
         raise AssertionError("No exception was raised.")
 
-    def assertEmpty(self, value):
+    def assertEmpty(self, value: Any):
         if value is None:
             return
         if len(value) == 0:
             return
         raise AssertionError(f"value is not empty: {value!r}.")
 
-    def assertNotEmpty(self, value):
+    def assertNotEmpty(self, value: Any):
         if value is None:
             raise AssertionError(f"value is empty: {value!r}.")
         if isinstance(value, (list, dict, tuple, set)):
             if len(value) == 0:
                 raise AssertionError(f"value is empty: {value!r}.")
 
-    def assertStartsWith(self, prefix, full):
+    def assertStartsWith(self, prefix: str, full: str):
         if not full.startswith(prefix):
             raise AssertionError(f"prefix={prefix!r} does not start string  {full!r}.")
 
@@ -181,7 +194,7 @@ class ExtTestCase(unittest.TestCase):
         for name, line, w in cls._warns:
             warnings.warn(f"\n{name}:{line}: {type(w)}\n  {str(w)}")
 
-    def capture(self, fct):
+    def capture(self, fct: Callable):
         """
         Runs a function and capture standard output and error.
 

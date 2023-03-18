@@ -5,6 +5,7 @@ import os
 import site
 from collections import OrderedDict, deque
 from io import StringIO
+from typing import Any, Callable, Dict, List, Optional
 from pstats import Stats
 
 try:
@@ -31,7 +32,16 @@ class ProfileNode:
     :param tout: time spent in the function and in the sub functions
     """
 
-    def __init__(self, filename, line, func_name, nc1, nc2, tin, tall):
+    def __init__(
+        self,
+        filename: str,
+        line: int,
+        func_name: str,
+        nc1: int,
+        nc2: int,
+        tin: float,
+        tall: float,
+    ):
         if "method 'disable' of '_lsprof.Profiler'" in func_name:
             raise RuntimeError(  # pragma: no cover
                 f"Function not allowed in the profiling: {func_name!r}."
@@ -47,17 +57,17 @@ class ProfileNode:
         self.calls_to = []
         self.calls_to_elements = []
 
-    def add_called_by(self, pnode):
+    def add_called_by(self, pnode: "ProfileNode"):
         "This function is called by these lines."
         self.called_by.append(pnode)
 
-    def add_calls_to(self, pnode, time_elements):
+    def add_calls_to(self, pnode: "ProfileNode", time_elements):
         "This function calls this node."
         self.calls_to.append(pnode)
         self.calls_to_elements.append(time_elements)
 
     @staticmethod
-    def _key(filename, line, fct):
+    def _key(filename: str, line: int, fct: Callable) -> str:
         key = "%s:%d:%s" % (filename, line, fct)
         return key
 
@@ -100,7 +110,7 @@ class ProfileNode:
             root = tall[-1][-1]
         return root
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         "usual"
         return "%s(%r, %r, %r, %r, %r, %r, %r)  # %d-%d" % (
             self.__class__.__name__,
@@ -157,7 +167,7 @@ class ProfileNode:
     }
 
     @staticmethod
-    def filter_node_(node, info=None):
+    def filter_node_(node, info=None) -> bool:
         """
         Filters out node to be displayed by default.
 
@@ -264,7 +274,7 @@ class ProfileNode:
             rows.extend(depth_first(root, roots_key))
         return rows
 
-    def to_text(self, filter_node=None, sort_key=SortKey.LINE, fct_width=60):
+    def to_text(self, filter_node=None, sort_key=SortKey.LINE, fct_width=60) -> str:
         """
         Prints the profiling to text.
 
@@ -307,7 +317,9 @@ class ProfileNode:
             text.append(line)
         return "\n".join(text)
 
-    def to_json(self, filter_node=None, sort_key=SortKey.LINE, as_str=True, **kwargs):
+    def to_json(
+        self, filter_node=None, sort_key=SortKey.LINE, as_str=True, **kwargs
+    ) -> str:
         """
         Renders the results of a profiling interpreted with
         function @fn profile2graph as :epkg:`JSON`.
@@ -414,7 +426,12 @@ class ProfileNode:
         return {"profile": rows}
 
 
-def _process_pstats(ps, clean_text=None, verbose=False, fLOG=None):
+def _process_pstats(
+    ps: Stats,
+    clean_text: Optional[Callable] = None,
+    verbose: bool = False,
+    fLOG: Optional[Callable] = None,
+) -> List[Dict[str, Any]]:
     """
     Converts class `Stats <https://docs.python.org/3/library/
     profile.html#pstats.Stats>`_ into something
@@ -467,7 +484,13 @@ def _process_pstats(ps, clean_text=None, verbose=False, fLOG=None):
     return rows
 
 
-def profile2df(ps, as_df=True, clean_text=None, verbose=False, fLOG=None):
+def profile2df(
+    ps: Stats,
+    as_df: bool = True,
+    clean_text: bool = None,
+    verbose: bool = False,
+    fLOG=None,
+):
     """
     Converts profiling statistics into a Dataframe.
 
@@ -507,14 +530,13 @@ def profile2df(ps, as_df=True, clean_text=None, verbose=False, fLOG=None):
 
 
 def profile(
-    fct,
-    sort="cumulative",
-    rootrem=None,
-    as_df=False,
-    pyinst_format=None,
+    fct: Callable,
+    sort: str = "cumulative",
+    rootrem: Optional[str] = None,
+    as_df: bool = False,
     return_results=False,
     **kwargs,
-):
+) -> str:
     """
     Profiles the execution of a function.
 
@@ -523,10 +545,6 @@ def profile(
         profile.html#pstats.Stats.sort_stats>`_
     :param rootrem: root to remove in filenames
     :param as_df: return the results as a dataframe and not text
-    :param pyinst_format: format for :epkg:`pyinstrument`, if not empty,
-        the function uses this module or raises an exception if not
-        installed, the options are *text*, *textu* (text with colors),
-        *json*, *html*
     :param return_results: if True, return results as well
         (in the first position)
     :param kwargs: additional parameters used to create the profiler
@@ -549,121 +567,91 @@ def profile(
             la.set_horizontalalignment('right');
         plt.show()
     """
-    if pyinst_format is None:
-        pr = cProfile.Profile(**kwargs)
-        pr.enable()
-        fct_res = fct()
-        pr.disable()
-        s = StringIO()
-        ps = Stats(pr, stream=s).sort_stats(sort)
-        ps.print_stats()
-        res = s.getvalue()
-        try:
-            pack = site.getsitepackages()
-        except AttributeError:  # pragma: no cover
-            import numpy
-
-            pack = os.path.normpath(
-                os.path.abspath(os.path.join(os.path.dirname(numpy.__file__), ".."))
-            )
-            pack = [pack]
-        pack_ = os.path.normpath(os.path.join(pack[-1], ".."))
-
-        def clean_text(res):
-            res = res.replace(pack[-1], "site-packages")
-            res = res.replace(pack_, "lib")
-            if rootrem is not None:
-                if isinstance(rootrem, str):
-                    res = res.replace(rootrem, "")
-                else:
-                    for sub in rootrem:
-                        if isinstance(sub, str):
-                            res = res.replace(sub, "")
-                        elif isinstance(sub, tuple) and len(sub) == 2:
-                            res = res.replace(sub[0], sub[1])
-                        else:
-                            raise TypeError(  # pragma: no cover
-                                "rootrem must contains strings or tuple not {0}"
-                                ".".format(rootrem)
-                            )
-            return res
-
-        if as_df:
-
-            def better_name(row):
-                if len(row["fct"]) > 15:
-                    return f"{row['file'].split(':')[-1]}-{row['fct']}"
-                name = row["file"].replace("\\", "/")
-                return f"{name.split('/')[-1]}-{row['fct']}"
-
-            rows = _process_pstats(ps, clean_text)
-            import pandas
-
-            df = pandas.DataFrame(rows)
-            df = df[
-                [
-                    "fct",
-                    "file",
-                    "ncalls1",
-                    "ncalls2",
-                    "tin",
-                    "cum_tin",
-                    "tall",
-                    "cum_tall",
-                ]
-            ]
-            df["namefct"] = df.apply(lambda row: better_name(row), axis=1)
-            df = (
-                df.groupby(["namefct", "file"], as_index=False)
-                .sum()
-                .sort_values("cum_tall", ascending=False)
-                .reset_index(drop=True)
-            )
-            if return_results:
-                return fct_res, ps, df
-            return ps, df
-        else:
-            res = clean_text(res)
-            if return_results:
-                return fct_res, ps, res
-            return ps, res
-    if as_df:
-        raise ValueError(  # pragma: no cover
-            "as_df is not a compatible option with pyinst_format."
-        )
-
-    try:
-        from pyinstrument import Profiler
-    except ImportError as e:  # pragma: no cover
-        raise ImportError("pyinstrument is not installed.") from e
-
-    profiler = Profiler(**kwargs)
-    profiler.start()
+    pr = cProfile.Profile(**kwargs)
+    pr.enable()
     fct_res = fct()
-    profiler.stop()
+    pr.disable()
+    s = StringIO()
+    ps = Stats(pr, stream=s).sort_stats(sort)
+    ps.print_stats()
+    res = s.getvalue()
+    try:
+        pack = site.getsitepackages()
+    except AttributeError:  # pragma: no cover
+        import numpy
 
-    if pyinst_format == "text":
-        if return_results:
-            return fct_res, profiler, profiler.output_text(unicode=False, color=False)
-        return profiler, profiler.output_text(unicode=False, color=False)
-    if pyinst_format == "textu":
-        if return_results:
-            return fct_res, profiler, profiler.output_text(unicode=True, color=True)
-        return profiler, profiler.output_text(unicode=True, color=True)
-    if pyinst_format == "json":
-        from pyinstrument.renderers import JSONRenderer
+        pack = os.path.normpath(
+            os.path.abspath(os.path.join(os.path.dirname(numpy.__file__), ".."))
+        )
+        pack = [pack]
+    pack_ = os.path.normpath(os.path.join(pack[-1], ".."))
 
+    def clean_text(res):
+        res = res.replace(pack[-1], "site-packages")
+        res = res.replace(pack_, "lib")
+        if rootrem is not None:
+            if isinstance(rootrem, str):
+                res = res.replace(rootrem, "")
+            else:
+                for sub in rootrem:
+                    if isinstance(sub, str):
+                        res = res.replace(sub, "")
+                    elif isinstance(sub, tuple) and len(sub) == 2:
+                        res = res.replace(sub[0], sub[1])
+                    else:
+                        raise TypeError(  # pragma: no cover
+                            "rootrem must contains strings or tuple not {0}"
+                            ".".format(rootrem)
+                        )
+        return res
+
+    if as_df:
+
+        def better_name(row):
+            if len(row["fct"]) > 15:
+                return f"{row['file'].split(':')[-1]}-{row['fct']}"
+            name = row["file"].replace("\\", "/")
+            return f"{name.split('/')[-1]}-{row['fct']}"
+
+        rows = _process_pstats(ps, clean_text)
+        import pandas
+
+        df = pandas.DataFrame(rows)
+        df = df[
+            [
+                "fct",
+                "file",
+                "ncalls1",
+                "ncalls2",
+                "tin",
+                "cum_tin",
+                "tall",
+                "cum_tall",
+            ]
+        ]
+        df["namefct"] = df.apply(lambda row: better_name(row), axis=1)
+        df = (
+            df.groupby(["namefct", "file"], as_index=False)
+            .sum()
+            .sort_values("cum_tall", ascending=False)
+            .reset_index(drop=True)
+        )
         if return_results:
-            return fct_res, profiler, profiler.output(JSONRenderer())
-        return profiler, profiler.output(JSONRenderer())
-    if pyinst_format == "html":
-        if return_results:
-            return fct_res, profiler, profiler.output_html()
-        return profiler, profiler.output_html()
-    raise ValueError(f"Unknown format '{pyinst_format}'.")
+            return fct_res, ps, df
+        return ps, df
+
+    res = clean_text(res)
+    if return_results:
+        return fct_res, ps, res
+    return ps, res
 
 
-def profile2graph(ps, clean_text=None, verbose=False, fLOG=None):
+def profile2graph(
+    ps: Stats,
+    clean_text: Optional[Callable] = None,
+    verbose: bool = False,
+    fLOG: Optional[Callable] = None,
+) -> ProfileNode:
     """
     Converts profiling statistics into a graphs.
 
@@ -686,7 +674,7 @@ def profile2graph(ps, clean_text=None, verbose=False, fLOG=None):
             :showcode:
 
             import time
-            from pyquickhelper.pycode.profiling import profile, profile2graph
+            from onnx_array_api.profiling import profile, profile2graph
 
 
             def fct0(t):
