@@ -59,6 +59,7 @@ def to_dot(
     .. runpython::
         :showcode:
         :warningout: DeprecationWarning, FutureWarning
+        :process:
 
         import numpy as np
         from onnx_array_api.npx import absolute, jit_onnx
