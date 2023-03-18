@@ -41,8 +41,9 @@ Sources available on
 .. runpython::
     :showcode:
     :warningout: DeprecationWarning, FutureWarning
+    :process:
 
-    import numpy as np
+    import numpy as np  # A
     from onnx_array_api.npx import absolute, jit_onnx
     from onnx_array_api.plotting.dot_plot import to_dot
 
