@@ -1,7 +1,3 @@
-"""
-This is an example of a backend for classes :class:`JitOnnx` and :class:`JitEager`
-using onnxruntime as a runtime. It is provided as an example.
-"""
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np

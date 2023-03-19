@@ -24,8 +24,8 @@ if len(requirements) == 0 or requirements == [""]:
     requirements = ["numpy", "scipy", "onnx"]
 
 try:
-    with open(os.path.join(here, "README.rst"), "r", encoding='utf-8') as f:
-        long_description = "onnx-array-api:" + f.read().split('onnx-array-api:')[1]
+    with open(os.path.join(here, "README.rst"), "r", encoding="utf-8") as f:
+        long_description = "onnx-array-api:" + f.read().split("onnx-array-api:")[1]
 except FileNotFoundError:
     long_description = ""
 

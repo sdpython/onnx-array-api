@@ -3,7 +3,6 @@ from contextlib import redirect_stdout
 from io import StringIO
 
 import numpy as np
-import scipy
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
@@ -21,7 +20,6 @@ DEFAULT_OPSET = onnx_opset_version()
 
 
 class TestOrtTensor(ExtTestCase):
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
     def test_eager_numpy_type_ort(self):
         def impl(A):
             self.assertIsInstance(A, EagerOrtTensor)
@@ -47,7 +45,6 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, res.numpy())
         self.assertEqual(res.numpy().dtype, np.float64)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
     def test_eager_numpy_type_ort_op(self):
         def impl(A):
             self.assertIsInstance(A, EagerOrtTensor)
@@ -71,7 +68,6 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, res.numpy())
         self.assertEqual(res.numpy().dtype, np.float64)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is needed.")
     def test_eager_ort(self):
         def impl(A):
             print("A")
@@ -145,8 +141,6 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqual(tuple(res.shape()), z.shape)
         self.assertStartsWith("A\nB\nC\n", text)
 
-    @unittest.skipIf(InferenceSession is None, reason="onnxruntime is not available")
-    @unittest.skipIf(scipy is None, reason="scipy is not installed.")
     def test_cdist_com_microsoft(self):
         from scipy.spatial.distance import cdist as scipy_cdist
 

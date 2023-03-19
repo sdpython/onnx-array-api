@@ -56,9 +56,19 @@ xort = OrtTensor.from_array(x)
 yort = OrtTensor.from_array(y)
 
 
-def loop():
-    for _ in range(1000):
+def loop_ort(n):
+    for _ in range(n):
         ort_myloss(xort, yort)
+
+
+def loop_numpy(n):
+    for _ in range(n):
+        myloss(x, y)
+
+
+def loop(n=1000):
+    loop_numpy(n)
+    loop_ort(n)
 
 
 ps = profile(loop)[0]

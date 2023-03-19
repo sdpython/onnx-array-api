@@ -254,7 +254,7 @@ def to_dot(
                 )
             static_inputs.append(out)
 
-        if node.name.strip() == "":
+        if node.name.strip() == "" or node.name in fill_names:
             name = node.op_type
             iname = 1
             while name in fill_names:
@@ -329,7 +329,7 @@ def to_dot(
             exp.append(
                 f"  {dot_name(prefix)}{dot_name(node.name)} "
                 f'[shape=box style="filled,rounded" color=orange '
-                f'label="{node.op_type}\\n({dot_name(node.name)}){satts}" '
+                f'label="{node.op_type}{satts}" '
                 f"fontsize={fontsize}];"
             )
 
