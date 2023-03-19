@@ -142,22 +142,43 @@ class JitEager:
         types and the expected number of dimensions.
         """
         annotations = self.f.__annotations__
-        annot_values = list(annotations.values())
-        constraints = {
-            f"x{i}": v.tensor_type_dims
-            for i, v in enumerate(values)
-            if isinstance(v, (EagerTensor, JitTensor))
-            and (i >= len(annot_values) or issubclass(annot_values[i], TensorType))
-        }
+        if len(annotations) > 0:
+            names = list(annotations.keys())
+            annot_values = list(annotations.values())
+            constraints = {}
+            new_kwargs = {}
+            for i, (v, iname) in enumerate(zip(values, names)):
+                if isinstance(v, (EagerTensor, JitTensor)) and (
+                    i >= len(annot_values) or issubclass(annot_values[i], TensorType)
+                ):
+                    constraints[iname] = v.tensor_type_dims
+                else:
+                    new_kwargs[iname] = v
+        else:
+            names = [f"x{i}" for i in range(len(values))]
+            new_kwargs = {}
+            constraints = {
+                iname: v.tensor_type_dims
+                for i, (v, iname) in enumerate(zip(values, names))
+                if isinstance(v, (EagerTensor, JitTensor))
+            }
 
         if self.output_types is not None:
             constraints.update(self.output_types)
 
-        inputs = [Input(f"x{i}") for i in range(len(values)) if f"x{i}" in constraints]
-        if len(inputs) < len(values):
+        inputs = [
+            Input(iname) for iname, v in zip(names, values) if iname in constraints
+        ]
+        names = [i.name for i in inputs]
+        if len(new_kwargs) > 0:
             # An attribute is not named in the numpy API
             # but is the ONNX definition.
-            raise NotImplementedError()
+            if len(kwargs) == 0:
+                kwargs = new_kwargs
+            else:
+                kwargs = kwargs.copy()
+                kwargs.update(kwargs)
+
         var = self.f(*inputs, **kwargs)
 
         onx = var.to_onnx(
@@ -165,7 +186,6 @@ class JitEager:
             target_opsets=self.target_opsets,
             ir_version=self.ir_version,
         )
-        names = [f"x{i}" for i in range(len(values))]
         exe = self.tensor_class.create_function(names, onx)
         return onx, exe
 
@@ -223,7 +243,7 @@ class JitEager:
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
-                f"onnx={self.onxs[key]}."
+                f"kwargs={kwargs}, onnx={self.onxs[key]}."
             ) from e
         return res
 

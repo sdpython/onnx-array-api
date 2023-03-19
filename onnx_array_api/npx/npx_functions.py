@@ -1,7 +1,8 @@
 from typing import Any, Optional, Tuple, Union
 
 import numpy as np
-from onnx import FunctionProto, ModelProto, NodeProto
+from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
+from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
@@ -188,7 +189,16 @@ def astype(
         raise TypeError(
             f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
         )
-    return var(a, op="Cast", to=dtype)
+    try:
+        to = np_dtype_to_tensor_dtype(dtype)
+    except KeyError:
+        if dtype is int:
+            to = TensorProto.INT64
+        elif dtype is float:
+            to = TensorProto.float64
+        else:
+            raise ValueError(f"Unable to guess tensor type from {dtype}.")
+    return var(a, op="Cast", to=to)
 
 
 @npxapi_inline

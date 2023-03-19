@@ -37,7 +37,8 @@ class NumpyTensor:
             """
             if len(inputs) != len(self.input_names):
                 raise ValueError(
-                    f"Expected {len(self.input_names)} inputs but got " f"len(inputs)."
+                    f"Expected {len(self.input_names)} inputs but got {len(inputs)}, "
+                    f"self.input_names={self.input_names}, inputs={inputs}."
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):

@@ -235,7 +235,13 @@ class _GraphBuilder:
                 f"Cannot create a node Identity for {len(inputs)} input(s) and "
                 f"{len(outputs)} output(s)."
             )
-        node = make_node(op, inputs, outputs, domain=domain, **new_kwargs)
+        try:
+            node = make_node(op, inputs, outputs, domain=domain, **new_kwargs)
+        except TypeError as e:
+            raise TypeError(
+                f"Unable to create node {op!r}, with inputs={inputs}, "
+                f"outputs={outputs}, domain={domain!r}, new_kwargs={new_kwargs}."
+            ) from e
         for p in protos:
             node.attribute.append(p)
         if attribute_protos is not None:
