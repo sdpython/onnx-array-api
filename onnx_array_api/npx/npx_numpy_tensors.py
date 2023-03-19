@@ -70,6 +70,10 @@ class NumpyTensor:
         else:
             raise TypeError(f"A numpy array is expected not {type(tensor)}.")
 
+    def __repr__(self) -> str:
+        "usual"
+        return f"{self.__class__.__name__}({self._tensor!r})"
+
     def numpy(self):
         "Returns the array converted into a numpy array."
         return self._tensor
@@ -106,6 +110,11 @@ class NumpyTensor:
         if len(self._tensor.shape) == 1:
             return self._tensor.shape
         return (None,) + self._tensor.shape[1:]
+
+    @property
+    def ndim(self):
+        "Returns the number of dimensions (rank)."
+        return len(self.shape)
 
     @property
     def shape(self) -> Tuple[int, ...]:

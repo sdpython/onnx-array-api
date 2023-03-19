@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto
@@ -6,6 +6,7 @@ from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, var
+from .npx_tensors import ArrayApi
 from .npx_types import (
     ElemType,
     OptParType,
@@ -153,6 +154,38 @@ def arctanh(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arctanh`."
     return var(x, op="Atanh")
+
+
+def asarray(
+    a: Any,
+    dtype: Any = None,
+    order: Optional[str] = None,
+    like: Any = None,
+    copy: bool = False,
+):
+    """
+    Converts anything into an array.
+    """
+    if dtype is not None:
+        raise RuntimeError("Method 'astype' should be used to change the type.")
+    if order is not None:
+        raise NotImplementedError(f"order={order!r} not implemented.")
+    if isinstance(a, ArrayApi):
+        if copy:
+            return a.__class__(a, copy=copy)
+        return a
+    raise NotImplementedError(f"asarray not implemented for type {type(a)}.")
+
+
+@npxapi_inline
+def astype(
+    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[int] = 1
+) -> TensorType[ElemType.numerics, "T2"]:
+    """
+    Cast an array.
+    """
+    g = a.astype(dtype)
+    return g
 
 
 @npxapi_inline
@@ -410,6 +443,17 @@ def reciprocal(
 def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "relu"
     return var(x, op="Relu")
+
+
+@npxapi_inline
+def reshape(
+    x: TensorType[ElemType.numerics, "T"], shape: TensorType[ElemType.int64, "I"]
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.reshape`."
+    if isinstance(shape, int):
+        shape = cst(np.array([shape], dtype=np.int64))
+    shape_reshaped = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
+    return var(x, shape_reshaped, op="Reshape")
 
 
 @npxapi_inline

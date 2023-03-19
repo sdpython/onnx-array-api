@@ -10,6 +10,14 @@ class ArrayApi:
     List of supported method by a tensor.
     """
 
+    def __array_namespace__(self):
+        """
+        Returns the module holding all the available functions.
+        """
+        from onnx_array_api.npx import npx_functions
+
+        return npx_functions
+
     def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError(
             f"Method {method_name!r} must be overwritten "

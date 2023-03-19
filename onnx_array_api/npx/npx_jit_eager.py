@@ -338,6 +338,9 @@ class EagerOnnx(JitEager):
             elif isinstance(n, (int, float)):
                 new_args.append(self.tensor_class(np.array(n)))
                 modified = True
+            elif n in (int, float):
+                # usually used to cast
+                new_args.append(n)
             elif n is None:
                 new_args.append(n)
             else:
@@ -365,7 +368,9 @@ class EagerOnnx(JitEager):
             if any(
                 map(
                     lambda t: t is not None
-                    and not isinstance(t, (EagerTensor, Cst, int, float, tuple, slice)),
+                    and not isinstance(
+                        t, (EagerTensor, Cst, int, float, tuple, slice, type)
+                    ),
                     args,
                 )
             ):
