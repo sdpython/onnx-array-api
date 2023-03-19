@@ -25,7 +25,7 @@ def import_source(module_file_path, module_name):
 
 class TestDocumentationExamples(ExtTestCase):
     def run_test(self, fold: str, name: str, verbose=0) -> int:
-        ppath = os.environ["PYTHONPATH"]
+        ppath = os.environ.get("PYTHONPATH", "")
         if len(ppath) == 0:
             os.environ["PYTHONPATH"] = ROOT
         elif ROOT not in ppath:
