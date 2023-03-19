@@ -92,6 +92,8 @@ class JitEager:
                 res.append(v)
             elif isinstance(v, slice):
                 res.append(("slice", v.start, v.stop, v.step))
+            elif isinstance(v, type):
+                res.append(("type", v.__name__))
             elif isinstance(v, tuple):
                 subkey = []
                 for sk in v:
@@ -139,16 +141,23 @@ class JitEager:
         The onnx graph built by the function defines the input
         types and the expected number of dimensions.
         """
+        annotations = self.f.__annotations__
+        annot_values = list(annotations.values())
         constraints = {
             f"x{i}": v.tensor_type_dims
             for i, v in enumerate(values)
             if isinstance(v, (EagerTensor, JitTensor))
+            and (i >= len(annot_values) or issubclass(annot_values[i], TensorType))
         }
 
         if self.output_types is not None:
             constraints.update(self.output_types)
 
-        inputs = [Input(f"x{i}") for i in range(len(values))]
+        inputs = [Input(f"x{i}") for i in range(len(values)) if f"x{i}" in constraints]
+        if len(inputs) < len(values):
+            # An attribute is not named in the numpy API
+            # but is the ONNX definition.
+            raise NotImplementedError()
         var = self.f(*inputs, **kwargs)
 
         onx = var.to_onnx(

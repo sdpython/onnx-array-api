@@ -184,8 +184,11 @@ def astype(
     """
     Cast an array.
     """
-    g = a.astype(dtype)
-    return g
+    if isinstance(dtype, Var):
+        raise TypeError(
+            f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
+        )
+    return var(a, op="Cast", to=dtype)
 
 
 @npxapi_inline

@@ -161,6 +161,12 @@ class NumpyTensor:
         """
         return ir_version
 
+    def const_cast(self, to: Any = None) -> "EagerTensor":
+        """
+        Casts a constant without any ONNX conversion.
+        """
+        return self.__class__(self._tensor.astype(to))
+
     # The class should support whatever Var supports.
     # This part is not yet complete.
 

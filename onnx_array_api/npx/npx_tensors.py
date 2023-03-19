@@ -21,6 +21,15 @@ class EagerTensor(ArrayApi):
     :class:`ArrayApi`.
     """
 
+    def const_cast(self, to: Any = None) -> "EagerTensor":
+        """
+        Casts a constant without any ONNX conversion.
+        """
+        raise NotImplementedError(
+            f"Method 'const_cast' must be overwritten in class "
+            f"{self.__class__.__name__!r}."
+        )
+
     @staticmethod
     def _op_impl(*inputs, method_name=None):
         # avoids circular imports.
@@ -119,7 +128,7 @@ class EagerTensor(ArrayApi):
         new_args = []
         for a in args:
             if isinstance(a, np.ndarray):
-                new_args.append(self.__class__(a).astype(self.dtype))
+                new_args.append(self.__class__(a).const_cast(self.dtype))
             else:
                 new_args.append(a)
 
