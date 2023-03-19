@@ -2418,7 +2418,7 @@ class TestNpx(ExtTestCase):
 
     def test_eager_cst_index(self):
         def l1_loss(x, y):
-            return absolute(x - y).sum()
+            return absolute_inline(x - y).sum()
 
         def l2_loss(x, y):
             return ((x - y) ** 2).sum()
@@ -2441,5 +2441,5 @@ class TestNpx(ExtTestCase):
 
 
 if __name__ == "__main__":
-    # TestNpx().test_eager_numpy()
+    TestNpx().test_eager_cst_index()
     unittest.main(verbosity=2)

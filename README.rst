@@ -59,6 +59,17 @@ well as to execute it.
 
     print(onnx_simple_text_plot(jitted_myloss.get_onnx()))
 
+::
+
+    [0.042]
+    opset: domain='' version=18
+    input: name='x0' type=dtype('float32') shape=['', '']
+    input: name='x1' type=dtype('float32') shape=['', '']
+    Sub(x0, x1) -> r__0
+      Abs(r__0) -> r__1
+        ReduceSum(r__1, keepdims=0) -> r__2
+    output: name='r__2' type=dtype('float32') shape=None
+
 It supports eager mode as well:
 
 .. code-block:: python

@@ -5,7 +5,9 @@
 First examples with onnx-array-api
 ==================================
 
-This demonstrates easy case with :epkg:`onnx-array-api`.
+This demonstrates an easy case with :epkg:`onnx-array-api`.
+It shows how a function can be easily converted into
+ONNX.
 
 A loss function from numpy to ONNX
 ++++++++++++++++++++++++++++++++++
