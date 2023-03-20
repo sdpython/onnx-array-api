@@ -1,11 +1,13 @@
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import numpy as np
-from onnx import FunctionProto, ModelProto, NodeProto
+from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
+from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, var
+from .npx_tensors import ArrayApi
 from .npx_types import (
     ElemType,
     OptParType,
@@ -153,6 +155,50 @@ def arctanh(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arctanh`."
     return var(x, op="Atanh")
+
+
+def asarray(
+    a: Any,
+    dtype: Any = None,
+    order: Optional[str] = None,
+    like: Any = None,
+    copy: bool = False,
+):
+    """
+    Converts anything into an array.
+    """
+    if dtype is not None:
+        raise RuntimeError("Method 'astype' should be used to change the type.")
+    if order is not None:
+        raise NotImplementedError(f"order={order!r} not implemented.")
+    if isinstance(a, ArrayApi):
+        if copy:
+            return a.__class__(a, copy=copy)
+        return a
+    raise NotImplementedError(f"asarray not implemented for type {type(a)}.")
+
+
+@npxapi_inline
+def astype(
+    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[int] = 1
+) -> TensorType[ElemType.numerics, "T2"]:
+    """
+    Cast an array.
+    """
+    if isinstance(dtype, Var):
+        raise TypeError(
+            f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
+        )
+    try:
+        to = np_dtype_to_tensor_dtype(dtype)
+    except KeyError:
+        if dtype is int:
+            to = TensorProto.INT64
+        elif dtype is float:
+            to = TensorProto.float64
+        else:
+            raise ValueError(f"Unable to guess tensor type from {dtype}.")
+    return var(a, op="Cast", to=to)
 
 
 @npxapi_inline
@@ -413,6 +459,17 @@ def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 
 
 @npxapi_inline
+def reshape(
+    x: TensorType[ElemType.numerics, "T"], shape: TensorType[ElemType.int64, "I"]
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.reshape`."
+    if isinstance(shape, int):
+        shape = cst(np.array([shape], dtype=np.int64))
+    shape_reshaped = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
+    return var(x, shape_reshaped, op="Reshape")
+
+
+@npxapi_inline
 def round(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.round`."
     return var(x, op="Round")
@@ -467,6 +524,16 @@ def squeeze(
     if isinstance(axis, (tuple, list)):
         axis = cst(np.array(axis, dtype=np.int64))
     return var(x, axis, op="Squeeze")
+
+
+@npxapi_inline
+def take(
+    data: TensorType[ElemType.numerics, "T"],
+    indices: TensorType[ElemType.int64, "I"],
+    axis: ParType[int] = 0,
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.take`."
+    return var(data, indices, op="Gather", axis=axis)
 
 
 @npxapi_inline

@@ -123,6 +123,7 @@ def _xapi(fn: Callable, inline: bool):
             for x in inputs:
                 if isinstance(x, EagerTensor):
                     tensor_class = x.__class__
+                    break
             if tensor_class is None:
                 raise RuntimeError(
                     f"Unable to find an EagerTensor in types "

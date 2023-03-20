@@ -37,7 +37,8 @@ class NumpyTensor:
             """
             if len(inputs) != len(self.input_names):
                 raise ValueError(
-                    f"Expected {len(self.input_names)} inputs but got " f"len(inputs)."
+                    f"Expected {len(self.input_names)} inputs but got {len(inputs)}, "
+                    f"self.input_names={self.input_names}, inputs={inputs}."
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
@@ -69,6 +70,10 @@ class NumpyTensor:
             self._tensor = np.array(tensor)
         else:
             raise TypeError(f"A numpy array is expected not {type(tensor)}.")
+
+    def __repr__(self) -> str:
+        "usual"
+        return f"{self.__class__.__name__}({self._tensor!r})"
 
     def numpy(self):
         "Returns the array converted into a numpy array."
@@ -106,6 +111,11 @@ class NumpyTensor:
         if len(self._tensor.shape) == 1:
             return self._tensor.shape
         return (None,) + self._tensor.shape[1:]
+
+    @property
+    def ndim(self):
+        "Returns the number of dimensions (rank)."
+        return len(self.shape)
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -151,6 +161,12 @@ class NumpyTensor:
         By default, it returns ir_version.
         """
         return ir_version
+
+    def const_cast(self, to: Any = None) -> "EagerTensor":
+        """
+        Casts a constant without any ONNX conversion.
+        """
+        return self.__class__(self._tensor.astype(to))
 
     # The class should support whatever Var supports.
     # This part is not yet complete.

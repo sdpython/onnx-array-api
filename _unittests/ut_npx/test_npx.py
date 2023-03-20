@@ -71,6 +71,7 @@ from onnx_array_api.npx.npx_functions import sin as sin_inline
 from onnx_array_api.npx.npx_functions import sinh as sinh_inline
 from onnx_array_api.npx.npx_functions import sqrt as sqrt_inline
 from onnx_array_api.npx.npx_functions import squeeze as squeeze_inline
+from onnx_array_api.npx.npx_functions import take as take_inline
 from onnx_array_api.npx.npx_functions import tan as tan_inline
 from onnx_array_api.npx.npx_functions import tanh as tanh_inline
 from onnx_array_api.npx.npx_functions import topk as topk_inline
@@ -2439,7 +2440,19 @@ class TestNpx(ExtTestCase):
         res_eager = eager_myloss(x, y)
         assert_allclose(res_jit, res_eager)
 
+    def test_take(self):
+        data = np.random.randn(3, 3).astype(np.float32)
+        indices = np.array([[0, 2]])
+        y = np.take(data, indices, axis=1)
+
+        f = take_inline(Input("A"), Input("B"), axis=1)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Float64[None], "B": Int64[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data, "B": indices})
+        self.assertEqualArray(y, got[0])
+
 
 if __name__ == "__main__":
-    TestNpx().test_eager_cst_index()
+    TestNpx().test_take()
     unittest.main(verbosity=2)
