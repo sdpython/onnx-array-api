@@ -145,7 +145,7 @@ class JitEager:
                     elif isinstance(sk, (int, float)):
                         res.append(("slice", sk))
                     else:
-                        raise TypeError(f"Input {iv} cannot be such tuple: {v}.")
+                        raise TypeError(f"Input {iv} cannot have such tuple: {v}.")
                 res.append(tuple(subkey))
             else:
                 raise TypeError(
@@ -153,7 +153,7 @@ class JitEager:
                 )
         if kwargs:
             for k, v in sorted(kwargs.items()):
-                if isinstance(v, (int, float, str)):
+                if isinstance(v, (int, float, str, type)):
                     res.append(k)
                     res.append(v)
                 elif isinstance(v, tuple):
@@ -307,8 +307,8 @@ class JitEager:
         :return: new values, new arguments
         """
         if self.input_to_kwargs_ is None:
-            if self.bypass_eager or self.f.__annotations__:
-                return values, kwargs
+            # if self.bypass_eager or self.f.__annotations__:
+            #    return values, kwargs
             raise RuntimeError(
                 f"self.input_to_kwargs_ is not initialized for function {self.f} "
                 f"from module {self.f.__module__!r}."
@@ -321,8 +321,8 @@ class JitEager:
             if i in self.input_to_kwargs_:
                 new_kwargs[self.input_to_kwargs_[i]] = v
             else:
-                new_values.append(values)
-        return new_values, new_kwargs
+                new_values.append(v)
+        return tuple(new_values), new_kwargs
 
     def jit_call(self, *values, **kwargs):
         """
@@ -334,15 +334,33 @@ class JitEager:
         and returns the result or the results in a tuple if there are several.
         """
         self.info("+", "jit_call")
+        if self.input_to_kwargs_ is None:
+            # No jitting was ever called.
+            onx, fct = self.to_jit(*values, **kwargs)
+            if self.input_to_kwargs_ is None:
+                raise RuntimeError(
+                    f"Attribute 'input_to_kwargs_' should be set for "
+                    f"function {self.f} form module {self.f.__module__!r}."
+                )
+        else:
+            onx, fct = None, None
+
         values, kwargs = self.move_input_to_kwargs(values, kwargs)
         key = self.make_key(*values, **kwargs)
         if self.method_name_ is None and "method_name" in key:
             pos = list(key).index("method_name")
             self.method_name_ = key[pos + 1]
 
-        if key in self.versions:
+        if onx is not None:
+            # First jitting.
+            self.versions[key] = fct
+            self.onxs[key] = onx
+        elif key in self.versions:
+            # Already jitted.
             fct = self.versions[key]
         else:
+            # One version was already jitted but types or parameter
+            # are different.
             onx, fct = self.to_jit(*values, **kwargs)
             self.versions[key] = fct
             self.onxs[key] = onx
@@ -482,6 +500,9 @@ class EagerOnnx(JitEager):
             #            f"function {self.f} from module {self.f.__module__!r}."
             #        )
             #    new_args.append(n)
+            elif isinstance(n, np.ndarray):
+                new_args.append(self.tensor_class(n))
+                modified = True
             elif isinstance(n, (int, float)):
                 new_args.append(self.tensor_class(np.array(n)))
                 modified = True
@@ -518,7 +539,8 @@ class EagerOnnx(JitEager):
                 map(
                     lambda t: t is not None
                     and not isinstance(
-                        t, (EagerTensor, Cst, int, float, tuple, slice, type)
+                        t,
+                        (EagerTensor, Cst, int, float, tuple, slice, type, np.ndarray),
                     ),
                     args,
                 )

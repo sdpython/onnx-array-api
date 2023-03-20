@@ -30,6 +30,17 @@ class EagerTensor(ArrayApi):
             f"{self.__class__.__name__!r}."
         )
 
+    def __iter__(self):
+        """
+        This is not implementation in the generic case.
+        This method raises an exception with a better error message.
+        """
+        raise RuntimeError(
+            "Iterators are not implemented in the generic case. "
+            "It may be enabled for the eager mode but it might fail "
+            "when a whole function is converted into ONNX."
+        )
+
     @staticmethod
     def _op_impl(*inputs, method_name=None):
         # avoids circular imports.

@@ -527,6 +527,16 @@ def squeeze(
 
 
 @npxapi_inline
+def take(
+    data: TensorType[ElemType.numerics, "T"],
+    indices: TensorType[ElemType.int64, "I"],
+    axis: ParType[int] = 0,
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.take`."
+    return var(data, indices, op="Gather", axis=axis)
+
+
+@npxapi_inline
 def tan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.tan`."
     return var(x, op="Tan")
