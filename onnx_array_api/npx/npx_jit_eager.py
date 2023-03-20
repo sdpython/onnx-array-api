@@ -370,8 +370,11 @@ class JitEager:
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
+                f"dtypes={[x.dtype for x in values]}, "
+                f"shapes={[x.shape for x in values]}, "
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
+                f"f={self.f} from module {self.f.__module__!r} "
                 f"onnx={self.onxs[key]}."
             ) from e
         self.info("-", "jit_call")
