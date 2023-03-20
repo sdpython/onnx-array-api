@@ -72,8 +72,10 @@ class EagerTensor(ArrayApi):
         return meth(obj, index)
 
     @staticmethod
-    def _astype_impl(x, dtype, method_name=None):
+    def _astype_impl(x, dtype: int = None, method_name=None):
         # avoids circular imports.
+        if dtype is None:
+            raise ValueError("dtype cannot be None.")
         from .npx_var import Var
 
         if not isinstance(x, Var):
