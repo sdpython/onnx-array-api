@@ -276,7 +276,10 @@ for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
     try:
         piv = subdf.pivot(index="max_depth", columns="name", values=["avg", "med"])
     except Exception as e:
-        raise AssertionError(str(subdf)) from e
+        from io import StringIO
+        st = StringIO()
+        subdf.to_csv(st, index=False)
+        raise AssertionError(st.getvalue()) from e
     piv.plot(ax=ax, title=f"jobs={n_j}, trees={n_estimators}")
     ax.set_ylabel(f"n_jobs={n_j}", fontsize="small")
     ax.set_xlabel("max_depth", fontsize="small")
