@@ -139,6 +139,8 @@ else:
     depth = [6, 8, 10, 12, 14]
     Regressor = RandomForestRegressor
 
+# avoid duplicates on machine with 1 or 2 cores.
+n_jobs = list(sorted(set(n_jobs), reverse=True))
 
 ##############################################
 # Benchmark parameters
@@ -273,13 +275,7 @@ for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
     subdf = df[(df.n_estimators == n_estimators) & (df.n_jobs == n_j)]
     if subdf.shape[0] == 0:
         continue
-    try:
-        piv = subdf.pivot(index="max_depth", columns="name", values=["avg", "med"])
-    except Exception as e:
-        from io import StringIO
-        st = StringIO()
-        subdf.to_csv(st, index=False)
-        raise AssertionError(st.getvalue()) from e
+    piv = subdf.pivot(index="max_depth", columns="name", values=["avg", "med"])
     piv.plot(ax=ax, title=f"jobs={n_j}, trees={n_estimators}")
     ax.set_ylabel(f"n_jobs={n_j}", fontsize="small")
     ax.set_xlabel("max_depth", fontsize="small")
