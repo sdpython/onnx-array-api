@@ -273,7 +273,10 @@ for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
     subdf = df[(df.n_estimators == n_estimators) & (df.n_jobs == n_j)]
     if subdf.shape[0] == 0:
         continue
-    piv = subdf.pivot(index="max_depth", columns=["name"], values=["avg", "med"])
+    try:
+        piv = subdf.pivot(index="max_depth", columns="name", values=["avg", "med"])
+    except Exception as e:
+        raise AssertionError(str(subdf)) from e
     piv.plot(ax=ax, title=f"jobs={n_j}, trees={n_estimators}")
     ax.set_ylabel(f"n_jobs={n_j}", fontsize="small")
     ax.set_xlabel("max_depth", fontsize="small")
