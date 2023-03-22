@@ -7,4 +7,4 @@ Tutorial
     :maxdepth: 1
 
     overview
-
+    benchmarks
