@@ -237,7 +237,10 @@ class TestF8(ExtTestCase):
                         else:
                             add = v - value
                             if len(w) > 0:
-                                raise AssertionError(f"A warning was thrown for v={v}, value={value}, w={w[0]}.")
+                                raise AssertionError(
+                                    f"A warning was thrown for v={v}, "
+                                    f"value={value}, w={w[0]}."
+                                )
                 else:
                     v = value + add
                 b = search_float32_into_fe5m2(v)
@@ -306,9 +309,9 @@ class TestF8(ExtTestCase):
                 0.203125,
                 0.75,
                 numpy.nan,
-                numpy.nan,
-                -numpy.nan,
-                -numpy.nan,
+                max(CastFloat8.values_e4m3fn)[0],
+                max(CastFloat8.values_e4m3fn)[0],
+                min(CastFloat8.values_e4m3fn)[0],
             ],
             dtype=numpy.float32,
         )
@@ -380,26 +383,27 @@ class TestF8(ExtTestCase):
                 )
 
     def test_float32_to_fe4m3fn_inf(self):
-        mx = 
-        v0 = numpy.float32(448)
+        mx = max(CastFloat8.values_e4m3fn)[0]
+        v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
         a = search_float32_into_fe4m3(v0)
         b = search_float32_into_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(448)
+        v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
         a = float32_to_fe4m3(v0)
         b = float32_to_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-448)
+        mi = min(CastFloat8.values_e4m3fn)[0]
+        v0 = numpy.float32(mi)
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe4m3(v0)
         b = search_float32_into_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-448)
+        v0 = numpy.float32(mi)
         v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe4m3(v0)
         b = float32_to_fe4m3(v1)
@@ -666,14 +670,28 @@ class TestF8(ExtTestCase):
         self.assertNotEqual(a, b)
 
     def test_float32_to_fe5m2fnuz_inf(self):
-        v0 = numpy.float32(65536)
+        mx = max(CastFloat8.values_e5m2fnuz)[0]
+        v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
         a = search_float32_into_fe5m2(v0, fn=True, uz=True)
         b = search_float32_into_fe5m2(v1, fn=True, uz=True)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(65536)
+        v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
+        a = float32_to_fe5m2(v0, fn=True, uz=True)
+        b = float32_to_fe5m2(v1, fn=True, uz=True)
+        self.assertEqual(a, b)
+
+        mi = min(CastFloat8.values_e5m2fnuz)[0]
+        v0 = numpy.float32(mi)
+        v1 = numpy.float32(-numpy.inf)
+        a = search_float32_into_fe5m2(v0, fn=True, uz=True)
+        b = search_float32_into_fe5m2(v1, fn=True, uz=True)
+        self.assertEqual(a, b)
+
+        v0 = numpy.float32(mi)
+        v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe5m2(v0, fn=True, uz=True)
         b = float32_to_fe5m2(v1, fn=True, uz=True)
         self.assertEqual(a, b)
@@ -688,7 +706,7 @@ class TestF8(ExtTestCase):
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe5m2(v0, fn=True, uz=True)
         b = search_float32_into_fe5m2(v1, fn=True, uz=True)
-        self.assertEqual(a, b)
+        self.assertNotEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(-numpy.nan)
@@ -700,7 +718,7 @@ class TestF8(ExtTestCase):
         v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe5m2(v0, fn=True, uz=True)
         b = float32_to_fe5m2(v1, fn=True, uz=True)
-        self.assertEqual(a, b)
+        self.assertNotEqual(a, b)
 
     def test_simple_fe4m3(self):
         values = [448]

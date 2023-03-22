@@ -378,12 +378,16 @@ def search_float32_into_fe4m3(value: float, fn: bool = True, uz: bool = False) -
     b = int.from_bytes(struct.pack("<f", numpy.float32(value)), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if numpy.isnan(value) or numpy.isinf(value):
+        if numpy.isnan(value):
             return 0x80
+        if numpy.isinf(value):
+            return ret | 0x7F
         set_values = CastFloat8.values_e4m3fnuz
     else:
-        if numpy.isnan(value) or numpy.isinf(value):
+        if numpy.isnan(value):
             return 0x7F | ret
+        if numpy.isinf(value):
+            return 0x7E | ret
         set_values = CastFloat8.values_e4m3fn
     f = numpy.float32(value)
     i = CastFloat8.find_closest_value(f, set_values)
@@ -403,8 +407,10 @@ def search_float32_into_fe5m2(value: float, fn: bool = False, uz: bool = False) 
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if numpy.isnan(value) or numpy.isinf(value):
+        if numpy.isnan(value):
             return 0x80
+        if numpy.isinf(value):
+            return ret | 0x7F
         set_values = CastFloat8.values_e5m2fnuz
     elif not fn and not uz:
         if numpy.isnan(value):
@@ -435,7 +441,7 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
         if (b & 0x7FC00000) == 0x7FC00000:
             return 0x80
         if numpy.isinf(x):
-            return 0x80
+            return ret | 0x7F  # saturation
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
@@ -472,7 +478,7 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
         if (b & 0x7FC00000) == 0x7FC00000:
             return 0x7F | ret
         if numpy.isinf(x):
-            return 0x7F | ret
+            return 0x7E | ret  # saturation
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
@@ -524,6 +530,8 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False):
     if fn and uz:
         if (b & 0x7FC00000) == 0x7FC00000:
             return 0x80
+        if (b & 0x7FFFFFFF) == 0x7F800000:
+            return ret | 0x7F
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
