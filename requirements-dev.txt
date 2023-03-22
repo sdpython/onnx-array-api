@@ -4,9 +4,11 @@ flake8
 furo
 isort
 joblib
+lightgbm
 matplotlib
 onnxruntime
 pandas
+psutil
 pyquickhelper
 pytest
 pytest-cov
@@ -17,3 +19,4 @@ sphinx
 sphinx-gallery
 tqdm
 wheel
+xgboost
