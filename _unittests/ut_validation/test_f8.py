@@ -1,6 +1,3 @@
-"""
-@brief      test log(time=3s)
-"""
 import os
 import pprint
 import unittest
@@ -383,25 +380,26 @@ class TestF8(ExtTestCase):
                 )
 
     def test_float32_to_fe4m3fn_inf(self):
-        v0 = numpy.float32(numpy.nan)
+        mx = 
+        v0 = numpy.float32(448)
         v1 = numpy.float32(numpy.inf)
         a = search_float32_into_fe4m3(v0)
         b = search_float32_into_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(numpy.nan)
+        v0 = numpy.float32(448)
         v1 = numpy.float32(numpy.inf)
         a = float32_to_fe4m3(v0)
         b = float32_to_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-numpy.nan)
+        v0 = numpy.float32(-448)
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe4m3(v0)
         b = search_float32_into_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-numpy.nan)
+        v0 = numpy.float32(-448)
         v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe4m3(v0)
         b = float32_to_fe4m3(v1)
@@ -619,25 +617,25 @@ class TestF8(ExtTestCase):
             )
 
     def test_float32_to_fe4m3fnuz_inf(self):
-        v0 = numpy.float32(numpy.nan)
+        v0 = numpy.float32(448)
         v1 = numpy.float32(numpy.inf)
         a = search_float32_into_fe4m3(v0, uz=True)
         b = search_float32_into_fe4m3(v1, uz=True)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(numpy.nan)
+        v0 = numpy.float32(448)
         v1 = numpy.float32(numpy.inf)
         a = float32_to_fe4m3(v0, uz=True)
         b = float32_to_fe4m3(v1, uz=True)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-numpy.nan)
+        v0 = numpy.float32(-448)
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe4m3(v0, uz=True)
         b = search_float32_into_fe4m3(v1, uz=True)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(-numpy.nan)
+        v0 = numpy.float32(-448)
         v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe4m3(v0, uz=True)
         b = float32_to_fe4m3(v1, uz=True)
@@ -653,7 +651,7 @@ class TestF8(ExtTestCase):
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe4m3(v0, uz=True)
         b = search_float32_into_fe4m3(v1, uz=True)
-        self.assertEqual(a, b)
+        self.assertNotEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(-numpy.nan)
@@ -665,16 +663,16 @@ class TestF8(ExtTestCase):
         v1 = numpy.float32(-numpy.inf)
         a = float32_to_fe4m3(v0, uz=True)
         b = float32_to_fe4m3(v1, uz=True)
-        self.assertEqual(a, b)
+        self.assertNotEqual(a, b)
 
     def test_float32_to_fe5m2fnuz_inf(self):
-        v0 = numpy.float32(numpy.nan)
+        v0 = numpy.float32(65536)
         v1 = numpy.float32(numpy.inf)
         a = search_float32_into_fe5m2(v0, fn=True, uz=True)
         b = search_float32_into_fe5m2(v1, fn=True, uz=True)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(numpy.nan)
+        v0 = numpy.float32(65536)
         v1 = numpy.float32(numpy.inf)
         a = float32_to_fe5m2(v0, fn=True, uz=True)
         b = float32_to_fe5m2(v1, fn=True, uz=True)
