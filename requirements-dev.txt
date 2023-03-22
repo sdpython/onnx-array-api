@@ -6,7 +6,6 @@ isort
 joblib
 lightgbm
 matplotlib
-onnxmltools --install-option="--no-deps"
 onnxruntime
 pandas
 psutil
