@@ -279,7 +279,6 @@ for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
     ax.set_xlabel("max_depth", fontsize="small")
 
     # ratio
-    print(subdf)
     ax2 = ax.twinx()
     piv1 = subdf.pivot(index="max_depth", columns="name", values="avg")
     piv1["speedup"] = piv1.base / piv1.ort_
@@ -287,9 +286,11 @@ for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
 
     piv1 = subdf.pivot(index="max_depth", columns="name", values="med")
     piv1["speedup"] = piv1.base / piv1.ort_
-    print(piv1)
     ax2.plot(piv1.index, piv1.speedup, "y--", label="speedup med")
     ax2.legend(fontsize="x-small")
+
+    # 1
+    ax2.plot(piv1.index, [1 for _ in piv1.index], "k--", label="no speedup")
 
 for i in range(axes.shape[0]):
     for j in range(axes.shape[1]):
