@@ -72,8 +72,11 @@ print(f"Number of cores: {cpu_count()}")
 # But this information is not usually enough.
 # Let's extract the cache information.
 
-out, err = run_cmd("lscpu")
-print(out)
+try:
+    out, err = run_cmd("lscpu")
+    print(out)
+except Exception as e:
+    print("lscpu not available: {e}")
 
 ###############################################
 # Or with the following command.
