@@ -20,6 +20,23 @@ from onnx_array_api.validation.f8 import (
     search_float32_into_fe5m2,
 )
 from onnx_array_api.ext_test_case import ExtTestCase
+from ml_dtypes import float8_e4m3fn, float8_e5m2
+
+
+def new_cvt_float32_to_e4m3fn(x):
+    return numpy.array(x, dtype=numpy.float32).astype(float8_e4m3fn)
+
+
+def new_cvt_e4m3fn_to_float32(x):
+    return numpy.array(x, dtype=float8_e4m3fn).astype(numpy.float32)
+
+
+def new_cvt_float32_to_e5m2(x):
+    return numpy.array(x, dtype=numpy.float32).astype(float8_e5m2)
+
+
+def new_cvt_e5m2_to_float32(x):
+    return numpy.array(x, dtype=float8_e5m2).astype(numpy.float32)
 
 
 class TestF8(ExtTestCase):
@@ -74,6 +91,17 @@ class TestF8(ExtTestCase):
             if numpy.isnan(a):
                 self.assertTrue(numpy.isnan(b))
                 continue
+            self.assertEqual(a, b)
+
+    def test_fe4m3fn_to_float32_all_ml_types(self):
+        for i in range(0, 256):
+            a = fe4m3_to_float32_float(i)
+            b = fe4m3_to_float32(i)
+            c = new_cvt_float32_to_e4m3fn(b)
+            if numpy.isnan(a):
+                self.assertTrue(numpy.isnan(b))
+                continue
+            self.assertEqual(float(a), float(c))
             self.assertEqual(a, b)
 
     def test_display_float(self):
@@ -164,6 +192,7 @@ class TestF8(ExtTestCase):
             ):
                 b = search_float32_into_fe5m2(value)
                 nf = float32_to_fe5m2(value)
+                cf = new_cvt_float32_to_e5m2(value)
                 if expected in {253, 254, 255, 125, 126, 127}:  # nan
                     self.assertIn(b, {253, 254, 255, 125, 126, 127})
                     self.assertIn(nf, {253, 254, 255, 125, 126, 127})
@@ -173,6 +202,10 @@ class TestF8(ExtTestCase):
                 else:
                     self.assertIn(b, (0, 128))
                     self.assertIn(nf, (0, 128))
+                if numpy.isnan(float(cf)):
+                    self.assertTrue(numpy.isnan(fe5m2_to_float32(nf)))
+                    continue
+                self.assertEqual(fe5m2_to_float32(nf), float(cf))
 
     def test_search_float32_into_fe4m3fn(self):
         values = [(fe4m3_to_float32_float(i), i) for i in range(0, 256)]
@@ -738,6 +771,33 @@ class TestF8(ExtTestCase):
         cvt = [float32_to_fe4m3(v, uz=True) for v in values]
         back = [fe4m3_to_float32(c, uz=True) for c in cvt]
         self.assertEqual(values, back)
+
+    # ml-dtypes
+
+    def test_inf_nan_ml_dtypes(self):
+        x = numpy.float32(numpy.inf)
+        g1 = float32_to_fe4m3(x)
+        g2 = float32_to_fe5m2(x)
+        i1 = fe4m3_to_float32(g1)
+        i2 = fe5m2_to_float32(g2)
+        self.assertEqual(i1, 448)
+        self.assertTrue(numpy.isinf(i2))
+        m1 = new_cvt_float32_to_e4m3fn(x)
+        m2 = new_cvt_float32_to_e5m2(x)
+        self.assertTrue(numpy.isnan(m1))  # different from ONNX choice
+        self.assertTrue(numpy.isinf(m2))
+
+        x = numpy.float32(numpy.nan)
+        g1 = float32_to_fe4m3(x)
+        g2 = float32_to_fe5m2(x)
+        i1 = fe4m3_to_float32(g1)
+        i2 = fe5m2_to_float32(g2)
+        self.assertTrue(numpy.isnan(i1))
+        self.assertTrue(numpy.isnan(i2))
+        m1 = new_cvt_float32_to_e4m3fn(x)
+        m2 = new_cvt_float32_to_e5m2(x)
+        self.assertTrue(numpy.isnan(m1))
+        self.assertTrue(numpy.isnan(m2))
 
 
 if __name__ == "__main__":

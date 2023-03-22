@@ -5,6 +5,7 @@ furo
 isort
 joblib
 matplotlib
+ml-dtypes
 onnxruntime
 pandas
 pyquickhelper
