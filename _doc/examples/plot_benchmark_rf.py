@@ -201,6 +201,7 @@ for n_j, max_depth, n_estimators in bar:
         with open(cache_name, "wb") as f:
             f.write(onx.SerializeToString())
         sess = InferenceSession(cache_name, so)
+    onx_size = os.stat(cache_name).st_size
 
     # run once to avoid counting the first run
     bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} predict1")
@@ -217,6 +218,7 @@ for n_j, max_depth, n_estimators in bar:
         name=rf.__class__.__name__,
         n_rows=X.shape[0],
         n_features=X.shape[1],
+        onnx_size=onx_size,
     )
 
     # baseline
@@ -240,7 +242,7 @@ for n_j, max_depth, n_estimators in bar:
 # Saving data
 # +++++++++++
 
-name = "plot_beanchmark_rf"
+name = os.path.join(cache_dir, "plot_beanchmark_rf")
 print(f"Saving data into {name!r}")
 
 df = pandas.DataFrame(data)

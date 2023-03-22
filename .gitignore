@@ -3,6 +3,7 @@
 *.dylib
 *.so
 coverage.html/*
+_cache/*
 .coverage
 dist/*
 build/*
