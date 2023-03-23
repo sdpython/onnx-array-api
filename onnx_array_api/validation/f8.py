@@ -3,6 +3,7 @@ import numpy
 
 # display functions
 
+
 def display_float32(value, sign=1, exponent=8, mantissa=23):
     """
     Displays a float32 into b.
@@ -247,6 +248,7 @@ def fe4m3_to_float32(ival: int, fn: bool = True, uz: bool = False) -> float:
     f = numpy.uint32(res).view(numpy.float32)  # pylint: disable=E1121
     return f
 
+
 def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
     """
     Casts a float E5M2 encoded as an integer into a float.
@@ -295,7 +297,9 @@ def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
     f = numpy.uint32(res).view(numpy.float32)  # pylint: disable=E1121
     return f
 
+
 # cast from float32 to float 8
+
 
 class CastFloat8:
     """
