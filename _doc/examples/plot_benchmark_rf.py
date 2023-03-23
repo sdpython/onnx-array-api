@@ -76,7 +76,7 @@ try:
     out, err = run_cmd("lscpu")
     print(out)
 except Exception as e:
-    print("lscpu not available: {e}")
+    print(f"lscpu not available: {e}")
 
 ###############################################
 # Or with the following command.
