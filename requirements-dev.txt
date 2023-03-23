@@ -6,6 +6,7 @@ isort
 joblib
 lightgbm
 matplotlib
+ml-dtypes
 onnxruntime
 pandas
 psutil
