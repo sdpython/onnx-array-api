@@ -1,6 +1,7 @@
 import struct
 import numpy
 
+# display functions
 
 def display_float32(value, sign=1, exponent=8, mantissa=23):
     """
@@ -88,6 +89,9 @@ def display_fe5m2(value, sign=1, exponent=4, mantissa=3):
     :return: string
     """
     return display_fexmx(value, sign=1, exponent=5, mantissa=2)
+
+
+# cast from float 8 to float 32
 
 
 def fe4m3_to_float32_float(ival: int, fn: bool = True, uz: bool = False) -> float:
@@ -243,7 +247,6 @@ def fe4m3_to_float32(ival: int, fn: bool = True, uz: bool = False) -> float:
     f = numpy.uint32(res).view(numpy.float32)  # pylint: disable=E1121
     return f
 
-
 def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
     """
     Casts a float E5M2 encoded as an integer into a float.
@@ -292,6 +295,7 @@ def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
     f = numpy.uint32(res).view(numpy.float32)  # pylint: disable=E1121
     return f
 
+# cast from float32 to float 8
 
 class CastFloat8:
     """
@@ -378,16 +382,12 @@ def search_float32_into_fe4m3(value: float, fn: bool = True, uz: bool = False) -
     b = int.from_bytes(struct.pack("<f", numpy.float32(value)), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if numpy.isnan(value):
+        if numpy.isnan(value) or numpy.isinf(value):
             return 0x80
-        if numpy.isinf(value):
-            return ret | 0x7F
         set_values = CastFloat8.values_e4m3fnuz
     else:
-        if numpy.isnan(value):
+        if numpy.isnan(value) or numpy.isinf(value):
             return 0x7F | ret
-        if numpy.isinf(value):
-            return 0x7E | ret
         set_values = CastFloat8.values_e4m3fn
     f = numpy.float32(value)
     i = CastFloat8.find_closest_value(f, set_values)
@@ -407,10 +407,8 @@ def search_float32_into_fe5m2(value: float, fn: bool = False, uz: bool = False) 
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if numpy.isnan(value):
+        if numpy.isnan(value) or numpy.isinf(value):
             return 0x80
-        if numpy.isinf(value):
-            return ret | 0x7F
         set_values = CastFloat8.values_e5m2fnuz
     elif not fn and not uz:
         if numpy.isnan(value):
@@ -438,10 +436,8 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
     b = int.from_bytes(struct.pack("<f", numpy.float32(x)), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if (b & 0x7FC00000) == 0x7FC00000:
+        if (b & 0x7FC00000) == 0x7FC00000 or numpy.isinf(x):
             return 0x80
-        if numpy.isinf(x):
-            return ret | 0x7F  # saturation
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
@@ -475,10 +471,8 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
                 ret |= 0x7F  # 01111110
         return int(ret)
     else:
-        if (b & 0x7FC00000) == 0x7FC00000:
+        if (b & 0x7FC00000) == 0x7FC00000 or numpy.isinf(x):
             return 0x7F | ret
-        if numpy.isinf(x):
-            return 0x7E | ret  # saturation
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
@@ -528,10 +522,10 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False):
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if (b & 0x7FC00000) == 0x7FC00000:
+        if (b & 0x7FC00000) == 0x7FC00000:  # NaN
             return 0x80
-        if (b & 0x7FFFFFFF) == 0x7F800000:
-            return ret | 0x7F
+        if (b & 0x7FFFFFFF) == 0x7F800000:  # Inf
+            return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
