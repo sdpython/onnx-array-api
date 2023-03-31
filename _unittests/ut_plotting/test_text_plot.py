@@ -65,6 +65,18 @@ class TestTextPlot(ExtTestCase):
         self.assertIn("         T y=", res)
         self.assertIn("n_classes=3", res)
 
+    def test_onnx_text_plot_tree_cls_2(self):
+        iris = load_iris()
+        X_train, y_train = iris.data.astype(numpy.float32), iris.target
+        clr = DecisionTreeClassifier()
+        clr.fit(X_train, y_train)
+        model_def = to_onnx(
+            clr, X_train.astype(numpy.float32), options={"zipmap": False}
+        )
+        res = onnx_text_plot_tree(model_def.graph.node[0])
+        self.assertIn("n_classes=3", res)
+        print(res)
+
     @ignore_warnings((UserWarning, FutureWarning))
     def test_onnx_simple_text_plot_kmeans(self):
         x = numpy.random.randn(10, 3)

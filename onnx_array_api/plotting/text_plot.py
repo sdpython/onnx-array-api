@@ -114,9 +114,9 @@ def onnx_text_plot_tree(node):
         for i in range(len(short[f"{prefix}_treeids"])):
             idn = short[f"{prefix}_nodeids"][i]
             node = nodes[idn]
-            node.target_nodeids = idn
-            node.target_ids = short[f"{prefix}_ids"][i]
-            node.target_weights = short[f"{prefix}_weights"][i]
+            node.append_target(
+                id=short[f"{prefix}_ids"][i], weight=short[f"{prefix}_weights"][i]
+            )
 
         def iterate(nodes, node, depth=0, true_false=""):
             node.depth = depth
