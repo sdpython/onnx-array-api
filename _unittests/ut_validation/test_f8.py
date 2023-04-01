@@ -190,8 +190,8 @@ class TestF8(ExtTestCase):
             with self.subTest(
                 value=value, expected=expected, bin=display_float32(value)
             ):
-                b = search_float32_into_fe5m2(value)
-                nf = float32_to_fe5m2(value)
+                b = search_float32_into_fe5m2(value, saturate=False)
+                nf = float32_to_fe5m2(value, saturate=False)
                 cf = new_cvt_float32_to_e5m2(value)
                 if expected in {253, 254, 255, 125, 126, 127}:  # nan
                     self.assertIn(b, {253, 254, 255, 125, 126, 127})
@@ -330,7 +330,7 @@ class TestF8(ExtTestCase):
         v_float32_to_fe5m2 = numpy.vectorize(float32_to_fe5m2)
         v_fe5m2_to_float32 = numpy.vectorize(fe5m2_to_float32)
 
-        got = v_fe4m3_to_float32(v_float32_to_fe4m3(np_fp32))
+        got = v_fe4m3_to_float32(v_float32_to_fe4m3(np_fp32, saturate=False))
         expected = numpy.array(
             [
                 0.46875,
@@ -349,7 +349,7 @@ class TestF8(ExtTestCase):
             dtype=numpy.float32,
         )
         self.assertEqualArray(expected, got)
-        got = v_fe5m2_to_float32(v_float32_to_fe5m2(np_fp32))
+        got = v_fe5m2_to_float32(v_float32_to_fe5m2(np_fp32, saturate=False))
         expected = numpy.array(
             [
                 0.5,
@@ -416,30 +416,28 @@ class TestF8(ExtTestCase):
                 )
 
     def test_float32_to_fe4m3fn_inf(self):
-        mx = numpy.float32(numpy.nan)
-        v0 = numpy.float32(mx)
+        v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(numpy.inf)
-        a = search_float32_into_fe4m3(v0)
-        b = search_float32_into_fe4m3(v1)
+        a = search_float32_into_fe4m3(v0, saturate=False)
+        b = search_float32_into_fe4m3(v1, saturate=False)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(mx)
+        v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(numpy.inf)
-        a = float32_to_fe4m3(v0)
-        b = float32_to_fe4m3(v1)
+        a = float32_to_fe4m3(v0, saturate=False)
+        b = float32_to_fe4m3(v1, saturate=False)
         self.assertEqual(a, b)
 
-        mi = numpy.float32(-numpy.nan)
-        v0 = numpy.float32(mi)
+        v0 = numpy.float32(-numpy.nan)
         v1 = numpy.float32(-numpy.inf)
         a = search_float32_into_fe4m3(v0)
         b = search_float32_into_fe4m3(v1)
         self.assertEqual(a, b)
 
-        v0 = numpy.float32(mi)
+        v0 = numpy.float32(-numpy.nan)
         v1 = numpy.float32(-numpy.inf)
-        a = float32_to_fe4m3(v0)
-        b = float32_to_fe4m3(v1)
+        a = float32_to_fe4m3(v0, saturate=False)
+        b = float32_to_fe4m3(v1, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
@@ -653,17 +651,17 @@ class TestF8(ExtTestCase):
                 f"{wrong} conversion are wrong\n{pprint.pformat(obs[:2])}"
             )
 
-    def test_float32_to_fe4m3fnuz_inf(self):
+    def test_search_float32_to_fe4m3fnuz_inf(self):
         v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(numpy.inf)
-        a = search_float32_into_fe4m3(v0, uz=True)
-        b = search_float32_into_fe4m3(v1, uz=True)
+        a = search_float32_into_fe4m3(v0, uz=True, saturate=False)
+        b = search_float32_into_fe4m3(v1, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(-numpy.nan)
         v1 = numpy.float32(-numpy.inf)
-        a = search_float32_into_fe4m3(v0, uz=True)
-        b = search_float32_into_fe4m3(v1, uz=True)
+        a = search_float32_into_fe4m3(v0, uz=True, saturate=False)
+        b = search_float32_into_fe4m3(v1, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
@@ -674,10 +672,11 @@ class TestF8(ExtTestCase):
 
         v0 = numpy.float32(numpy.inf)
         v1 = numpy.float32(-numpy.inf)
-        a = search_float32_into_fe4m3(v0, uz=True)
-        b = search_float32_into_fe4m3(v1, uz=True)
+        a = search_float32_into_fe4m3(v0, uz=True, saturate=False)
+        b = search_float32_into_fe4m3(v1, uz=True, saturate=False)
         self.assertEqual(a, b)
 
+    def test_float32_to_fe4m3fnuz_inf(self):
         v0 = numpy.float32(numpy.nan)
         v1 = numpy.float32(-numpy.nan)
         a = float32_to_fe4m3(v0, uz=True)
@@ -686,35 +685,35 @@ class TestF8(ExtTestCase):
 
         v0 = numpy.float32(numpy.inf)
         v1 = numpy.float32(-numpy.inf)
-        a = float32_to_fe4m3(v0, uz=True)
-        b = float32_to_fe4m3(v1, uz=True)
+        a = float32_to_fe4m3(v0, uz=True, saturate=False)
+        b = float32_to_fe4m3(v1, uz=True, saturate=False)
         self.assertEqual(a, b)
 
     def test_float32_to_fe5m2fnuz_inf(self):
         mx = numpy.nan
         v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
-        a = search_float32_into_fe5m2(v0, fn=True, uz=True)
-        b = search_float32_into_fe5m2(v1, fn=True, uz=True)
+        a = search_float32_into_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = search_float32_into_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(mx)
         v1 = numpy.float32(numpy.inf)
-        a = float32_to_fe5m2(v0, fn=True, uz=True)
-        b = float32_to_fe5m2(v1, fn=True, uz=True)
+        a = float32_to_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = float32_to_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         mi = numpy.nan
         v0 = numpy.float32(mi)
         v1 = numpy.float32(-numpy.inf)
-        a = search_float32_into_fe5m2(v0, fn=True, uz=True)
-        b = search_float32_into_fe5m2(v1, fn=True, uz=True)
+        a = search_float32_into_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = search_float32_into_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(mi)
         v1 = numpy.float32(-numpy.inf)
-        a = float32_to_fe5m2(v0, fn=True, uz=True)
-        b = float32_to_fe5m2(v1, fn=True, uz=True)
+        a = float32_to_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = float32_to_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
@@ -725,8 +724,8 @@ class TestF8(ExtTestCase):
 
         v0 = numpy.float32(numpy.inf)
         v1 = numpy.float32(-numpy.inf)
-        a = search_float32_into_fe5m2(v0, fn=True, uz=True)
-        b = search_float32_into_fe5m2(v1, fn=True, uz=True)
+        a = search_float32_into_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = search_float32_into_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
         v0 = numpy.float32(numpy.nan)
@@ -737,8 +736,8 @@ class TestF8(ExtTestCase):
 
         v0 = numpy.float32(numpy.inf)
         v1 = numpy.float32(-numpy.inf)
-        a = float32_to_fe5m2(v0, fn=True, uz=True)
-        b = float32_to_fe5m2(v1, fn=True, uz=True)
+        a = float32_to_fe5m2(v0, fn=True, uz=True, saturate=False)
+        b = float32_to_fe5m2(v1, fn=True, uz=True, saturate=False)
         self.assertEqual(a, b)
 
     def test_simple_fe4m3(self):
@@ -764,8 +763,8 @@ class TestF8(ExtTestCase):
 
     def test_inf_nan_ml_dtypes(self):
         x = numpy.float32(numpy.inf)
-        g1 = float32_to_fe4m3(x)
-        g2 = float32_to_fe5m2(x)
+        g1 = float32_to_fe4m3(x, saturate=False)
+        g2 = float32_to_fe5m2(x, saturate=False)
         i1 = fe4m3_to_float32(g1)
         i2 = fe5m2_to_float32(g2)
         self.assertNotEqual(i1, 448)
@@ -786,6 +785,283 @@ class TestF8(ExtTestCase):
         m2 = new_cvt_float32_to_e5m2(x)
         self.assertTrue(numpy.isnan(m1))
         self.assertTrue(numpy.isnan(m2))
+
+    def test_float8_e4m3fn_inf(self):
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe4m3(x)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 448)
+
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe4m3(x, saturate=False)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe4m3(x)
+        self.assertEqual(to & 0x80, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, -448)
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe4m3(x, saturate=False)
+        self.assertEqual(to & 0x80, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e4m3fnuz_inf(self):
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe4m3(x, uz=True)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, 224)
+
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe4m3(x, uz=True)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, -224)
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e5m2_inf(self):
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe5m2(x)
+        back = fe5m2_to_float32(to)
+        self.assertEqual(back, 57344)
+
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe5m2(x, saturate=False)
+        back = fe5m2_to_float32(to)
+        self.assertTrue(numpy.isinf(back))
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe5m2(x)
+        self.assertEqual(to & 0x80, 0x80)
+        back = fe5m2_to_float32(to)
+        self.assertEqual(back, -57344)
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe5m2(x, saturate=False)
+        self.assertEqual(to & 0x80, 0x80)
+        back = fe5m2_to_float32(to)
+        self.assertTrue(numpy.isinf(back))
+        self.assertTrue(back < 0)
+
+    def test_float8_e5m2fnuz_inf(self):
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, 57344)
+
+        x = numpy.float32(numpy.inf)
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, -57344)
+
+        x = numpy.float32(-numpy.inf)
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e4m3fn_out_of_range(self):
+        x = numpy.float32(1000000)
+        to = float32_to_fe4m3(x)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 448)
+
+        x = numpy.float32(1000000)
+        to = float32_to_fe4m3(x, saturate=False)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe4m3(x)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, -448)
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe4m3(x, saturate=False)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e4m3fnuz_out_of_range(self):
+        x = numpy.float32(1000000)
+        to = float32_to_fe4m3(x, uz=True)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, 240)
+
+        x = numpy.float32(1000000)
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe4m3(x, uz=True)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, -240)
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e5m2_out_of_range(self):
+        x = numpy.float32(1000000)
+        to = float32_to_fe5m2(x)
+        back = fe5m2_to_float32(to)
+        self.assertEqual(back, 57344)
+
+        x = numpy.float32(1000000)
+        to = float32_to_fe5m2(x, saturate=False)
+        back = fe5m2_to_float32(to)
+        self.assertTrue(numpy.isinf(back))
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe5m2(x)
+        back = fe5m2_to_float32(to)
+        self.assertEqual(back, -57344)
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe5m2(x, saturate=False)
+        back = fe5m2_to_float32(to)
+        self.assertTrue(numpy.isinf(back))
+
+    def test_float8_e5m2fnuz_out_of_range(self):
+        x = numpy.float32(1000000)
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, 57344)
+
+        x = numpy.float32(1000000)
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, -57344)
+
+        x = numpy.float32(-1000000)
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        back = fe5m2_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e4m3fn_negative_zero(self):
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe4m3(x)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 0)
+
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe4m3(x, saturate=False)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 0)
+
+    def test_float8_e4m3fnuz_negative_zero(self):
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe4m3(x, uz=True)
+        self.assertEqual(to, 0)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, 0)
+
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertEqual(back, 0)
+        self.assertEqual(to, 0)
+
+    def test_float8_e5m2_negative_zero(self):
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe5m2(x)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 0)
+
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe5m2(x, saturate=False)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to)
+        self.assertEqual(back, 0)
+
+    def test_float8_e5m2fnuz_negative_zero(self):
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        self.assertEqual(to, 0)
+        back = fe4m3_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, 0)
+
+        x = fe5m2_to_float32(0x80)  # -0
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        self.assertEqual(to, 0)
+        back = fe4m3_to_float32(to, fn=True, uz=True)
+        self.assertEqual(back, 0)
+
+    def test_float8_e4m3fn_negative_nan(self):
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe4m3(x)
+        self.assertEqual(to, 255)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe4m3(x, saturate=False)
+        self.assertEqual(to, 255)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e4m3fnuz_negative_nan(self):
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe4m3(x, uz=True)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe4m3(x, uz=True, saturate=False)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e5m2_negative_nan(self):
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe5m2(x)
+        self.assertEqual(to, 255)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe5m2(x, saturate=False)
+        self.assertEqual(to, 255)
+        back = fe4m3_to_float32(to)
+        self.assertTrue(numpy.isnan(back))
+
+    def test_float8_e5m2fnuz_negative_nan(self):
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe5m2(x, fn=True, uz=True)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
+
+        x = fe5m2_to_float32(255)  # -nan
+        to = float32_to_fe5m2(x, fn=True, uz=True, saturate=False)
+        self.assertEqual(to, 0x80)
+        back = fe4m3_to_float32(to, fn=True, uz=True)
+        self.assertTrue(numpy.isnan(back))
 
 
 if __name__ == "__main__":
