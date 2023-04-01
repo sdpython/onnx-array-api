@@ -24,6 +24,14 @@ def _rule(r):
     raise ValueError(f"Unexpected rule {r!r}.")
 
 
+def _number2str(i):
+    if isinstance(i, int):
+        return str(i)
+    if int(i) == i:
+        return str(int(i))
+    return f"{i:1.2f}"
+
+
 def onnx_text_plot_tree(node):
     """
     Gives a textual representation of a tree ensemble.
@@ -61,18 +69,32 @@ def onnx_text_plot_tree(node):
                     setattr(self, k, v[i])
             self.depth = 0
             self.true_false = ""
+            self.targets = []
+
+        def append_target(self, tid, weight):
+            self.targets.append(dict(target_id=tid, weight=weight))
 
         def process_node(self):
             "node to string"
             if self.nodes_modes == "LEAF":
-                text = "%s y=%r f=%r i=%r" % (
-                    self.true_false,
-                    self.target_weights,
-                    self.target_ids,
-                    self.target_nodeids,
-                )
+                if len(self.targets) == 0:
+                    text = f"{self.true_false}f"
+                elif len(self.targets) == 1:
+                    t = self.targets[0]
+                    text = (
+                        f"{self.true_false}f "
+                        f"{t['target_id']}:{_number2str(t['weight'])}"
+                    )
+                else:
+                    ts = " ".join(
+                        map(
+                            lambda t: f"{t['target_id']}:{_number2str(t['weight'])}",
+                            self.targets,
+                        )
+                    )
+                    text = f"{self.true_false}f {ts}"
             else:
-                text = "%s X%d %s %r" % (
+                text = "%sn X%d %s %r" % (
                     self.true_false,
                     self.nodes_featureids,
                     _rule(self.nodes_modes),
@@ -115,7 +137,7 @@ def onnx_text_plot_tree(node):
             idn = short[f"{prefix}_nodeids"][i]
             node = nodes[idn]
             node.append_target(
-                id=short[f"{prefix}_ids"][i], weight=short[f"{prefix}_weights"][i]
+                tid=short[f"{prefix}_ids"][i], weight=short[f"{prefix}_weights"][i]
             )
 
         def iterate(nodes, node, depth=0, true_false=""):
@@ -127,14 +149,14 @@ def onnx_text_plot_tree(node):
                     nodes,
                     nodes[node.nodes_falsenodeids],
                     depth=depth + 1,
-                    true_false="F",
+                    true_false="-",
                 ):
                     yield n
                 for n in iterate(
                     nodes,
                     nodes[node.nodes_truenodeids],
                     depth=depth + 1,
-                    true_false="T",
+                    true_false="+",
                 ):
                     yield n
 
