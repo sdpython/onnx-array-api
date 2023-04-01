@@ -301,23 +301,17 @@ def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
 # cast from float32 to float 8
 
 
-class CastFloat8:
-    """
-    Helpers to cast float8 into float32 or the other way around.
-    """
-
+class CastFloat8Sets:
     values_e4m3fn = list(
         sorted(
             (fe4m3_to_float32_float(i), i) for i in range(0, 256) if i not in (255, 127)
         )
     )
-
     values_e4m3fnuz = list(
         sorted(
             (fe4m3_to_float32_float(i, uz=True), i) for i in range(0, 256) if i != 0x80
         )
     )
-
     values_e5m2 = list(
         sorted(
             (fe5m2_to_float32_float(i), i)
@@ -325,13 +319,39 @@ class CastFloat8:
             if i not in {253, 254, 255, 125, 126, 127}
         )
     )
-
     values_e5m2fnuz = list(
         sorted(
             (fe5m2_to_float32_float(i, fn=True, uz=True), i)
             for i in range(0, 256)
             if i != 0x80
         )
+    )
+
+
+class CastFloat8(CastFloat8Sets):
+    """
+    Helpers to cast float8 into float32 or the other way around.
+    """
+
+    values_e4m3fn_max_value = max(
+        v
+        for v in CastFloat8Sets.values_e4m3fn
+        if not numpy.isinf(v[0]) and not numpy.isnan(v[0])
+    )
+    values_e4m3fnuz_max_value = max(
+        v
+        for v in CastFloat8Sets.values_e4m3fnuz
+        if not numpy.isinf(v[0]) and not numpy.isnan(v[0])
+    )
+    values_e5m2_max_value = max(
+        v
+        for v in CastFloat8Sets.values_e5m2
+        if not numpy.isinf(v[0]) and not numpy.isnan(v[0])
+    )
+    values_e5m2fnuz_max_value = max(
+        v
+        for v in CastFloat8Sets.values_e5m2fnuz
+        if not numpy.isinf(v[0]) and not numpy.isnan(v[0])
     )
 
     @staticmethod
@@ -371,13 +391,16 @@ class CastFloat8:
         return sorted_values[a][1]
 
 
-def search_float32_into_fe4m3(value: float, fn: bool = True, uz: bool = False) -> int:
+def search_float32_into_fe4m3(
+    value: float, fn: bool = True, uz: bool = False, saturate: bool = True
+) -> int:
     """
     Casts a float 32 into a float E4M3.
 
     :param value: float
     :param fn: no infinite values
     :param uz: no negative zero
+    :param saturate: to convert out of range and infinities to max value if True
     :return: byte
     """
     if not fn:
@@ -386,38 +409,65 @@ def search_float32_into_fe4m3(value: float, fn: bool = True, uz: bool = False) -
     b = int.from_bytes(struct.pack("<f", numpy.float32(value)), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if numpy.isnan(value) or numpy.isinf(value):
+        if numpy.isnan(value):
+            return 0x80
+        if numpy.isinf(value) and not saturate:
             return 0x80
         set_values = CastFloat8.values_e4m3fnuz
+        max_value = CastFloat8.values_e4m3fnuz_max_value
+        if value > max_value[0]:
+            return max_value[1] if saturate else 0x80
+        if value < -max_value[0]:
+            return (max_value[1] | ret) if saturate else 0x80
     else:
         if numpy.isnan(value) or numpy.isinf(value):
             return 0x7F | ret
         set_values = CastFloat8.values_e4m3fn
+        max_value = CastFloat8.values_e4m3fn_max_value
+        if value > max_value[0]:
+            return max_value[1] if saturate else 0x7F | ret
+        if value < -max_value[0]:
+            return (max_value[1] | ret) if saturate else 0x7F | ret
     f = numpy.float32(value)
     i = CastFloat8.find_closest_value(f, set_values)
     return (i & 0x7F) | ret
 
 
-def search_float32_into_fe5m2(value: float, fn: bool = False, uz: bool = False) -> int:
+def search_float32_into_fe5m2(
+    value: float, fn: bool = False, uz: bool = False, saturate: bool = True
+) -> int:
     """
     Casts a float 32 into a float E5M2.
 
     :param value: float
     :param fn: no infinite values
     :param uz: no negative zero
+    :param saturate: to convert out of range and infinities to max value if True
     :return: byte
     """
     b = int.from_bytes(struct.pack("<f", numpy.float32(value)), "little")
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if numpy.isnan(value) or numpy.isinf(value):
+        if numpy.isnan(value):
+            return 0x80
+        if numpy.isinf(value) and not saturate:
             return 0x80
         set_values = CastFloat8.values_e5m2fnuz
+        max_value = CastFloat8.values_e5m2fnuz_max_value
+        if value > max_value[0]:
+            return max_value[1] if saturate else 0x80
+        if value < -max_value[0]:
+            return (max_value[1] | ret) if saturate else 0x80
     elif not fn and not uz:
         if numpy.isnan(value):
             return 0x7F | ret
         set_values = CastFloat8.values_e5m2
+        max_value = CastFloat8.values_e5m2_max_value
+        if value > max_value[0]:
+            return max_value[1] if saturate else (0x7C | ret)
+        if value < -max_value[0]:
+            return (max_value[1] | ret) if saturate else (0x7C | ret)
     else:
         raise NotImplementedError("fn and uz must both True or False.")
 
@@ -426,13 +476,14 @@ def search_float32_into_fe5m2(value: float, fn: bool = False, uz: bool = False) 
     return (i & 0x7F) | ret
 
 
-def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
+def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True):
     """
     Converts a float32 into a float E4M3.
 
     :param x: numpy.float32
     :param fn: no infinite values
     :param uz: no negative zero
+    :param saturate: to convert out of range and infinities to max value if True
     :return: byte
     """
     if not fn:
@@ -440,7 +491,11 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
     b = int.from_bytes(struct.pack("<f", numpy.float32(x)), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if (b & 0x7FC00000) == 0x7FC00000 or numpy.isinf(x):
+        if (b & 0x7FC00000) == 0x7FC00000:
+            return 0x80
+        if numpy.isinf(x):
+            if saturate:
+                return ret | 126
             return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -468,14 +523,26 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
                 else:
                     ret |= ex << 3
                     ret |= m >> 20
-                if (m & 0x80000) and (ret & 0x7F) < 0x7F:
-                    # rounding
-                    ret += 1
-            else:
+                if m & 0x80000:
+                    if (ret & 0x7F) < 0x7F:
+                        # rounding
+                        ret += 1
+                    elif not saturate:
+                        return 0x80
+            elif saturate:
                 ret |= 0x7F  # 01111110
+            else:
+                ret = 0x80
+        elif m == 0:
+            # -0
+            ret = 0
         return int(ret)
     else:
-        if (b & 0x7FC00000) == 0x7FC00000 or numpy.isinf(x):
+        if (b & 0x7FC00000) == 0x7FC00000:
+            return 0x7F | ret
+        if numpy.isinf(x):
+            if saturate:
+                return ret | 126
             return 0x7F | ret
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -505,30 +572,39 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False):
                     ret |= m >> 20
                     if (ret & 0x7F) == 0x7F:
                         ret &= 0xFE
-                if (m & 0x80000) and (ret & 0x7F) < 0x7E:
-                    # rounding
-                    ret += 1
-            else:
+                if m & 0x80000:
+                    if (ret & 0x7F) < 0x7E:
+                        # rounding
+                        ret += 1
+                    elif not saturate:
+                        ret |= 0x7F
+            elif saturate:
                 ret |= 126  # 01111110
+            else:
+                ret |= 0x7F
         return int(ret)
 
 
-def float32_to_fe5m2(x, fn: bool = False, uz: bool = False):
+def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = True):
     """
     Converts a float32 into a float E5M2.
 
     :param x: numpy.float32
     :param fn: no infinite values
     :param uz: no negative zero
+    :param saturate: to convert out of range and infinities to max value if True
     :return: byte
     """
     b = int.from_bytes(struct.pack("<f", numpy.float32(x)), "little")
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if (b & 0x7FC00000) == 0x7FC00000:  # NaN
+        if (b & 0x7FC00000) == 0x7FC00000:
             return 0x80
-        if (b & 0x7FFFFFFF) == 0x7F800000:  # Inf
+        if (b & 0x7FFFFFFF) == 0x7F800000:
+            # inf
+            if saturate:
+                return ret | 0x7F
             return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -553,17 +629,29 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False):
                 ex = e - 111  # 127 - 16
                 ret |= ex << 2
                 ret |= m >> 21
-                if (m & 0x100000) and (ret & 0x7F) < 0x7F:
-                    # rounding
-                    ret += 1
+                if m & 0x100000:
+                    if (ret & 0x7F) < 0x7F:
+                        # rounding
+                        ret += 1
+                    elif not saturate:
+                        ret = 0x80
             elif e == 255 and m == 0:  # inf
-                return 0x80
-            else:
+                ret = 0x80
+            elif saturate:
                 ret |= 0x7F  # last possible number
+            else:
+                ret = 0x80
+        elif m == 0:
+            # -0
+            ret = 0
         return int(ret)
     elif not fn and not uz:
         if (b & 0x7FC00000) == 0x7FC00000:
             return 0x7F | ret
+        if numpy.isinf(x):
+            if saturate:
+                return 0x7B | ret
+            return 0x7C | ret
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
@@ -587,13 +675,18 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False):
                 ex = e - 112  # 127 - 15
                 ret |= ex << 2
                 ret |= m >> 21
-                if (m & 0x100000) and (ret & 0x7F) < 0x7B:
-                    # rounding
-                    ret += 1
-            elif e == 255 and m == 0:  # inf
-                ret |= 124
+                if m & 0x100000:
+                    if (ret & 0x7F) < 0x7B:
+                        # rounding
+                        ret += 1
+                    elif saturate:
+                        ret |= 0x7B
+                    else:
+                        ret |= 0x7C
+            elif saturate:
+                ret |= 0x7B
             else:
-                ret |= 123
+                ret |= 0x7C
         return int(ret)
     else:
         raise NotImplementedError("fn and uz must be both False or True.")
