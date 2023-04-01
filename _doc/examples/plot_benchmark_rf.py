@@ -81,6 +81,7 @@ except Exception as e:
 ###############################################
 # Or with the following command.
 out, err = run_cmd("cat /proc/cpuinfo")
+print(out)
 
 ###############################################
 # Fonction to measure inference time
@@ -124,8 +125,6 @@ def measure_inference(fct, X, repeat, max_time=5, quantile=1):
 # model for a random forest and onnxruntime after it was converted
 # into ONNX and for the following configurations.
 
-legend = "parallel-batch-4096-block"
-
 small = cpu_count() < 12
 if small:
     N = 1000
@@ -141,6 +140,8 @@ else:
     n_ests = [100, 200, 400]
     depth = [6, 8, 10, 12, 14]
     Regressor = RandomForestRegressor
+
+legend = f"parallel-nf-{n_features}-"
 
 # avoid duplicates on machine with 1 or 2 cores.
 n_jobs = list(sorted(set(n_jobs), reverse=True))
@@ -175,7 +176,7 @@ for n_j, max_depth, n_estimators in bar:
 
     # parallelization
     cache_name = os.path.join(
-        cache_dir, f"rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.pkl"
+        cache_dir, f"nf-{X.shape[1]}-rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.pkl"
     )
     if os.path.exists(cache_name):
         with open(cache_name, "rb") as f:
@@ -196,7 +197,7 @@ for n_j, max_depth, n_estimators in bar:
     so = SessionOptions()
     so.intra_op_num_threads = n_j
     cache_name = os.path.join(
-        cache_dir, f"rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.onnx"
+        cache_dir, f"nf-{X.shape[1]}-rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.onnx"
     )
     if os.path.exists(cache_name):
         sess = InferenceSession(cache_name, so)
@@ -268,7 +269,7 @@ n_cols = len(n_ests)
 
 
 fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 4 * n_rows))
-fig.suptitle(f"{rf.__class__.__name__}")
+fig.suptitle(f"{rf.__class__.__name__}\nX.shape={X.shape}")
 
 for n_j, n_estimators in tqdm(product(n_jobs, n_ests)):
     i = n_jobs.index(n_j)

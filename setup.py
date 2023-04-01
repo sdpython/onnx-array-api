@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 ######################
 # beginning of setup
@@ -11,8 +11,6 @@ from setuptools import find_packages, setup
 here = os.path.dirname(__file__)
 if here == "":
     here = "."
-packages = find_packages(where=here)
-package_dir = {k: os.path.join(here, k.replace(".", "/")) for k in packages}
 package_data = {}
 
 try:
@@ -48,8 +46,6 @@ setup(
     author="Xavier Dupré",
     author_email="xavier.dupre@gmail.com",
     url="https://github.com/sdpython/onnx-array-api",
-    packages=packages,
-    package_dir=package_dir,
     package_data=package_data,
     setup_requires=["numpy", "scipy"],
     install_requires=requirements,
