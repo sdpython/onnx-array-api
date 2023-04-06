@@ -6,6 +6,7 @@ import numpy
 import pandas
 from onnx_array_api.validation.f8 import (
     CastFloat8,
+    UndefinedCastError,
     display_fe4m3,
     display_fe5m2,
     display_float16,
@@ -120,16 +121,28 @@ class TestF8(ExtTestCase):
             (480, 448),
             (0.001953125, 0.001953125),
             (416, 416),
-            (-447.5, -448),
-            (23.5, 24),
             (192.5, 192),
+            (304, 320),
+            (368, 384),
+            (248, 256),
+            (432, 448),
+            (100, 96),
+            (400, 384),
+            (336, 320),
+            (272, 256),
+            (23.5, 24),
+            (-447.5, -448),
             (79.5, 80),
         ]
         for v, expected in values:
             with self.subTest(v=v, expected=expected):
-                b = search_float32_into_fe4m3(v)
-                got = fe4m3_to_float32_float(b)
-                self.assertEqual(expected, got)
+                try:
+                    b = search_float32_into_fe4m3(v)
+                except UndefinedCastError:
+                    b = None
+                if b is not None:
+                    got = fe4m3_to_float32_float(b)
+                    self.assertEqual(expected, got)
                 b = float32_to_fe4m3(v)
                 got = fe4m3_to_float32_float(b)
                 self.assertEqual(expected, got)
@@ -221,7 +234,10 @@ class TestF8(ExtTestCase):
                     add = v - value
                 else:
                     v = value + add
-                b = search_float32_into_fe4m3(v)
+                try:
+                    b = search_float32_into_fe4m3(v)
+                except UndefinedCastError:
+                    continue
                 nf = float32_to_fe4m3(v)
                 if b != nf:
                     # signed, not signed zero?
@@ -276,7 +292,10 @@ class TestF8(ExtTestCase):
                                 )
                 else:
                     v = value + add
-                b = search_float32_into_fe5m2(v)
+                try:
+                    b = search_float32_into_fe5m2(v)
+                except UndefinedCastError:
+                    continue
                 nf = float32_to_fe5m2(v)
                 if b != nf:
                     # signed, not signed zero?
@@ -373,7 +392,10 @@ class TestF8(ExtTestCase):
         self.assertTrue(hasattr(CastFloat8, "values_e4m3fn"))
         for p in range(1, 40):
             v = 2 ** (-p)
-            r1 = search_float32_into_fe4m3(v)
+            try:
+                r1 = search_float32_into_fe4m3(v)
+            except UndefinedCastError:
+                continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
                 raise AssertionError(
@@ -383,7 +405,10 @@ class TestF8(ExtTestCase):
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
-            r1 = search_float32_into_fe4m3(v)
+            try:
+                r1 = search_float32_into_fe4m3(v)
+            except UndefinedCastError:
+                continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
                 raise AssertionError(
@@ -396,7 +421,10 @@ class TestF8(ExtTestCase):
         self.assertTrue(hasattr(CastFloat8, "values_e5m2"))
         for p in range(1, 40):
             v = 2 ** (-p)
-            r1 = search_float32_into_fe5m2(v)
+            try:
+                r1 = search_float32_into_fe5m2(v)
+            except UndefinedCastError:
+                continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
                 raise AssertionError(
@@ -406,7 +434,10 @@ class TestF8(ExtTestCase):
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
-            r1 = search_float32_into_fe5m2(v)
+            try:
+                r1 = search_float32_into_fe5m2(v)
+            except UndefinedCastError:
+                continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
                 raise AssertionError(
@@ -577,7 +608,10 @@ class TestF8(ExtTestCase):
                     add = v - value
                 else:
                     v = value + add
-                b = search_float32_into_fe4m3(v, uz=True)
+                try:
+                    b = search_float32_into_fe4m3(v, uz=True)
+                except UndefinedCastError:
+                    continue
                 nf = float32_to_fe4m3(v, uz=True)
                 if b != nf:
                     wrong += 1
@@ -622,7 +656,10 @@ class TestF8(ExtTestCase):
                     add = v - value
                 else:
                     v = value + add
-                b = search_float32_into_fe5m2(v, fn=True, uz=True)
+                try:
+                    b = search_float32_into_fe5m2(v, fn=True, uz=True)
+                except UndefinedCastError:
+                    continue
                 nf = float32_to_fe5m2(v, fn=True, uz=True)
                 if b != nf:
                     wrong += 1
@@ -1066,5 +1103,4 @@ class TestF8(ExtTestCase):
 
 if __name__ == "__main__":
     TestF8().test_search_float32_into_fe4m3fn_simple()
-    TestF8().test_search_float32_into_fe4m3fn()
     unittest.main(verbosity=2)
