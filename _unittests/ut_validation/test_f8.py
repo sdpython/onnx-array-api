@@ -156,6 +156,10 @@ class TestF8(ExtTestCase):
             (20480.5, 20480),
             (14.5, 14),
             (-3584.5, -3584),
+            (352, 384),
+            (416, 384),
+            (0.4, 0.375),
+            (0.4068359375, 0.4375),
         ]
         for v, expected in values:
             with self.subTest(v=v, expected=expected):
@@ -167,13 +171,19 @@ class TestF8(ExtTestCase):
                     got = fe5m2_to_float32_float(b)
                     self.assertLess(abs(expected - got), 1e-5)
                 else:
-                    b1 = search_float32_into_fe5m2(v)
+                    try:
+                        b1 = search_float32_into_fe5m2(v)
+                    except UndefinedCastError:
+                        b1 = None
+                    if b1 is not None:
+                        got1 = fe5m2_to_float32_float(b1)
+                        self.assertEqual(got1, expected)
+
                     b2 = float32_to_fe5m2(v)
-                    self.assertEqual(b1, b2)
-                    got1 = fe5m2_to_float32_float(b1)
                     got2 = fe5m2_to_float32(b2)
-                    self.assertEqual(got1, expected)
                     self.assertEqual(got2, expected)
+                    if b1 is not None:
+                        self.assertEqual(b1, b2)
 
     def test_search_float32_into_fe4m3fn_equal(self):
         values = [(fe4m3_to_float32_float(i), i) for i in range(0, 256)]
@@ -228,7 +238,21 @@ class TestF8(ExtTestCase):
         values += [(1e-9, 0), (-1e-9, 0), (1e8, 448), (-1e-8, -448)]
         wrong = 0
         for value, origin in values:
-            for add in [0, -0.4, -1e-4, 1e-4, 0.4, (3, "x"), (0.3, "x")]:
+            for add in [
+                0,
+                -0.4,
+                -1e-4,
+                1e-4,
+                0.4,
+                (3, "x"),
+                (0.3, "x"),
+                16,
+                32,
+                64,
+                -16,
+                -32,
+                -64,
+            ]:
                 if isinstance(add, tuple):
                     v = value * add[0]
                     add = v - value
@@ -237,7 +261,10 @@ class TestF8(ExtTestCase):
                 try:
                     b = search_float32_into_fe4m3(v)
                 except UndefinedCastError:
-                    continue
+                    if add == 0:
+                        b = search_float32_into_fe4m3(origin)
+                    else:
+                        continue
                 nf = float32_to_fe4m3(v)
                 if b != nf:
                     # signed, not signed zero?
@@ -274,10 +301,31 @@ class TestF8(ExtTestCase):
         values.sort()
 
         obs = []
-        values += [(1e-8, 0), (-1e-8, 0), (1e8, 448), (-1e-8, -448)]
+        values += [
+            (1e-8, 0),
+            (-1e-8, 0),
+            (1e8, 57344),
+            (-1e8, -57344),
+            (352, 384),
+            (416, 384),
+        ]
         wrong = 0
-        for value, _ in values:
-            for add in [0, -0.4, -1e-4, 1e-4, 0.4, (3, "x"), (0.3, "x")]:
+        for value, origin in values:
+            for add in [
+                0,
+                -0.4,
+                -1e-4,
+                1e-4,
+                0.4,
+                (3, "x"),
+                (0.3, "x"),
+                16,
+                32,
+                64,
+                -16,
+                -32,
+                -64,
+            ]:
                 if isinstance(add, tuple):
                     v = value * add[0]
                     with warnings.catch_warnings(record=True) as w:
@@ -295,7 +343,10 @@ class TestF8(ExtTestCase):
                 try:
                     b = search_float32_into_fe5m2(v)
                 except UndefinedCastError:
-                    continue
+                    if add == 0:
+                        b = search_float32_into_fe5m2(origin)
+                    else:
+                        continue
                 nf = float32_to_fe5m2(v)
                 if b != nf:
                     # signed, not signed zero?
