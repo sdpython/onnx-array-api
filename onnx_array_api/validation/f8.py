@@ -4,6 +4,14 @@ import numpy
 # display functions
 
 
+class UndefinedCastError(FloatingPointError):
+    """
+    Unable to case a number.
+    """
+
+    pass
+
+
 def display_float32(value, sign=1, exponent=8, mantissa=23):
     """
     Displays a float32 into b.
@@ -386,7 +394,10 @@ class CastFloat8(CastFloat8Sets):
             if d1 < d2:
                 return sorted_values[a][1]
             if d1 == d2:
-                return sorted_values[a][1] if value < 0 else sorted_values[b][1]
+                raise UndefinedCastError(
+                    f"Unable to cast {value}, d1={d1}, d2={d2}, "
+                    f"options are {sorted_values[a][1]} and {sorted_values[b][1]}."
+                )
             return sorted_values[b][1]
         return sorted_values[a][1]
 
@@ -572,7 +583,9 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
                     ret |= m >> 20
                     if (ret & 0x7F) == 0x7F:
                         ret &= 0xFE
-                if m & 0x80000:
+                if (m & 0x80000) and (
+                    (m & 0x100000) or (m & 0x7C000)
+                ):  # round to nearest even
                     if (ret & 0x7F) < 0x7E:
                         # rounding
                         ret += 1
@@ -675,7 +688,9 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
                 ex = e - 112  # 127 - 15
                 ret |= ex << 2
                 ret |= m >> 21
-                if m & 0x100000:
+                if m & 0x100000 and (
+                    (m & 0xFFFFF) or (m & 0x200000)
+                ):  # round to nearest even
                     if (ret & 0x7F) < 0x7B:
                         # rounding
                         ret += 1
