@@ -15,6 +15,7 @@ import numpy
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from onnx import load
+from onnx_array_api.ext_test_case import example_path
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 from onnx_array_api.validation.diff import text_diff, html_diff
 from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
@@ -22,7 +23,7 @@ from onnx_array_api.ext_test_case import measure_time
 from onnx_array_api.ort.ort_optimizers import ort_optimized_model
 
 
-filename = "data/small.onnx"
+filename = example_path("data/small.onnx")
 optimized = filename + ".optimized.onnx"
 
 if not os.path.exists(optimized):

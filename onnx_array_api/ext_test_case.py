@@ -31,6 +31,20 @@ def ignore_warnings(warns: List[Warning]) -> Callable:
     return wrapper
 
 
+def example_path(path: str) -> str:
+    """
+    Fixes a path for the examples.
+    Helps running the example within a unit test.
+    """
+    if os.path.exists(path):
+        return path
+    this = os.path.abspath(os.path.dirname(__file__))
+    full = os.path.join(this, "..", "_doc", "examples", path)
+    if os.path.exists(full):
+        return full
+    raise FileNotFoundError(f"Unable to find path {path!r} or {full!r}.")
+
+
 def measure_time(
     stmt: Callable,
     context: Optional[Dict[str, Any]] = None,
