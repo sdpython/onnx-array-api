@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 import warnings
@@ -207,3 +208,18 @@ class ExtTestCase(unittest.TestCase):
             with redirect_stderr(serr):
                 res = fct()
         return res, sout.getvalue(), serr.getvalue()
+
+    def relative_path(self, filename: str, *names: List[str]) -> str:
+        """
+        Returns a path relative to the folder *filename*
+        is in. The function checks the path existence.
+
+        :param filename: filename
+        :param names: additional path pieces
+        :return: new path
+        """
+        dir = os.path.abspath(os.path.dirname(filename))
+        name = os.path.join(dir, *names)
+        if not os.path.exists(name):
+            raise FileNotFoundError(f"Path {name!r} does not exists.")
+        return name
