@@ -85,14 +85,31 @@ fig.savefig("plot_profiling.png")
 
 
 def preprocess(df):
-    df = df[(df["cat"] == "Node") & df["name"].str.contains("kernel_time")]
     groupkey = [
         "args_op_name",
         "args_output_type_shape",
         "args_input_type_shape",
         "args_provider",
     ]
+
+    def _idx(row):
+        if row["cat"] == "Session":
+            occurences[0] = {}
+            return -1
+        assert "idx" not in groupkey
+        vals = [row[k] for k in groupkey]
+        key = tuple(map(str, vals))
+        if key not in occurences[0]:
+            occurences[0][key] = 0
+        else:
+            occurences[0][key] += 1
+        return occurences[0][key]
+
     df = df.copy()
+    occurences = [{}]
+    df["idx"] = df.apply(_idx, axis=1)
+    df = df[(df["cat"] == "Node") & df["name"].str.contains("kernel_time")]
+    groupkey.append("idx")
     for c in groupkey:
         df[c] = df[c].apply(str)
     gr = df[groupkey + ["dur"]].groupby(groupkey)
@@ -105,7 +122,9 @@ merge = base.merge(
     opti, how="outer", suffixes=("base", "opti"), left_index=True, right_index=True
 )
 merge = merge.reset_index(drop=False)
+merge.to_excel("plot_profiling_merged.xlsx", index=False)
 merge
+
 
 #####################################################
 # Aggregation
@@ -140,7 +159,8 @@ def label(row):
     outshape = process_shape(row["args_output_type_shape"])
     side = row["side"][0]
     prov = row["args_provider"][:3]
-    return f"[{side}{prov}]{name}({inshape})->{outshape}"
+    idx = row["idx"]
+    return f"[{side}{prov}]{name}({inshape})->{outshape}[{idx}]"
 
 
 df = merge.copy()
