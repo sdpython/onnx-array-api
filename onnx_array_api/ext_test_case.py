@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 import warnings
@@ -28,6 +29,20 @@ def ignore_warnings(warns: List[Warning]) -> Callable:
         return call_f
 
     return wrapper
+
+
+def example_path(path: str) -> str:
+    """
+    Fixes a path for the examples.
+    Helps running the example within a unit test.
+    """
+    if os.path.exists(path):
+        return path
+    this = os.path.abspath(os.path.dirname(__file__))
+    full = os.path.join(this, "..", "_doc", "examples", path)
+    if os.path.exists(full):
+        return full
+    raise FileNotFoundError(f"Unable to find path {path!r} or {full!r}.")
 
 
 def measure_time(
@@ -207,3 +222,18 @@ class ExtTestCase(unittest.TestCase):
             with redirect_stderr(serr):
                 res = fct()
         return res, sout.getvalue(), serr.getvalue()
+
+    def relative_path(self, filename: str, *names: List[str]) -> str:
+        """
+        Returns a path relative to the folder *filename*
+        is in. The function checks the path existence.
+
+        :param filename: filename
+        :param names: additional path pieces
+        :return: new path
+        """
+        dir = os.path.abspath(os.path.dirname(filename))
+        name = os.path.join(dir, *names)
+        if not os.path.exists(name):
+            raise FileNotFoundError(f"Path {name!r} does not exists.")
+        return name

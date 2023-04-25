@@ -11,7 +11,7 @@ from setuptools import setup
 here = os.path.dirname(__file__)
 if here == "":
     here = "."
-package_data = {}
+package_data = {"onnx_array_api.validation": ["*.css", "*.js"]}
 
 try:
     with open(os.path.join(here, "requirements.txt"), "r") as f:
