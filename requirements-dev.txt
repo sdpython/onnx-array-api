@@ -10,6 +10,7 @@ matplotlib
 ml-dtypes
 onnxmltools
 onnxruntime
+openpyxl
 pandas
 psutil
 pyquickhelper

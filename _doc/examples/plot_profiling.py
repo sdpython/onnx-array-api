@@ -93,6 +93,14 @@ def preprocess(df):
     ]
 
     def _idx(row):
+        """
+        There may be multiple node with the same
+        input/output types and shapes.
+        This function gives every instance a distinct id.
+        First unique op with same I/O receives the index 0.
+        The counter restart when the session goes to the
+        next image.
+        """
         if row["cat"] == "Session":
             occurences[0] = {}
             return -1
