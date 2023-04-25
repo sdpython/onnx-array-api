@@ -18,6 +18,7 @@ Optimize a model with onnxruntime
 import os
 import numpy
 import matplotlib.pyplot as plt
+from onnxruntime import get_available_providers
 from onnx_array_api.ext_test_case import example_path
 from onnx_array_api.ort.ort_optimizers import ort_optimized_model
 from onnx_array_api.ort.ort_profile import ort_profile
@@ -201,3 +202,37 @@ gr[["idx"]].plot.barh(ax=ax[1])
 ax[1].set_title("Side by side count")
 fig.tight_layout()
 fig.savefig("plot_profiling_side_by_side.png")
+
+
+########################################
+# On CUDA
+# +++++++
+
+
+if "CUDAExecutionProvider" in get_available_providers():
+    print("Profiling on CUDA")
+    prof_base = ort_profile(
+        filename,
+        feeds,
+        repeat=6,
+        disable_optimization=True,
+        provider=["CUDAExecutionProvider"],
+    )
+    prof_opti = ort_profile(
+        optimized,
+        feeds,
+        repeat=6,
+        disable_optimization=True,
+        provider=["CUDAExecutionProvider"],
+    )
+
+    unique_op = set(prof_base["args_op_name"])
+    fig, ax = plt.subplots(2, 2, figsize=(10, len(unique_op)), sharex="col")
+    plot_profile(prof_base, ax[0, 0], ax[0, 1], title="baseline")
+    plot_profile(prof_opt, ax[1, 0], ax[1, 1], title="optimized")
+    fig.save("plot_profiling_cuda.png")
+else:
+    print(f"CUDA not available in {get_available_providers()}")
+    fig, ax = None, None
+
+ax

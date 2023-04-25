@@ -50,12 +50,19 @@ def ort_profile(
     js = json.loads(content)
     os.remove(prof)
 
+    suffixes = ["_kernel_time", "_fence_before", "_fence_after"]
     rows = []
     for row in js:
         if "args" in row and isinstance(row["args"], dict):
             for k, v in row["args"].items():
                 row[f"args_{k}"] = v
             del row["args"]
+        name = row["name"]
+        for suf in suffixes:
+            if name.endswith(suf):
+                changed = name[: -len(suf)]
+                row["op_name"] = changed
+                break
         rows.append(row)
     if as_df:
         return DataFrame(rows)
