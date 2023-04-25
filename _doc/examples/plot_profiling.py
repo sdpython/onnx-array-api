@@ -119,7 +119,8 @@ def preprocess(df):
     df = df[(df["cat"] == "Node") & df["name"].str.contains("kernel_time")]
     groupkey.append("idx")
     for c in groupkey:
-        df[c] = df[c].apply(str)
+        if c != "idx":
+            df[c] = df[c].apply(str)
     gr = df[groupkey + ["dur"]].groupby(groupkey)
     return gr.sum()
 
@@ -175,12 +176,11 @@ df = merge.copy()
 df["side"] = df.apply(classify, axis=1)
 df["label"] = df.apply(label, axis=1)
 gr = (
-    df[["label", "durbase", "duropti"]]
+    df[["label", "durbase", "duropti", "idx"]]
     .groupby("label")
-    .agg({"durbase": [numpy.sum, len], "duropti": [sum, len]})
+    .agg({"durbase": numpy.sum, "duropti": numpy.sum, "idx": max})
 )
 gr
-
 
 ################################
 # Final plot
@@ -188,9 +188,10 @@ gr
 
 
 fig, ax = plt.subplots(1, 2, figsize=(14, gr.shape[0]), sharey=True)
-gr[[("durbase", "sum"), ("duropti", "sum")]].plot.barh(ax=ax[0])
+gr[["durbase", "duropti"]].plot.barh(ax=ax[0])
 ax[0].set_title("Side by side duration")
-gr[[("durbase", "len"), ("duropti", "len")]].plot.barh(ax=ax[1])
+gr["idx"] += 1
+gr[["idx"]].plot.barh(ax=ax[1])
 ax[1].set_title("Side by side count")
 fig.tight_layout()
 fig.savefig("plot_profiling_side_by_side.png")
