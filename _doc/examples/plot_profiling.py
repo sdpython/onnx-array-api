@@ -197,6 +197,7 @@ gr = gr[grmax >= 0.01]
 fig, ax = plt.subplots(1, 2, figsize=(14, min(gr.shape[0], 500)), sharey=True)
 gr[["durbase", "duropti"]].plot.barh(ax=ax[0])
 ax[0].set_title("Side by side duration")
+gr = gr.copy()
 gr["idx"] += 1
 gr[["idx"]].plot.barh(ax=ax[1])
 ax[1].set_title("Side by side count")
