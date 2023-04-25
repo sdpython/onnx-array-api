@@ -110,10 +110,10 @@ pprint(t2)
 fig, ax = plt.subplots(1, 1, figsize=(12, 4))
 
 df = DataFrame([t1, t2]).set_index("name")
-print(df)
+df
 
-print(df["average"].values)
-print((df["average"] - df["deviation"]).values)
+#######################################
+# And the graph is:
 
 ax.bar(df.index, df["average"].values, yerr=df["deviation"].values, capsize=6)
 ax.set_title("Measure performance of optimized model\nlower is better")

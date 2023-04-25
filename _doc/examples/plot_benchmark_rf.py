@@ -234,7 +234,7 @@ for n_j, max_depth, n_estimators in bar:
     o1.update(dict(avg=mean, med=med, n_runs=r, ttime=t, name="base"))
     data.append(o1)
 
-    # baseline
+    # onnxruntime
     bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} predictO")
     r, t, mean, med = measure_inference(
         lambda x: sess.run(None, {"X": x}), X, repeat=repeat, max_time=max_time
@@ -258,7 +258,7 @@ df2.to_csv(f"{name}-{legend}.csv", index=False)
 
 #######################################################
 # Printing the data
-print(df)
+df
 
 #####################################################
 # Plot
