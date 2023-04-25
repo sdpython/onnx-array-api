@@ -5,6 +5,12 @@
 Optimization with onnxruntime
 =============================
 
+*onnxruntime* optimizes the onnx graph by default before running
+the inference. It modifies, fuses or add new operators.
+Some of them are standard onnx operators, some of them
+are implemented in onnxruntime (see `Supported Operators
+<https://github.com/microsoft/onnxruntime/blob/main/docs/OperatorKernels.md>`_).
+This example looks into the differences of two models.
 
 Optimize a model with onnxruntime
 +++++++++++++++++++++++++++++++++
