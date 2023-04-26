@@ -200,13 +200,13 @@ for n_j, max_depth, n_estimators in bar:
         cache_dir, f"nf-{X.shape[1]}-rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.onnx"
     )
     if os.path.exists(cache_name):
-        sess = InferenceSession(cache_name, so)
+        sess = InferenceSession(cache_name, so, providers=["CPUExecutionProvider"])
     else:
         bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} cvt onnx")
         onx = to_onnx(rf, X[:1])
         with open(cache_name, "wb") as f:
             f.write(onx.SerializeToString())
-        sess = InferenceSession(cache_name, so)
+        sess = InferenceSession(cache_name, so, providers=["CPUExecutionProvider"])
     onx_size = os.stat(cache_name).st_size
 
     # run once to avoid counting the first run

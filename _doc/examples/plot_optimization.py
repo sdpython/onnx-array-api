@@ -44,8 +44,8 @@ so = SessionOptions()
 so.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
 img = numpy.random.random((1, 3, 112, 112)).astype(numpy.float32)
 
-sess = InferenceSession(filename, so)
-sess_opt = InferenceSession(optimized, so)
+sess = InferenceSession(filename, so, providers=["CPUExecutionProvider"])
+sess_opt = InferenceSession(optimized, so, providers=["CPUExecutionProvider"])
 input_name = sess.get_inputs()[0].name
 out = sess.run(None, {input_name: img})[0]
 out_opt = sess_opt.run(None, {input_name: img})[0]

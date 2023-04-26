@@ -36,14 +36,26 @@ print(optimized)
 # +++++++++
 
 feeds = {"input": numpy.random.random((1, 3, 112, 112)).astype(numpy.float32)}
-prof_base = ort_profile(filename, feeds, repeat=6, disable_optimization=True)
+prof_base = ort_profile(
+    filename,
+    feeds,
+    repeat=6,
+    disable_optimization=True,
+    providers=["CPUExecutionProvider"],
+)
 prof_base.to_excel("prof_base.xlsx", index=False)
 prof_base
 
 #######################################
 # And the optimized model.
 
-prof_opt = ort_profile(optimized, feeds, repeat=6, disable_optimization=True)
+prof_opt = ort_profile(
+    optimized,
+    feeds,
+    repeat=6,
+    disable_optimization=True,
+    providers=["CPUExecutionProvider"],
+)
 prof_opt
 
 #######################################
@@ -217,21 +229,21 @@ if "CUDAExecutionProvider" in get_available_providers():
         feeds,
         repeat=6,
         disable_optimization=True,
-        provider=["CUDAExecutionProvider"],
+        providers=["CUDAExecutionProvider"],
     )
     prof_opti = ort_profile(
         optimized,
         feeds,
         repeat=6,
         disable_optimization=True,
-        provider=["CUDAExecutionProvider"],
+        providers=["CUDAExecutionProvider"],
     )
 
     unique_op = set(prof_base["args_op_name"])
     fig, ax = plt.subplots(2, 2, figsize=(10, len(unique_op)), sharex="col")
     plot_profile(prof_base, ax[0, 0], ax[0, 1], title="baseline")
     plot_profile(prof_opt, ax[1, 0], ax[1, 1], title="optimized")
-    fig.save("plot_profiling_cuda.png")
+    fig.savefig("plot_profiling_cuda.png")
 else:
     print(f"CUDA not available in {get_available_providers()}")
     fig, ax = None, None

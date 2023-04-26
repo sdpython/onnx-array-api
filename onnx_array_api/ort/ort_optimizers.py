@@ -33,7 +33,11 @@ def ort_optimized_model(
     so = SessionOptions()
     so.graph_optimization_level = glevel
     so.optimized_model_filepath = str(cache)
-    InferenceSession(onx if isinstance(onx, str) else onx.SerializeToString(), so)
+    InferenceSession(
+        onx if isinstance(onx, str) else onx.SerializeToString(),
+        so,
+        providers=["CPUExecutionProvider"],
+    )
     if output is None and not cache.exists():
         raise RuntimeError(f"The optimized model {str(cache)!r} not found.")
     if output is not None:
