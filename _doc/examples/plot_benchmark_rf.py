@@ -200,13 +200,13 @@ for n_j, max_depth, n_estimators in bar:
         cache_dir, f"nf-{X.shape[1]}-rf-J-{n_j}-E-{n_estimators}-D-{max_depth}.onnx"
     )
     if os.path.exists(cache_name):
-        sess = InferenceSession(cache_name, so)
+        sess = InferenceSession(cache_name, so, providers=["CPUExecutionProvider"])
     else:
         bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} cvt onnx")
         onx = to_onnx(rf, X[:1])
         with open(cache_name, "wb") as f:
             f.write(onx.SerializeToString())
-        sess = InferenceSession(cache_name, so)
+        sess = InferenceSession(cache_name, so, providers=["CPUExecutionProvider"])
     onx_size = os.stat(cache_name).st_size
 
     # run once to avoid counting the first run
@@ -234,7 +234,7 @@ for n_j, max_depth, n_estimators in bar:
     o1.update(dict(avg=mean, med=med, n_runs=r, ttime=t, name="base"))
     data.append(o1)
 
-    # baseline
+    # onnxruntime
     bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} predictO")
     r, t, mean, med = measure_inference(
         lambda x: sess.run(None, {"X": x}), X, repeat=repeat, max_time=max_time
@@ -258,7 +258,7 @@ df2.to_csv(f"{name}-{legend}.csv", index=False)
 
 #######################################################
 # Printing the data
-print(df)
+df
 
 #####################################################
 # Plot

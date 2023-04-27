@@ -5,6 +5,12 @@
 Optimization with onnxruntime
 =============================
 
+*onnxruntime* optimizes the onnx graph by default before running
+the inference. It modifies, fuses or add new operators.
+Some of them are standard onnx operators, some of them
+are implemented in onnxruntime (see `Supported Operators
+<https://github.com/microsoft/onnxruntime/blob/main/docs/OperatorKernels.md>`_).
+This example looks into the differences of two models.
 
 Optimize a model with onnxruntime
 +++++++++++++++++++++++++++++++++
@@ -38,8 +44,8 @@ so = SessionOptions()
 so.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
 img = numpy.random.random((1, 3, 112, 112)).astype(numpy.float32)
 
-sess = InferenceSession(filename, so)
-sess_opt = InferenceSession(optimized, so)
+sess = InferenceSession(filename, so, providers=["CPUExecutionProvider"])
+sess_opt = InferenceSession(optimized, so, providers=["CPUExecutionProvider"])
 input_name = sess.get_inputs()[0].name
 out = sess.run(None, {input_name: img})[0]
 out_opt = sess_opt.run(None, {input_name: img})[0]
@@ -110,10 +116,10 @@ pprint(t2)
 fig, ax = plt.subplots(1, 1, figsize=(12, 4))
 
 df = DataFrame([t1, t2]).set_index("name")
-print(df)
+df
 
-print(df["average"].values)
-print((df["average"] - df["deviation"]).values)
+#######################################
+# And the graph is:
 
 ax.bar(df.index, df["average"].values, yerr=df["deviation"].values, capsize=6)
 ax.set_title("Measure performance of optimized model\nlower is better")
