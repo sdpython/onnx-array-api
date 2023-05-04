@@ -14,17 +14,38 @@ from numpy.testing import assert_allclose
 def ignore_warnings(warns: List[Warning]) -> Callable:
     """
     Catches warnings.
-    @param      warns   warnings to ignore
+
+    :param warns: warnings to ignore
     """
 
     def wrapper(fct):
-        if warns is None:
-            raise AssertionError(f"warns cannot be None for '{fct}'.")
-
         def call_f(self):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", warns)
                 return fct(self)
+
+        return call_f
+
+    return wrapper
+
+
+def matplotlib_test() -> Callable:
+    """
+    Decorator for every test checking matplotlib graphs.
+    Cleans matplotlib after its completion.
+    """
+
+    def wrapper(fct):
+        import matplotlib
+
+        def call_f(self):
+            orig_units_registry = matplotlib.units.registry.copy()
+            try:
+                return fct(self)
+            finally:
+                matplotlib.units.registry.clear()
+                matplotlib.units.registry.update(orig_units_registry)
+                matplotlib.pyplot.close("all")
 
         return call_f
 
@@ -39,7 +60,7 @@ def example_path(path: str) -> str:
     if os.path.exists(path):
         return path
     this = os.path.abspath(os.path.dirname(__file__))
-    full = os.path.join(this, "..", "_doc", "examples", path)
+    full = os.path.normpath(os.path.join(this, "..", "_doc", "examples", path))
     if os.path.exists(full):
         return full
     raise FileNotFoundError(f"Unable to find path {path!r} or {full!r}.")

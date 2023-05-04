@@ -1,10 +1,11 @@
 import unittest
+import os
 import numpy as np
-from pandas import DataFrame
+from pandas import DataFrame, read_excel
 from onnx_array_api.npx import absolute, jit_onnx
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.ort.ort_optimizers import ort_optimized_model
-from onnx_array_api.ort.ort_profile import ort_profile
+from onnx_array_api.ort.ort_profile import ort_profile, merge_ort_profile
 
 
 class TestOrtProfile(ExtTestCase):
@@ -27,9 +28,35 @@ class TestOrtProfile(ExtTestCase):
         self.assertRaise(lambda: ort_optimized_model(onx, "NO"), ValueError)
         optimized = ort_optimized_model(onx)
         prof = ort_profile(optimized, feeds)
+        prof.to_csv("prof.csv", index=False)
         self.assertIsInstance(prof, DataFrame)
         prof = ort_profile(optimized, feeds, as_df=False)
         self.assertIsInstance(prof, list)
+
+    def test_merge_ort_profile(self):
+        data = os.path.join(os.path.dirname(__file__), "data")
+        df1 = read_excel(os.path.join(data, "prof_base.xlsx"))
+        df2 = read_excel(os.path.join(data, "prof_opti.xlsx"))
+        merged, gr = merge_ort_profile(df1, df2)
+        self.assertEqual(merged.shape, (23, 9))
+        self.assertEqual(
+            list(merged.columns),
+            [
+                "args_op_name",
+                "args_output_type_shape",
+                "args_input_type_shape",
+                "args_provider",
+                "idx",
+                "durbase",
+                "countbase",
+                "duropti",
+                "countopti",
+            ],
+        )
+        self.assertEqual(gr.shape, (19, 4))
+        self.assertEqual(
+            list(gr.columns), ["durbase", "duropti", "countbase", "countopti"]
+        )
 
 
 if __name__ == "__main__":
