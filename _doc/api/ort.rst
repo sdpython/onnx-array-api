@@ -23,5 +23,7 @@ OrtTensor
 Profiling
 +++++++++
 
+.. autofunction:: onnx_array_api.ort.ort_profile.merge_ort_profile
+
 .. autofunction:: onnx_array_api.ort.ort_profile.ort_profile
 
