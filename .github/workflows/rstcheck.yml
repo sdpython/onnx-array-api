@@ -1,3 +1,7 @@
+name: rstcheck
+
+on: [push, pull_request]
+
 jobs:
   build_wheels:
     name: rstcheck ${{ matrix.os }}
