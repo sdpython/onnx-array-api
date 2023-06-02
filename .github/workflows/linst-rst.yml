@@ -15,4 +15,4 @@ jobs:
               with:
                   args: --short --error-format=github
               env:
-                  DOCS_DIR: 'docs/'
+                  DOCS_DIR: '_doc/'
