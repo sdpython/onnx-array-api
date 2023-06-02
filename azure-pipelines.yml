@@ -1,11 +1,55 @@
 jobs:
+- job: 'TestLinuxWheelPip'
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Python311-Linux:
+        python.version: '3.11'
+    maxParallel: 3
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+  - script: sudo apt-get update
+    displayName: 'AptGet Update'
+  - script: sudo apt-get install -y graphviz
+    displayName: 'Install Graphviz'
+  - script: python -m pip install --upgrade pip setuptools wheel
+    displayName: 'Install tools'
+  - script: pip install -r requirements.txt
+    displayName: 'Install Requirements'
+  - script: pip install -r requirements-dev.txt
+    displayName: 'Install Requirements dev'
+  - script: |
+      ruff .
+    displayName: 'Ruff'
+  - script: |
+      black --diff .
+    displayName: 'Black'
+  - script: |
+      python -m pip wheel . --wheel-dir dist -v -v -v
+    displayName: 'build wheel'
+  - script: |
+      python -m pip install . -v -v -v
+    displayName: 'install wheel'
+  - script: |
+      python -m pytest -v
+    displayName: 'Runs Unit Tests'
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'wheel-linux-wheel-$(python.version)'
+      targetPath: 'dist'
+
 - job: 'TestLinux'
   pool:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
       Python310-Linux:
-        python.version: '3.10'
+        python.version: '3.11'
     maxParallel: 3
 
   steps:
@@ -55,7 +99,7 @@ jobs:
   strategy:
     matrix:
       Python310-Windows:
-        python.version: '3.10'
+        python.version: '3.11'
     maxParallel: 3
 
   steps:
@@ -88,7 +132,7 @@ jobs:
   strategy:
     matrix:
       Python310-Mac:
-        python.version: '3.10'
+        python.version: '3.11'
     maxParallel: 3
 
   steps:
