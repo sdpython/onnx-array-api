@@ -1,5 +1,3 @@
-.. _l-numpy-api-onnx:
-
 ==================
 Numpy API for ONNX
 ==================

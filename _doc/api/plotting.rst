@@ -1,5 +1,3 @@
-.. _l-api-plotting:
-
 plotting
 ========
 

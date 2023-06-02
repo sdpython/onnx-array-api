@@ -1,5 +1,3 @@
-.. _l-api-onnx-tools:
-
 onnx tools
 ==========
 

@@ -1,5 +1,3 @@
-.. _l-benchmarks:
-
 ==========
 Benchmarks
 ==========
