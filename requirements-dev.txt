@@ -16,6 +16,7 @@ psutil
 pyquickhelper
 pytest
 pytest-cov
+rstcheck[toml,sphinx]
 ruff
 scikit-learn
 skl2onnx

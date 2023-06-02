@@ -1,7 +1,4 @@
 """
-
-.. _l-onnx-array-first-onnxruntime:
-
 First examples with onnxruntime
 ===============================
 

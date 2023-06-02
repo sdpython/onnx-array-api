@@ -1,5 +1,3 @@
-.. _l-api-npx-jit:
-
 npx, jit and eager mode
 =======================
 

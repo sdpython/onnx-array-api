@@ -1,5 +1,3 @@
-.. _l-api-tools:
-
 tools
 =====
 

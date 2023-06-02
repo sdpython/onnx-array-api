@@ -1,5 +1,3 @@
-.. _l-api-npx-numpy:
-
 npx.npx_numpy_tensors
 =====================
 

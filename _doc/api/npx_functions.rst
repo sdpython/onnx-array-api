@@ -1,5 +1,3 @@
-.. _l-api-npx-functions:
-
 npx.npx_functions
 =================
 
