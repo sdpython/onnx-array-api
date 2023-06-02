@@ -16,12 +16,13 @@ psutil
 pyquickhelper
 pytest
 pytest-cov
-rstcheck[toml,sphinx]
+rstcheck[sphinx,toml]
 ruff
 scikit-learn
 skl2onnx
 sphinx
 sphinx-gallery
+tomli
 tqdm
 wheel
 xgboost
