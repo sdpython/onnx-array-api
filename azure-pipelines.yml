@@ -77,7 +77,10 @@ jobs:
       ruff .
     displayName: 'Ruff'
   - script: |
-      rstcheck -r _doc onnx_array_api
+      rstcheck --help
+    displayName: 'rstcheck help'
+  - script: |
+      rstcheck -r ./_doc ./onnx_array_api
     displayName: 'rstcheck'
   - script: |
       black --diff .
