@@ -34,6 +34,7 @@ well as to execute it.
     tutorial/index
     api/index
     auto_examples/index
+    ../CHANGELOGS
 
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_,

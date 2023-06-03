@@ -367,6 +367,9 @@ class JitEager:
         try:
             res = fct.run(*values)
         except Exception as e:
+            from ..plotting.text_plot import onnx_simple_text_plot
+
+            text = onnx_simple_text_plot(self.onxs[key])
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
@@ -375,7 +378,7 @@ class JitEager:
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
                 f"f={self.f} from module {self.f.__module__!r} "
-                f"onnx={self.onxs[key]}."
+                f"onnx=\n---\n{text}\n---\n{self.onxs[key]}"
             ) from e
         self.info("-", "jit_call")
         return res
