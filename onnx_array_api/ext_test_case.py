@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 import warnings
@@ -13,13 +14,11 @@ from numpy.testing import assert_allclose
 def ignore_warnings(warns: List[Warning]) -> Callable:
     """
     Catches warnings.
-    @param      warns   warnings to ignore
+
+    :param warns: warnings to ignore
     """
 
     def wrapper(fct):
-        if warns is None:
-            raise AssertionError(f"warns cannot be None for '{fct}'.")
-
         def call_f(self):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", warns)
@@ -28,6 +27,43 @@ def ignore_warnings(warns: List[Warning]) -> Callable:
         return call_f
 
     return wrapper
+
+
+def matplotlib_test() -> Callable:
+    """
+    Decorator for every test checking matplotlib graphs.
+    Cleans matplotlib after its completion.
+    """
+
+    def wrapper(fct):
+        import matplotlib
+
+        def call_f(self):
+            orig_units_registry = matplotlib.units.registry.copy()
+            try:
+                return fct(self)
+            finally:
+                matplotlib.units.registry.clear()
+                matplotlib.units.registry.update(orig_units_registry)
+                matplotlib.pyplot.close("all")
+
+        return call_f
+
+    return wrapper
+
+
+def example_path(path: str) -> str:
+    """
+    Fixes a path for the examples.
+    Helps running the example within a unit test.
+    """
+    if os.path.exists(path):
+        return path
+    this = os.path.abspath(os.path.dirname(__file__))
+    full = os.path.normpath(os.path.join(this, "..", "_doc", "examples", path))
+    if os.path.exists(full):
+        return full
+    raise FileNotFoundError(f"Unable to find path {path!r} or {full!r}.")
 
 
 def measure_time(
@@ -207,3 +243,18 @@ class ExtTestCase(unittest.TestCase):
             with redirect_stderr(serr):
                 res = fct()
         return res, sout.getvalue(), serr.getvalue()
+
+    def relative_path(self, filename: str, *names: List[str]) -> str:
+        """
+        Returns a path relative to the folder *filename*
+        is in. The function checks the path existence.
+
+        :param filename: filename
+        :param names: additional path pieces
+        :return: new path
+        """
+        dir = os.path.abspath(os.path.dirname(filename))
+        name = os.path.join(dir, *names)
+        if not os.path.exists(name):
+            raise FileNotFoundError(f"Path {name!r} does not exists.")
+        return name

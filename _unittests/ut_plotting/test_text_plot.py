@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-@brief      test log(time=2s)
-"""
 import os
 import textwrap
 import unittest
@@ -52,7 +49,7 @@ class TestTextPlot(ExtTestCase):
         onx = to_onnx(clr, X)
         res = onnx_text_plot_tree(onx.graph.node[0])
         self.assertIn("treeid=0", res)
-        self.assertIn("         T y=", res)
+        self.assertIn("         +f", res)
 
     def test_onnx_text_plot_tree_cls(self):
         iris = load_iris()
@@ -62,8 +59,43 @@ class TestTextPlot(ExtTestCase):
         onx = to_onnx(clr, X)
         res = onnx_text_plot_tree(onx.graph.node[0])
         self.assertIn("treeid=0", res)
-        self.assertIn("         T y=", res)
+        self.assertIn("         +f 0:", res)
         self.assertIn("n_classes=3", res)
+
+    def test_onnx_text_plot_tree_cls_2(self):
+        this = os.path.join(
+            os.path.dirname(__file__), "data", "onnx_text_plot_tree_cls_2.onnx"
+        )
+        with open(this, "rb") as f:
+            model_def = load(f)
+        res = onnx_text_plot_tree(model_def.graph.node[0])
+        self.assertIn("n_classes=3", res)
+        expected = textwrap.dedent(
+            """
+            n_classes=3
+            n_trees=1
+            ----
+            treeid=0
+            n X2 <= 2.4499998
+               -n X3 <= 1.75
+                  -n X2 <= 4.85
+                     -f 0:0 1:0 2:1
+                     +n X0 <= 5.95
+                        -f 0:0 1:0 2:1
+                        +f 0:0 1:1 2:0
+                  +n X2 <= 4.95
+                     -n X3 <= 1.55
+                        -n X0 <= 6.95
+                           -f 0:0 1:0 2:1
+                           +f 0:0 1:1 2:0
+                        +f 0:0 1:0 2:1
+                     +n X3 <= 1.65
+                        -f 0:0 1:0 2:1
+                        +f 0:0 1:1 2:0
+               +f 0:1 1:0 2:0
+        """
+        ).strip(" \n\r")
+        self.assertEqual(expected, res.strip(" \n\r"))
 
     @ignore_warnings((UserWarning, FutureWarning))
     def test_onnx_simple_text_plot_kmeans(self):

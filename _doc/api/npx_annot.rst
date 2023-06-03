@@ -1,5 +1,3 @@
-.. _l-api-npx-types:
-
 npx.npx_types
 =============
 

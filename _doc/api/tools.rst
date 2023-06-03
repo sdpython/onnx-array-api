@@ -1,5 +1,3 @@
-.. _l-api-tools:
-
 tools
 =====
 
@@ -7,6 +5,11 @@ Benchmark
 +++++++++
 
 .. autofunction:: onnx_array_api.ext_test_case.measure_time
+
+Examples
+++++++++
+
+.. autofunction:: onnx_array_api.ext_test_case.example_path
 
 Profiling
 +++++++++
@@ -25,5 +28,3 @@ Unit tests
 
 .. autoclass:: onnx_array_api.ext_test_case.ExtTestCase
     :members:
-
-

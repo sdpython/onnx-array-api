@@ -1,5 +1,3 @@
-.. _l-api-plotting:
-
 plotting
 ========
 
@@ -7,6 +5,11 @@ Dot
 +++
 
 .. autofunction:: onnx_array_api.plotting.dot_plot.to_dot
+
+Statistics
+++++++++++
+
+.. autofunction:: onnx_array_api.plotting.stat_plot.plot_ort_profile
 
 Text
 ++++

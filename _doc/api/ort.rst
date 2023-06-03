@@ -1,7 +1,10 @@
-.. _l-api-ort:
-
 ort
 ===
+
+Optimization
+++++++++++++
+
+.. autofunction:: onnx_array_api.ort.ort_optimizers.ort_optimized_model
 
 OrtTensor
 +++++++++
@@ -14,4 +17,11 @@ OrtTensor
 
 .. autoclass:: onnx_array_api.ort.ort_tensors.OrtTensor
     :members:
+
+Profiling
++++++++++
+
+.. autofunction:: onnx_array_api.ort.ort_profile.merge_ort_profile
+
+.. autofunction:: onnx_array_api.ort.ort_profile.ort_profile
 

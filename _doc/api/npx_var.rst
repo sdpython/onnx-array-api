@@ -1,5 +1,3 @@
-.. _l-api-npx-var:
-
 npx.npx_var
 ===========
 
