@@ -10,22 +10,10 @@ from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
 DEFAULT_OPSET = onnx_opset_version()
 
 
-def take(self, X, indices, *, axis):
-    # Overwritting method take as it is using iterators.
-    # When array_api supports `take` we can use this directly
-    # https://github.com/data-apis/array-api/issues/177
-    X_np = self._namespace.take(X, indices, axis=axis)
-    return self._namespace.asarray(X_np)
-
-
 class TestSklearnArrayAPI(ExtTestCase):
     def test_sklearn_array_api_linear_discriminant(self):
-        from sklearn.utils._array_api import _ArrayAPIWrapper
-
-        _ArrayAPIWrapper.take = take
         X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
         y = np.array([1, 1, 1, 2, 2, 2])
-        ana = LinearDiscriminantAnalysis()
         ana = LinearDiscriminantAnalysis()
         ana.fit(X, y)
         expected = ana.predict(X)
