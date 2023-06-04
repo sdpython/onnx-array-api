@@ -133,6 +133,8 @@ class EagerTensor(ArrayApi):
         for a in args:
             if isinstance(a, np.ndarray):
                 new_args.append(self.__class__(a.astype(self.dtype)))
+            elif isinstance(a, (int, float)):
+                new_args.append(self.__class__(np.array([a]).astype(self.dtype)))
             else:
                 new_args.append(a)
 
