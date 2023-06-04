@@ -252,3 +252,10 @@ def npxapi_inline(fn):
     to call.
     """
     return _xapi(fn, inline=True)
+
+
+def npxapi_no_inline(fn):
+    """
+    Functions decorated with this decorator are not converted into ONNX.
+    """
+    return fn

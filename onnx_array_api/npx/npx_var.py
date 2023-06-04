@@ -443,6 +443,21 @@ class Var(ArrayApi):
                     cst = Var.get_cst_var()[0]
                     replacement_cst[id(i)] = cst(np.array(i))
                     continue
+                if isinstance(i, tuple):
+                    if all(map(lambda x: isinstance(x, int), i)):
+                        cst = Var.get_cst_var()[0]
+                        replacement_cst[id(i)] = cst(np.array(list(i), dtype=np.int64))
+                        continue
+                    if any(map(lambda t: isinstance(t, Var), i)):
+                        raise TypeError(
+                            f"Unexpected types in tuple "
+                            f"({[type(t) for t in i]}), "
+                            f"function {self.f} from module {self.f.__module__!r}."
+                        )
+                    raise TypeError(
+                        f"Unsupported tuple {i!r}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
                 if i is None:
                     continue
                 raise TypeError(
@@ -850,10 +865,12 @@ class Var(ArrayApi):
 
     def reshape(self, shape: "Var") -> "Var":
         "Reshape"
-        var = Var.get_cst_var()[1]
+        cst, var = Var.get_cst_var()
 
         if isinstance(shape, (tuple, list)):
             shape = np.array(shape, dtype=np.int64)
+        else:
+            shape = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
         return var(self.self_var, shape, op="Reshape")
 
     def reduce_function(

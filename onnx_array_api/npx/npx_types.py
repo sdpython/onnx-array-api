@@ -12,7 +12,15 @@ class WrapperType:
     pass
 
 
-class ElemTypeCstInner:
+class DType(WrapperType):
+    """
+    Annotated type for dtype.
+    """
+
+    pass
+
+
+class ElemTypeCstInner(WrapperType):
     """
     Defines all possible types and tensor element type.
     """
@@ -194,7 +202,7 @@ class ElemType(ElemTypeCst):
         return None
 
 
-class ParType:
+class ParType(WrapperType):
     """
     Defines a parameter type.
 
@@ -293,7 +301,7 @@ class ShapeType(Tuple[int, ...]):
         return f"{self.__class__.__name__}[{self.shape}]"
 
 
-class TensorType:
+class TensorType(WrapperType):
     """
     Used to annotate functions.
 
@@ -440,7 +448,7 @@ class TensorType:
         return True
 
 
-class SequenceType:
+class SequenceType(WrapperType):
     """
     Defines a sequence of tensors.
     """
@@ -480,7 +488,7 @@ class SequenceType:
         return newt
 
 
-class TupleType:
+class TupleType(WrapperType):
     """
     Defines a sequence of tensors.
     """

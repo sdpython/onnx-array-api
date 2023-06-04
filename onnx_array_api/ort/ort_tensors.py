@@ -124,7 +124,7 @@ class OrtTensor:
             )
             return list(map(inputs[0].__class__, res))
 
-    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor"]):
+    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor", np.ndarray]):
         if isinstance(tensor, C_OrtValue):
             self._tensor = tensor
         elif isinstance(tensor, OrtTensor):

@@ -498,14 +498,22 @@ class EagerOnnx(JitEager):
             elif isinstance(n, Cst):
                 new_args.append(self.tensor_class(n.inputs[0]))
                 modified = True
-            # elif isinstance(n, tuple):
-            #    if any(map(lambda t: isinstance(t, Var), n)):
-            #        raise TypeError(
-            #            f"Unexpected types in tuple "
-            #            f"({[type(t) for t in n]}) for input {i}, "
-            #            f"function {self.f} from module {self.f.__module__!r}."
-            #        )
-            #    new_args.append(n)
+            elif isinstance(n, tuple):
+                if all(map(lambda x: isinstance(x, int), n)):
+                    new_args.append(
+                        self.tensor_class(np.array(list(n), dtype=np.int64))
+                    )
+                elif any(map(lambda t: isinstance(t, Var), n)):
+                    raise TypeError(
+                        f"Unexpected types in tuple "
+                        f"({[type(t) for t in n]}) for input {i}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
+                else:
+                    raise TypeError(
+                        f"Unsupported tuple {n!r} for input {i}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
             elif isinstance(n, np.ndarray):
                 new_args.append(self.tensor_class(n))
                 modified = True
