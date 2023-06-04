@@ -43,6 +43,61 @@ jobs:
       artifactName: 'wheel-linux-wheel-$(python.version)'
       targetPath: 'dist'
 
+- job: 'TestLinuxNightly'
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Python310-Linux:
+        python.version: '3.11'
+    maxParallel: 3
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+  - script: sudo apt-get update
+    displayName: 'AptGet Update'
+  - script: sudo apt-get install -y pandoc
+    displayName: 'Install Pandoc'
+  - script: sudo apt-get install -y inkscape
+    displayName: 'Install Inkscape'
+  - script: sudo apt-get install -y graphviz
+    displayName: 'Install Graphviz'
+  - script: python -m pip install --upgrade pip setuptools wheel
+    displayName: 'Install tools'
+  - script: pip install -r requirements.txt
+    displayName: 'Install Requirements'
+  - script: pip install -r requirements-dev.txt
+    displayName: 'Install Requirements dev'
+  - script: pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn
+    displayName: 'Install scikit-learn nightly'
+  - script: pip install onnxmltools --no-deps
+    displayName: 'Install onnxmltools'
+  - script: |
+      ruff .
+    displayName: 'Ruff'
+  - script: |
+      rstcheck -r ./_doc ./onnx_array_api
+    displayName: 'rstcheck'
+  - script: |
+      black --diff .
+    displayName: 'Black'
+  - script: |
+      python -m pytest -v
+    displayName: 'Runs Unit Tests'
+  - script: |
+      python -u setup.py bdist_wheel
+    displayName: 'Build Package'
+  #- script: |
+  #    python -m sphinx _doc dist/html
+  #  displayName: 'Builds Documentation'
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: 'wheel-linux-$(python.version)'
+      targetPath: 'dist'
+
 - job: 'TestLinux'
   pool:
     vmImage: 'ubuntu-latest'
