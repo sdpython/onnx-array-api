@@ -125,15 +125,7 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api_onnx_numpy.onnx_numpy_array_api
       pytest array_api_tests
-    displayName: "all test"
-
-  - name: Run the array API test suite
-    env:
-      ARRAY_API_TESTS_MODULE: onnx_array_api.array_api_onnx_numpy.onnx_numpy_array_api
-    run: |
-      export PYTHONPATH="${GITHUB_WORKSPACE}/onnx_array_api"
-      cd ${GITHUB_WORKSPACE}/array-api-tests
-      pytest -v -rxXfE --ci --xfails-file ${GITHUB_WORKSPACE}/onnx_array_api/array-api-tests-xfails.txt array_api_tests/
+    displayName: "all tests"
 
 - job: 'TestLinux'
   pool:
