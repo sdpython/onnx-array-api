@@ -8,7 +8,7 @@ from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
-from .npx_tensors import ArrayApi
+from .npx_tensors import BaseArrayApi
 from .npx_types import (
     DType,
     ElemType,
@@ -173,7 +173,7 @@ def asarray(
         raise RuntimeError("Method 'astype' should be used to change the type.")
     if order is not None:
         raise NotImplementedError(f"order={order!r} not implemented.")
-    if isinstance(a, ArrayApi):
+    if isinstance(a, BaseArrayApi):
         if copy:
             return a.__class__(a, copy=copy)
         return a
@@ -404,7 +404,7 @@ def isdtype(
     dtype: DType, kind: Union[DType, str, Tuple[Union[DType, str], ...]]
 ) -> bool:
     """
-    See :epkg:`ArrayAPI:isdtype`.
+    See :epkg:`BaseArrayAPI:isdtype`.
     This function is not converted into an onnx graph.
     """
     return np_array_api.isdtype(dtype, kind)

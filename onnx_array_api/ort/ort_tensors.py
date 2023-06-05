@@ -231,7 +231,7 @@ class OrtCommon:
 
 class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
     """
-    Defines a value for a specific backend.
+    Defines a value for :epkg:`onnxruntime` as a backend.
     """
 
     pass
@@ -239,7 +239,7 @@ class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
 
 class JitOrtTensor(OrtTensor, OrtCommon, JitTensor):
     """
-    Defines a value for a specific backend.
+    Defines a value for :epkg:`onnxruntime` as a backend.
     """
 
     pass
