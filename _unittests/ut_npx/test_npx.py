@@ -128,18 +128,25 @@ class TestNpx(ExtTestCase):
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEmpty(dt.shape)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
+
         dt = TensorType["float32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
+
         dt = TensorType[np.float32]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
         self.assertEmpty(dt.shape)
 
+        dt = TensorType[np.str_]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
+        self.assertEqual(dt.type_name(), "TensorType[strings]")
+        self.assertEmpty(dt.shape)
+
         self.assertRaise(lambda: TensorType[None], TypeError)
-        self.assertRaise(lambda: TensorType[np.str_], TypeError)
         self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
 
     def test_superset(self):
