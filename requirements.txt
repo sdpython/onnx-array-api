@@ -1,3 +1,4 @@
+array_api_compat
 numpy
 onnx
 scipy

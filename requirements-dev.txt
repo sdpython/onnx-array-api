@@ -11,6 +11,7 @@ ml-dtypes
 onnxmltools
 onnxruntime
 openpyxl
+packaging
 pandas
 psutil
 pyquickhelper

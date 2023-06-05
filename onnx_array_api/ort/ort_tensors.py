@@ -3,6 +3,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 import numpy as np
 from onnx import ModelProto, TensorProto
 from onnx.defs import onnx_opset_version
+from onnx.helper import tensor_dtype_to_np_dtype
 from onnxruntime import InferenceSession, RunOptions, get_available_providers
 from onnxruntime.capi._pybind_state import OrtDevice as C_OrtDevice
 from onnxruntime.capi._pybind_state import OrtMemType
@@ -123,13 +124,27 @@ class OrtTensor:
             )
             return list(map(inputs[0].__class__, res))
 
-    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor"]):
+    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor", np.ndarray]):
         if isinstance(tensor, C_OrtValue):
             self._tensor = tensor
         elif isinstance(tensor, OrtTensor):
             self._tensor = tensor._tensor
+        elif isinstance(tensor, np.ndarray):
+            self._tensor = C_OrtValue.ortvalue_from_numpy(tensor, OrtTensor.CPU)
         else:
             raise ValueError(f"An OrtValue is expected not {type(tensor)}.")
+
+    def __repr__(self) -> str:
+        "usual"
+        return f"{self.__class__.__name__}(OrtTensor.from_array({self.numpy()!r}))"
+
+    @property
+    def device_name(self):
+        return self._tensor.device_name()
+
+    @property
+    def ndim(self):
+        return len(self.shape)
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -139,7 +154,7 @@ class OrtTensor:
     @property
     def dtype(self) -> Any:
         "Returns the element type of this tensor."
-        return self._tensor.element_type()
+        return tensor_dtype_to_np_dtype(self._tensor.element_type())
 
     @property
     def key(self) -> Any:

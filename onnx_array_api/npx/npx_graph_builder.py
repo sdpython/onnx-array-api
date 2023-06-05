@@ -798,6 +798,23 @@ class _GraphBuilder:
                     node_inputs.append(input_name)
                     continue
 
+                if isinstance(i, tuple) and all(map(lambda x: isinstance(x, int), i)):
+                    ai = np.array(list(i), dtype=np.int64)
+                    c = Cst(ai)
+                    input_name = self._unique(var._prefix)
+                    self._id_vars[id(i), index] = input_name
+                    self._id_vars[id(c), index] = input_name
+                    self.make_node(
+                        "Constant",
+                        [],
+                        [input_name],
+                        value=from_array(ai),
+                        opset=self.target_opsets[""],
+                    )
+                    self.onnx_names_[input_name] = c
+                    node_inputs.append(input_name)
+                    continue
+
                 raise NotImplementedError(
                     f"Unexpected type {type(i)} for node={domop}."
                 )

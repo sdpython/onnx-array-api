@@ -1,14 +1,16 @@
 from typing import Any, Optional, Tuple, Union
 
+import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
-from .npx_core_api import cst, make_tuple, npxapi_inline, var
+from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
 from .npx_tensors import ArrayApi
 from .npx_types import (
+    DType,
     ElemType,
     OptParType,
     ParType,
@@ -397,6 +399,17 @@ def identity(n: ParType[int], dtype=None) -> TensorType[ElemType.numerics, "T"]:
     return v
 
 
+@npxapi_no_inline
+def isdtype(
+    dtype: DType, kind: Union[DType, str, Tuple[Union[DType, str], ...]]
+) -> bool:
+    """
+    See :epkg:`ArrayAPI:isdtype`.
+    This function is not converted into an onnx graph.
+    """
+    return np_array_api.isdtype(dtype, kind)
+
+
 @npxapi_inline
 def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T"]:
     "See :func:`numpy.isnan`."
@@ -460,9 +473,23 @@ def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 
 @npxapi_inline
 def reshape(
-    x: TensorType[ElemType.numerics, "T"], shape: TensorType[ElemType.int64, "I"]
+    x: TensorType[ElemType.numerics, "T"],
+    shape: TensorType[ElemType.int64, "I", (None,)],
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.reshape`."
+    """
+    See :func:`numpy.reshape`.
+
+    .. warning::
+
+        Numpy definition is tricky because onnxruntime does not handle well
+        dimensions with an undefined number of dimensions.
+        However the array API defines a more stricly signature for
+        `reshape <https://data-apis.org/array-api/2022.12/
+        API_specification/generated/array_api.reshape.html>`_.
+        :epkg:`scikit-learn` updated its code to follow the Array API in
+        `PR 26030 ENH Forces shape to be tuple when using Array API's reshape
+        <https://github.com/scikit-learn/scikit-learn/pull/26030>`_.
+    """
     if isinstance(shape, int):
         shape = cst(np.array([shape], dtype=np.int64))
     shape_reshaped = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")

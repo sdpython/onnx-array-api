@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_array_api import ArrayApi
+from .npx_array_api import ArrayApi, ArrayApiError
 
 
 class JitTensor:
@@ -21,24 +21,14 @@ class EagerTensor(ArrayApi):
     :class:`ArrayApi`.
     """
 
-    def const_cast(self, to: Any = None) -> "EagerTensor":
-        """
-        Casts a constant without any ONNX conversion.
-        """
-        raise NotImplementedError(
-            f"Method 'const_cast' must be overwritten in class "
-            f"{self.__class__.__name__!r}."
-        )
-
     def __iter__(self):
         """
-        This is not implementation in the generic case.
+        The :epkg:`Array API` does not define this function (2022/12).
         This method raises an exception with a better error message.
         """
-        raise RuntimeError(
+        raise ArrayApiError(
             "Iterators are not implemented in the generic case. "
-            "It may be enabled for the eager mode but it might fail "
-            "when a whole function is converted into ONNX."
+            "Every function using them cannot be converted into ONNX."
         )
 
     @staticmethod
@@ -141,7 +131,9 @@ class EagerTensor(ArrayApi):
         new_args = []
         for a in args:
             if isinstance(a, np.ndarray):
-                new_args.append(self.__class__(a).const_cast(self.dtype))
+                new_args.append(self.__class__(a.astype(self.dtype)))
+            elif isinstance(a, (int, float)):
+                new_args.append(self.__class__(np.array([a]).astype(self.dtype)))
             else:
                 new_args.append(a)
 

@@ -57,6 +57,11 @@ sphinx_gallery_conf = {
 }
 
 epkg_dictionary = {
+    "Array API": "https://data-apis.org/array-api/",
+    "ArrayAPI": (
+        "https://data-apis.org/array-api/",
+        ("2022.12/API_specification/generated/array_api.{0}.html", 1),
+    ),
     "DOT": "https://graphviz.org/doc/info/lang.html",
     "JIT": "https://en.wikipedia.org/wiki/Just-in-time_compilation",
     "onnx": "https://onnx.ai/onnx/",
@@ -65,7 +70,7 @@ epkg_dictionary = {
     "numpy": "https://numpy.org/",
     "numba": "https://numba.pydata.org/",
     "onnx-array-api": (
-        "http://www.xavierdupre.fr/app/" "onnx-array-api/helpsphinx/index.html"
+        "http://www.xavierdupre.fr/app/onnx-array-api/helpsphinx/index.html"
     ),
     "pyinstrument": "https://github.com/joerick/pyinstrument",
     "python": "https://www.python.org/",

@@ -4,7 +4,7 @@ import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_array_api import ArrayApi
+from .npx_array_api import ArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
 from .npx_types import ElemType, OptParType, ParType, TensorType, TupleType
 
@@ -57,27 +57,27 @@ class Par:
 
     def __eq__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__eq__ should not be used.")
 
     def __neq__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__neq__ should not be used.")
 
     def __lt__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__lt__ should not be used.")
 
     def __gt__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__gt__ should not be used.")
 
     def __le__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__le__ should not be used.")
 
     def __ge__(self, x):
         "Should not be used."
-        raise NotImplementedError()
+        raise NotImplementedError("__ge__ should not be used.")
 
 
 class ManyIdentity:
@@ -443,6 +443,21 @@ class Var(ArrayApi):
                     cst = Var.get_cst_var()[0]
                     replacement_cst[id(i)] = cst(np.array(i))
                     continue
+                if isinstance(i, tuple):
+                    if all(map(lambda x: isinstance(x, int), i)):
+                        cst = Var.get_cst_var()[0]
+                        replacement_cst[id(i)] = cst(np.array(list(i), dtype=np.int64))
+                        continue
+                    if any(map(lambda t: isinstance(t, Var), i)):
+                        raise TypeError(
+                            f"Unexpected types in tuple "
+                            f"({[type(t) for t in i]}), "
+                            f"function {self.f} from module {self.f.__module__!r}."
+                        )
+                    raise TypeError(
+                        f"Unsupported tuple {i!r}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
                 if i is None:
                     continue
                 raise TypeError(
@@ -563,10 +578,10 @@ class Var(ArrayApi):
 
     def __iter__(self):
         """
-        This is not implementation in the generic case.
+        The :epkg:`Array API` does not define this function (2022/12).
         This method raises an exception with a better error message.
         """
-        raise RuntimeError(
+        raise ArrayApiError(
             "Iterators are not implemented in the generic case. "
             "Every function using them cannot be converted into ONNX."
         )
@@ -850,10 +865,12 @@ class Var(ArrayApi):
 
     def reshape(self, shape: "Var") -> "Var":
         "Reshape"
-        var = Var.get_cst_var()[1]
+        cst, var = Var.get_cst_var()
 
         if isinstance(shape, (tuple, list)):
             shape = np.array(shape, dtype=np.int64)
+        else:
+            shape = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
         return var(self.self_var, shape, op="Reshape")
 
     def reduce_function(

@@ -1,8 +1,16 @@
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
 from .npx_types import OptParType, ParType, TupleType
+
+
+class ArrayApiError(RuntimeError):
+    """
+    Raised when a function is not supported by the :epkg:`Array API`.
+    """
+
+    pass
 
 
 class ArrayApi:
@@ -10,13 +18,17 @@ class ArrayApi:
     List of supported method by a tensor.
     """
 
-    def __array_namespace__(self):
+    def __array_namespace__(self, api_version: Optional[str] = None):
         """
         Returns the module holding all the available functions.
         """
-        from onnx_array_api.npx import npx_functions
+        if api_version is None or api_version == "2022.12":
+            from onnx_array_api.npx import npx_functions
 
-        return npx_functions
+            return npx_functions
+        raise ValueError(
+            f"Unable to return an implementation for api_version={api_version!r}."
+        )
 
     def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError(

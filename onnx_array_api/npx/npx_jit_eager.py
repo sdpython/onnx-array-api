@@ -367,12 +367,18 @@ class JitEager:
         try:
             res = fct.run(*values)
         except Exception as e:
+            from ..plotting.text_plot import onnx_simple_text_plot
+
+            text = onnx_simple_text_plot(self.onxs[key])
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
+                f"dtypes={[x.dtype for x in values]}, "
+                f"shapes={[x.shape for x in values]}, "
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
-                f"onnx={self.onxs[key]}."
+                f"f={self.f} from module {self.f.__module__!r} "
+                f"onnx=\n---\n{text}\n---\n{self.onxs[key]}"
             ) from e
         self.info("-", "jit_call")
         return res
@@ -492,14 +498,22 @@ class EagerOnnx(JitEager):
             elif isinstance(n, Cst):
                 new_args.append(self.tensor_class(n.inputs[0]))
                 modified = True
-            # elif isinstance(n, tuple):
-            #    if any(map(lambda t: isinstance(t, Var), n)):
-            #        raise TypeError(
-            #            f"Unexpected types in tuple "
-            #            f"({[type(t) for t in n]}) for input {i}, "
-            #            f"function {self.f} from module {self.f.__module__!r}."
-            #        )
-            #    new_args.append(n)
+            elif isinstance(n, tuple):
+                if all(map(lambda x: isinstance(x, int), n)):
+                    new_args.append(
+                        self.tensor_class(np.array(list(n), dtype=np.int64))
+                    )
+                elif any(map(lambda t: isinstance(t, Var), n)):
+                    raise TypeError(
+                        f"Unexpected types in tuple "
+                        f"({[type(t) for t in n]}) for input {i}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
+                else:
+                    raise TypeError(
+                        f"Unsupported tuple {n!r} for input {i}, "
+                        f"function {self.f} from module {self.f.__module__!r}."
+                    )
             elif isinstance(n, np.ndarray):
                 new_args.append(self.tensor_class(n))
                 modified = True
