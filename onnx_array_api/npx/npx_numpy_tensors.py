@@ -55,17 +55,18 @@ class NumpyTensor:
         elif isinstance(
             tensor,
             (
-                np.int64,
+                np.float16,
                 np.float32,
                 np.float64,
+                np.int64,
                 np.int32,
-                np.float16,
-                np.int8,
                 np.int16,
-                np.uint8,
-                np.uint16,
-                np.uint32,
+                np.int8,
                 np.uint64,
+                np.uint32,
+                np.uint16,
+                np.uint8,
+                np.bool_,
             ),
         ):
             self._tensor = np.array(tensor)

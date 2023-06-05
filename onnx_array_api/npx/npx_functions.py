@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import array_api_compat.numpy as np_array_api
 import numpy as np
@@ -8,7 +8,6 @@ from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
-from .npx_tensors import BaseArrayApi
 from .npx_types import (
     DType,
     ElemType,
@@ -41,6 +40,27 @@ def absolute(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.abs`."
     return var(x, op="Abs")
+
+
+@npxapi_inline
+def all(
+    x: TensorType[ElemType.bool_, "T"],
+    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    keepdims: ParType[int] = 0,
+) -> TensorType[ElemType.bool_, "T"]:
+    "See :func:`numpy.all`."
+
+    xi = var(x, op="Cast", to=TensorProto.INT64)
+
+    if axis is None:
+        red = xi.min(keepdims=keepdims)
+    else:
+        if isinstance(axis, int):
+            axis = [axis]
+        if isinstance(axis, (tuple, list)):
+            axis = cst(np.array(axis, dtype=np.int64))
+        red = xi.min(axis, keepdims=keepdims)
+    return var(red, cst(1), op="Equal")
 
 
 @npxapi_inline
@@ -157,27 +177,6 @@ def arctanh(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arctanh`."
     return var(x, op="Atanh")
-
-
-def asarray(
-    a: Any,
-    dtype: Any = None,
-    order: Optional[str] = None,
-    like: Any = None,
-    copy: bool = False,
-):
-    """
-    Converts anything into an array.
-    """
-    if dtype is not None:
-        raise RuntimeError("Method 'astype' should be used to change the type.")
-    if order is not None:
-        raise NotImplementedError(f"order={order!r} not implemented.")
-    if isinstance(a, BaseArrayApi):
-        if copy:
-            return a.__class__(a, copy=copy)
-        return a
-    raise NotImplementedError(f"asarray not implemented for type {type(a)}.")
 
 
 @npxapi_inline
@@ -336,6 +335,14 @@ def einsum(
 
 
 @npxapi_inline
+def equal(
+    x: TensorType[ElemType.allowed, "T"], y: TensorType[ElemType.allowed, "T"]
+) -> TensorType[ElemType.bool_, "T1"]:
+    "See :func:`numpy.isnan`."
+    return var(x, y, op="Equal")
+
+
+@npxapi_inline
 def erf(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`scipy.special.erf`."
     return var(x, op="Erf")
@@ -382,18 +389,20 @@ def hstack(
 
 
 @npxapi_inline
-def copy(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def copy(x: TensorType[ElemType.allowed, "T"]) -> TensorType[ElemType.allowed, "T"]:
     "Makes a copy."
     return var(x, op="Identity")
 
 
 @npxapi_inline
-def identity(n: ParType[int], dtype=None) -> TensorType[ElemType.numerics, "T"]:
+def identity(
+    n: ParType[int], dtype: OptParType[DType] = None
+) -> TensorType[ElemType.numerics, "T"]:
     "Makes a copy."
-    val = np.array([n, n], dtype=np.int64)
-    shape = cst(val)
     model = var(
-        shape, op="ConstantOfShape", value=from_array(np.array([0], dtype=np.int64))
+        cst(np.array([n, n], dtype=np.int64)),
+        op="ConstantOfShape",
+        value=from_array(np.array([0], dtype=np.int64)),
     )
     v = var(model, dtype=dtype, op="EyeLike")
     return v
@@ -416,7 +425,7 @@ def isdtype(
 
 
 @npxapi_inline
-def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T"]:
+def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
 
@@ -643,6 +652,8 @@ def zeros(
     """
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    if dtype is None:
+        dtype = DType(TensorProto.FLOAT)
     return var(
         shape,
         value=make_tensor(name="zero", data_type=dtype.code, dims=[1], vals=[0]),

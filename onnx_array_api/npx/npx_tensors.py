@@ -192,7 +192,7 @@ class EagerTensor(BaseArrayApi):
 
         dtype = (
             args[0]
-            if isinstance(args[0], (int, Var))
+            if isinstance(args[0], (DType, Var))
             else self._np_dtype_to_tensor_dtype(args[0])
         )
         eag = eager_onnx(EagerTensor._astype_impl, self.__class__, bypass_eager=True)

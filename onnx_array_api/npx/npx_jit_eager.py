@@ -168,6 +168,8 @@ class JitEager:
                         else:
                             newv.append(t)
                     res.append(tuple(newv))
+                elif v is None and k in {"dtype"}:
+                    continue
                 else:
                     raise TypeError(
                         f"Type {type(v)} is not yet supported, "
@@ -520,6 +522,8 @@ class EagerOnnx(JitEager):
             elif isinstance(n, (int, float)):
                 new_args.append(self.tensor_class(np.array(n)))
                 modified = True
+            elif isinstance(n, DType):
+                new_args.append(n)
             elif n in (int, float):
                 # usually used to cast
                 new_args.append(n)
@@ -554,7 +558,17 @@ class EagerOnnx(JitEager):
                     lambda t: t is not None
                     and not isinstance(
                         t,
-                        (EagerTensor, Cst, int, float, tuple, slice, type, np.ndarray),
+                        (
+                            EagerTensor,
+                            Cst,
+                            int,
+                            float,
+                            tuple,
+                            slice,
+                            type,
+                            np.ndarray,
+                            DType,
+                        ),
                     ),
                     args,
                 )

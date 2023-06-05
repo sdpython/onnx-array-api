@@ -29,6 +29,7 @@ from onnx_array_api.npx.npx_core_api import (
     npxapi_inline,
 )
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
+from onnx_array_api.npx.npx_functions import all as all_inline
 from onnx_array_api.npx.npx_functions import arange as arange_inline
 from onnx_array_api.npx.npx_functions import arccos as arccos_inline
 from onnx_array_api.npx.npx_functions import arccosh as arccosh_inline
@@ -50,6 +51,7 @@ from onnx_array_api.npx.npx_functions import cumsum as cumsum_inline
 from onnx_array_api.npx.npx_functions import det as det_inline
 from onnx_array_api.npx.npx_functions import dot as dot_inline
 from onnx_array_api.npx.npx_functions import einsum as einsum_inline
+from onnx_array_api.npx.npx_functions import equal as equal_inline
 from onnx_array_api.npx.npx_functions import erf as erf_inline
 from onnx_array_api.npx.npx_functions import exp as exp_inline
 from onnx_array_api.npx.npx_functions import expand_dims as expand_dims_inline
@@ -1163,6 +1165,16 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    def test_astype_dtype(self):
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(7)))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Float64[None]})
+        x = np.array([[-5.4, 6.6]], dtype=np.float64)
+        z = np.abs(x.astype(np.int64))
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": x})
+        self.assertEqualArray(z, got[0])
+
     def test_astype_int(self):
         f = absolute_inline(copy_inline(Input("A")).astype(1))
         self.assertIsInstance(f, Var)
@@ -1421,6 +1433,9 @@ class TestNpx(ExtTestCase):
             lambda x, y: np.einsum(equation, x, y),
         )
 
+    def test_equal(self):
+        self.common_test_inline_bin(equal_inline, np.equal)
+
     @unittest.skipIf(scipy is None, reason="scipy is not installed.")
     def test_erf(self):
         self.common_test_inline(erf_inline, scipy.special.erf)
@@ -1468,7 +1483,8 @@ class TestNpx(ExtTestCase):
     def test_identity(self):
         f = identity_inline(2, dtype=np.float64)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
-        z = np.identity(2)
+        self.assertIn("dtype:", str(onx))
+        z = np.identity(2).astype(np.float64)
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {})
         self.assertEqualArray(z, got[0])
@@ -2465,7 +2481,18 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data, "B": indices})
         self.assertEqualArray(y, got[0])
 
+    def test_numpy_all(self):
+        data = np.array([[1, 0], [1, 1]]).astype(np.bool_)
+        y = np.all(data, axis=1)
+
+        f = all_inline(Input("A"), axis=1)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
 
 if __name__ == "__main__":
-    TestNpx().test_take()
+    TestNpx().test_identity()
     unittest.main(verbosity=2)

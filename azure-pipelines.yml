@@ -125,14 +125,12 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
+    displayName: 'Set API'
+  - script: |
       python -m pytest -xv array_api_tests/test_creation_functions.py::test_zeros
-      cd ..
     displayName: "test_creation_functions.py::test_zeros"
   - script: |
-      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
-      cd array-api-tests
       python -m pytest -x array_api_tests
-      cd ..
     displayName: "all tests"
 
 - job: 'TestLinux'

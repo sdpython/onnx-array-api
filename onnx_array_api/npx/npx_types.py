@@ -30,6 +30,10 @@ class DType(WrapperType):
         "usual"
         return f"DType({self.code_})"
 
+    def __str__(self) -> str:
+        "usual"
+        return f"DT{self.code_}"
+
     def __hash__(self) -> int:
         return self.code_
 
@@ -69,6 +73,11 @@ class DType(WrapperType):
         except KeyError:
             raise TypeError(f"dt must be DType not {type(dt)} - {dt}.")
         return self.code_ < dti
+
+    @classmethod
+    def type_name(cls) -> str:
+        "Returns its full name."
+        raise NotImplementedError()
 
 
 class _DType2(DType):
