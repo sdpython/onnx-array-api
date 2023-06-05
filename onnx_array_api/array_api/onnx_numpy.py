@@ -3,6 +3,7 @@ Array API valid for an :class:`EagerNumpyTensor`.
 """
 from typing import Any, Optional
 import numpy as np
+from onnx import TensorProto
 from ..npx.npx_array_api import BaseArrayApi
 from ..npx.npx_functions import (
     abs,
@@ -13,7 +14,9 @@ from ..npx.npx_functions import (
     take,
 )
 from ..npx.npx_functions import asarray as generic_asarray
+from ..npx.npx_functions import zeros as generic_zeros
 from ..npx.npx_numpy_tensors import EagerNumpyTensor
+from ..npx.npx_types import DType, ElemType, TensorType, OptParType
 from . import _finalize_array_api
 
 __all__ = [
@@ -24,16 +27,17 @@ __all__ = [
     "isdtype",
     "reshape",
     "take",
+    "zeros",
 ]
 
 
 def asarray(
     a: Any,
-    dtype: Any = None,
+    dtype: Optional[DType] = None,
     order: Optional[str] = None,
     like: Any = None,
     copy: bool = False,
-):
+) -> EagerNumpyTensor:
     """
     Converts anything into an array.
     """
@@ -44,6 +48,18 @@ def asarray(
     if isinstance(a, float):
         return EagerNumpyTensor(np.array(a, dtype=np.float32))
     raise NotImplementedError(f"asarray not implemented for type {type(a)}.")
+
+
+def zeros(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    if isinstance(shape, tuple):
+        return generic_zeros(
+            EagerNumpyTensor(np.array(shape, dtype=np.int64)), dtype=dtype, order=order
+        )
+    return generic_zeros(shape, dtype=dtype, order=order)
 
 
 def _finalize():

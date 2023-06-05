@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from .npx_tensors import EagerTensor, JitTensor
-from .npx_types import TensorType
+from .npx_types import DType, TensorType
 from .npx_var import Cst, Input, Var
 
 logger = getLogger("onnx-array-api")
@@ -153,7 +153,7 @@ class JitEager:
                 )
         if kwargs:
             for k, v in sorted(kwargs.items()):
-                if isinstance(v, (int, float, str, type)):
+                if isinstance(v, (int, float, str, type, DType)):
                     res.append(k)
                     res.append(v)
                 elif isinstance(v, tuple):

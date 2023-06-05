@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple, Union
 import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
-from onnx.helper import np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
+from onnx.helper import make_tensor, np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
 from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
@@ -182,7 +182,7 @@ def asarray(
 
 @npxapi_inline
 def astype(
-    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[int] = 1
+    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[DType] = 1
 ) -> TensorType[ElemType.numerics, "T2"]:
     """
     Cast an array.
@@ -401,7 +401,7 @@ def identity(n: ParType[int], dtype=None) -> TensorType[ElemType.numerics, "T"]:
 
 @npxapi_no_inline
 def isdtype(
-    dtype: DType, kind: Union[DType, str, Tuple[Union[DType, str], ...]]
+    dtype: ParType[DType], kind: Union[DType, str, Tuple[Union[DType, str], ...]]
 ) -> bool:
     """
     See :epkg:`BaseArrayAPI:isdtype`.
@@ -630,3 +630,21 @@ def where(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.where`."
     return var(cond, x, y, op="Where")
+
+
+@npxapi_inline
+def zeros(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    if order != "C":
+        raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    return var(
+        shape,
+        value=make_tensor(name="zero", data_type=dtype.code, dims=[1], vals=[0]),
+        op="ConstantOfShape",
+    )

@@ -47,13 +47,15 @@ class DType(WrapperType):
             return self.code_ == dt.code_
         if isinstance(dt, int):
             raise TypeError(f"dt must be DType not {type(dt)}.")
+        if isinstance(dt, str):
+            return False
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_
         try:
             dti = np_dtype_to_tensor_dtype(dt)
         except KeyError:
-            raise TypeError(f"dt must be DType not {type(dt)} - {dt}.")
+            raise TypeError(f"dt must be DType not {type(dt)} - {dt!r}.")
         return self.code_ == dti
 
     def __lt__(self, dt: "DType") -> bool:
@@ -69,11 +71,13 @@ class DType(WrapperType):
         return self.code_ < dti
 
 
-class DType2(DType):
+class _DType2(DType):
+    "Wraps an into a different type."
     pass
 
 
 class _DTypes(DType):
+    "Wraps an into a different type."
     pass
 
 
@@ -100,6 +104,7 @@ class ElemTypeCstInner(WrapperType):
     bfloat16 = DType(16)
     complex64 = DType(14)
     complex128 = DType(15)
+    str_ = DType(8)
 
 
 class ElemTypeCstSet(ElemTypeCstInner):
@@ -142,6 +147,8 @@ class ElemTypeCstSet(ElemTypeCstInner):
         ElemTypeCstInner.float64,
     }
 
+    strings = {ElemTypeCstInner.str_}
+
     @staticmethod
     def combined(type_set):
         "Combines all types into a single integer by using power of 2."
@@ -156,26 +163,28 @@ class ElemTypeCst(ElemTypeCstSet):
     Combination of element types.
     """
 
-    Undefined = DType2(0)
-    Bool = DType2(1 << ElemTypeCstInner.bool_.code)
-    Int8 = DType2(1 << ElemTypeCstInner.int8.code)
-    Int16 = DType2(1 << ElemTypeCstInner.int16.code)
-    Int32 = DType2(1 << ElemTypeCstInner.int32.code)
-    Int64 = DType2(1 << ElemTypeCstInner.int64.code)
-    UInt8 = DType2(1 << ElemTypeCstInner.uint8.code)
-    UInt16 = DType2(1 << ElemTypeCstInner.uint16.code)
-    UInt32 = DType2(1 << ElemTypeCstInner.uint32.code)
-    UInt64 = DType2(1 << ElemTypeCstInner.uint64.code)
-    BFloat16 = DType2(1 << ElemTypeCstInner.bfloat16.code)
-    Float16 = DType2(1 << ElemTypeCstInner.float16.code)
-    Float32 = DType2(1 << ElemTypeCstInner.float32.code)
-    Float64 = DType2(1 << ElemTypeCstInner.float64.code)
-    Complex64 = DType2(1 << ElemTypeCstInner.complex64.code)
-    Complex128 = DType2(1 << ElemTypeCstInner.complex128.code)
+    Undefined = _DType2(0)
+    Bool = _DType2(1 << ElemTypeCstInner.bool_.code)
+    Int8 = _DType2(1 << ElemTypeCstInner.int8.code)
+    Int16 = _DType2(1 << ElemTypeCstInner.int16.code)
+    Int32 = _DType2(1 << ElemTypeCstInner.int32.code)
+    Int64 = _DType2(1 << ElemTypeCstInner.int64.code)
+    UInt8 = _DType2(1 << ElemTypeCstInner.uint8.code)
+    UInt16 = _DType2(1 << ElemTypeCstInner.uint16.code)
+    UInt32 = _DType2(1 << ElemTypeCstInner.uint32.code)
+    UInt64 = _DType2(1 << ElemTypeCstInner.uint64.code)
+    BFloat16 = _DType2(1 << ElemTypeCstInner.bfloat16.code)
+    Float16 = _DType2(1 << ElemTypeCstInner.float16.code)
+    Float32 = _DType2(1 << ElemTypeCstInner.float32.code)
+    Float64 = _DType2(1 << ElemTypeCstInner.float64.code)
+    Complex64 = _DType2(1 << ElemTypeCstInner.complex64.code)
+    Complex128 = _DType2(1 << ElemTypeCstInner.complex128.code)
+    String = _DType2(1 << ElemTypeCstInner.str_.code)
 
     Numerics = ElemTypeCstSet.combined(ElemTypeCstSet.numerics)
     Floats = ElemTypeCstSet.combined(ElemTypeCstSet.floats)
     Ints = ElemTypeCstSet.combined(ElemTypeCstSet.ints)
+    Strings = ElemTypeCstSet.combined(ElemTypeCstSet.strings)
 
 
 class ElemType(ElemTypeCst):
@@ -270,7 +279,7 @@ class ParType(WrapperType):
     :param optional: is optional or not
     """
 
-    map_names = {int: "int", float: "float", str: "str"}
+    map_names = {int: "int", float: "float", str: "str", DType: "DType"}
 
     @classmethod
     def __class_getitem__(cls, dtype):
