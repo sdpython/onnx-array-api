@@ -233,6 +233,7 @@ class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
     """
     Defines a value for :epkg:`onnxruntime` as a backend.
     """
+
     def __array_namespace__(self, api_version: Optional[str] = None):
         """
         Returns the module holding all the available functions.
