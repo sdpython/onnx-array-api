@@ -90,7 +90,7 @@ jobs:
       python -m pytest -v
     displayName: 'Runs Unit Tests'
 
-- job: 'TestLinuxNightly'
+- job: 'TestLinuxArrayApi'
   pool:
     vmImage: 'ubuntu-latest'
   strategy:
