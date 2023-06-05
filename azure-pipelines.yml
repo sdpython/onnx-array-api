@@ -116,7 +116,7 @@ jobs:
       git clone https://github.com/data-apis/array-api-tests.git
       git submodule update --init
     displayName: 'clone array-api-tests'
-  - script: pip install -r array-api-tests/requirements-dev.txt
+  - script: pip install -r array-api-tests/requirements.txt
     displayName: 'Install Requirements dev'
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api_onnx_numpy.onnx_numpy_array_api
