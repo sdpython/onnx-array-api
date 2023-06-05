@@ -114,7 +114,6 @@ jobs:
     displayName: 'Install onnx_array_api'
   - script: |
       git clone https://github.com/data-apis/array-api-tests.git
-      git submodule update --init --recusrive
     displayName: 'clone array-api-tests'
   - script: |
       cd array-api-tests
