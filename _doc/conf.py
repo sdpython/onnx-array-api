@@ -57,6 +57,7 @@ sphinx_gallery_conf = {
 }
 
 epkg_dictionary = {
+    "Array API": "https://data-apis.org/array-api/",
     "ArrayAPI": (
         "https://data-apis.org/array-api/",
         ("2022.12/API_specification/generated/array_api.{0}.html", 1),

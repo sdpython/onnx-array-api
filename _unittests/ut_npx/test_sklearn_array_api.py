@@ -1,7 +1,8 @@
 import unittest
 import numpy as np
+from packaging.version import Version
 from onnx.defs import onnx_opset_version
-from sklearn import config_context
+from sklearn import config_context, __version__ as sklearn_version
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
@@ -11,6 +12,10 @@ DEFAULT_OPSET = onnx_opset_version()
 
 
 class TestSklearnArrayAPI(ExtTestCase):
+    @unittest.skipIf(
+        Version(sklearn_version) <= Version("1.2.2"),
+        reason="reshape ArrayAPI not followed",
+    )
     def test_sklearn_array_api_linear_discriminant(self):
         X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
         y = np.array([1, 1, 1, 2, 2, 2])

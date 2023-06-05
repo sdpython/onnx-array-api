@@ -5,6 +5,14 @@ import numpy as np
 from .npx_types import OptParType, ParType, TupleType
 
 
+class ArrayApiError(RuntimeError):
+    """
+    Raised when a function is not supported by the :epkg:`Array API`.
+    """
+
+    pass
+
+
 class ArrayApi:
     """
     List of supported method by a tensor.

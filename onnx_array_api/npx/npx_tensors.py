@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_array_api import ArrayApi
+from .npx_array_api import ArrayApi, ArrayApiError
 
 
 class JitTensor:
@@ -23,13 +23,12 @@ class EagerTensor(ArrayApi):
 
     def __iter__(self):
         """
-        This is not implementation in the generic case.
+        The :epkg:`Array API` does not define this function (2022/12).
         This method raises an exception with a better error message.
         """
-        raise RuntimeError(
+        raise ArrayApiError(
             "Iterators are not implemented in the generic case. "
-            "It may be enabled for the eager mode but it might fail "
-            "when a whole function is converted into ONNX."
+            "Every function using them cannot be converted into ONNX."
         )
 
     @staticmethod
