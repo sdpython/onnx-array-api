@@ -4,7 +4,7 @@ import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_array_api import ArrayApi, ArrayApiError
+from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
 from .npx_types import ElemType, OptParType, ParType, TensorType, TupleType
 
@@ -181,7 +181,7 @@ class ManyIdentity:
         return onx
 
 
-class Var(ArrayApi):
+class Var(BaseArrayApi):
     """
     Defines a variable, a result...
 

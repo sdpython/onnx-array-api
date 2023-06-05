@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_array_api import ArrayApi, ArrayApiError
+from .npx_array_api import BaseArrayApi, ArrayApiError
 
 
 class JitTensor:
@@ -14,11 +14,11 @@ class JitTensor:
     pass
 
 
-class EagerTensor(ArrayApi):
+class EagerTensor(BaseArrayApi):
     """
     Defines a value for a specific eager mode.
     An eager tensor must overwrite every call to a method listed in class
-    :class:`ArrayApi`.
+    :class:`BaseArrayApi`.
     """
 
     def __iter__(self):
@@ -215,7 +215,7 @@ class EagerTensor(ArrayApi):
             return self._generic_method_getitem(method_name, *args, **kwargs)
 
         if method_name == "__setitem__":
-            return ArrayApi.generic_method(self, method_name, *args, **kwargs)
+            return BaseArrayApi.generic_method(self, method_name, *args, **kwargs)
 
         if method_name in {"mean", "sum", "min", "max", "prod"}:
             return self._generic_method_reduce(method_name, *args, **kwargs)
@@ -226,4 +226,4 @@ class EagerTensor(ArrayApi):
         if method_name.startswith("__") and method_name.endswith("__"):
             return self._generic_method_operator(method_name, *args, **kwargs)
 
-        return ArrayApi.generic_method(self, method_name, *args, **kwargs)
+        return BaseArrayApi.generic_method(self, method_name, *args, **kwargs)
