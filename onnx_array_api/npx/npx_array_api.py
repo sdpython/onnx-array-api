@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 import numpy as np
+from onnx import TensorProto
 
 from .npx_types import OptParType, ParType, TupleType
 
@@ -18,17 +19,24 @@ class BaseArrayApi:
     List of supported method by a tensor.
     """
 
+    float16 = TensorProto.FLOAT16
+    float32 = TensorProto.FLOAT
+    float64 = TensorProto.DOUBLE
+    int8 = TensorProto.INT8
+    int16 = TensorProto.INT16
+    int32 = TensorProto.INT32
+    int64 = TensorProto.INT64
+    uint8 = TensorProto.UINT8
+    uint16 = TensorProto.UINT16
+    uint32 = TensorProto.UINT32
+    uint64 = TensorProto.UINT64
+    bfloat16 = TensorProto.BFLOAT16
+
     def __array_namespace__(self, api_version: Optional[str] = None):
         """
-        Returns the module holding all the available functions.
+        This method must be overloaded.
         """
-        if api_version is None or api_version == "2022.12":
-            from onnx_array_api.npx import npx_functions
-
-            return npx_functions
-        raise ValueError(
-            f"Unable to return an implementation for api_version={api_version!r}."
-        )
+        raise NotImplementedError("Method '__array_namespace__' must be implemented.")
 
     def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError(
@@ -179,3 +187,7 @@ class BaseArrayApi:
 
     def __setitem__(self, index: Any, values: Any):
         return self.generic_method("__setitem__", index, values)
+
+
+setattr(BaseArrayApi, "bool", TensorProto.BOOL)
+setattr(BaseArrayApi, "str", TensorProto.STRING)

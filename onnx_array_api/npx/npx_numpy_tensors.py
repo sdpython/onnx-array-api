@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 from onnx import ModelProto
@@ -171,7 +171,17 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
     Defines a value for a specific backend.
     """
 
-    pass
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Returns the module holding all the available functions.
+        """
+        if api_version is None or api_version == "2022.12":
+            from onnx_array_api.array_api_onnx_numpy import onnx_numpy_array_api
+
+            return onnx_numpy_array_api
+        raise ValueError(
+            f"Unable to return an implementation for api_version={api_version!r}."
+        )
 
 
 class JitNumpyTensor(NumpyTensor, JitTensor):

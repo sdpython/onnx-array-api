@@ -233,8 +233,17 @@ class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
     """
     Defines a value for :epkg:`onnxruntime` as a backend.
     """
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Returns the module holding all the available functions.
+        """
+        if api_version is None or api_version == "2022.12":
+            from onnx_array_api.array_api_onnx_ort import onnx_ort_array_api
 
-    pass
+            return onnx_ort_array_api
+        raise ValueError(
+            f"Unable to return an implementation for api_version={api_version!r}."
+        )
 
 
 class JitOrtTensor(OrtTensor, OrtCommon, JitTensor):
