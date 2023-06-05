@@ -2,6 +2,7 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 from onnx import AttributeProto
+from onnx.helper import np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
 
 
 class WrapperType:
@@ -14,9 +15,65 @@ class WrapperType:
 
 class DType(WrapperType):
     """
-    Annotated type for dtype.
+    Type of the element type returned by tensors
+    following the :epkg:`Array API`.
+
+    :param code: element type based on onnx definition
     """
 
+    __slots__ = ["code_"]
+
+    def __init__(self, code: int):
+        self.code_ = code
+
+    def __repr__(self) -> str:
+        "usual"
+        return f"DType({self.code_})"
+
+    def __hash__(self) -> int:
+        return self.code_
+
+    @property
+    def code(self) -> int:
+        return self.code_
+
+    @property
+    def np_dtype(self) -> "np.dtype":
+        return tensor_dtype_to_np_dtype(self.code_)
+
+    def __eq__(self, dt: "DType") -> bool:
+        "Compares two types."
+        if dt.__class__ is DType:
+            return self.code_ == dt.code_
+        if isinstance(dt, int):
+            raise TypeError(f"dt must be DType not {type(dt)}.")
+        if dt in ElemType.numpy_map:
+            dti = ElemType.numpy_map[dt]
+            return self.code_ == dti.code_
+        try:
+            dti = np_dtype_to_tensor_dtype(dt)
+        except KeyError:
+            raise TypeError(f"dt must be DType not {type(dt)} - {dt}.")
+        return self.code_ == dti
+
+    def __lt__(self, dt: "DType") -> bool:
+        "Compares two types."
+        if dt.__class__ is DType:
+            return self.code_ < dt.code_
+        if isinstance(dt, int):
+            raise TypeError(f"dt must be DType not {type(dt)}.")
+        try:
+            dti = np_dtype_to_tensor_dtype(dt)
+        except KeyError:
+            raise TypeError(f"dt must be DType not {type(dt)} - {dt}.")
+        return self.code_ < dti
+
+
+class DType2(DType):
+    pass
+
+
+class _DTypes(DType):
     pass
 
 
@@ -27,22 +84,22 @@ class ElemTypeCstInner(WrapperType):
 
     __slots__ = []
 
-    undefined = 0
-    bool_ = 9
-    int8 = 3
-    int16 = 5
-    int32 = 6
-    int64 = 7
-    uint8 = 2
-    uint16 = 4
-    uint32 = 12
-    uint64 = 13
-    float16 = 10
-    float32 = 1
-    float64 = 11
-    bfloat16 = 16
-    complex64 = 14
-    complex128 = 15
+    undefined = DType(0)
+    bool_ = DType(9)
+    int8 = DType(3)
+    int16 = DType(5)
+    int32 = DType(6)
+    int64 = DType(7)
+    uint8 = DType(2)
+    uint16 = DType(4)
+    uint32 = DType(12)
+    uint64 = DType(13)
+    float16 = DType(10)
+    float32 = DType(1)
+    float64 = DType(11)
+    bfloat16 = DType(16)
+    complex64 = DType(14)
+    complex128 = DType(15)
 
 
 class ElemTypeCstSet(ElemTypeCstInner):
@@ -50,7 +107,7 @@ class ElemTypeCstSet(ElemTypeCstInner):
     Sets of element types.
     """
 
-    allowed = set(range(1, 17))
+    allowed = set(DType(i) for i in range(1, 17))
 
     ints = {
         ElemTypeCstInner.int8,
@@ -90,8 +147,8 @@ class ElemTypeCstSet(ElemTypeCstInner):
         "Combines all types into a single integer by using power of 2."
         s = 0
         for dt in type_set:
-            s += 1 << dt
-        return s
+            s += 1 << dt.code
+        return _DTypes(s)
 
 
 class ElemTypeCst(ElemTypeCstSet):
@@ -99,22 +156,22 @@ class ElemTypeCst(ElemTypeCstSet):
     Combination of element types.
     """
 
-    Undefined = 0
-    Bool = 1 << ElemTypeCstInner.bool_
-    Int8 = 1 << ElemTypeCstInner.int8
-    Int16 = 1 << ElemTypeCstInner.int16
-    Int32 = 1 << ElemTypeCstInner.int32
-    Int64 = 1 << ElemTypeCstInner.int64
-    UInt8 = 1 << ElemTypeCstInner.uint8
-    UInt16 = 1 << ElemTypeCstInner.uint16
-    UInt32 = 1 << ElemTypeCstInner.uint32
-    UInt64 = 1 << ElemTypeCstInner.uint64
-    BFloat16 = 1 << ElemTypeCstInner.bfloat16
-    Float16 = 1 << ElemTypeCstInner.float16
-    Float32 = 1 << ElemTypeCstInner.float32
-    Float64 = 1 << ElemTypeCstInner.float64
-    Complex64 = 1 << ElemTypeCstInner.complex64
-    Complex128 = 1 << ElemTypeCstInner.complex128
+    Undefined = DType2(0)
+    Bool = DType2(1 << ElemTypeCstInner.bool_.code)
+    Int8 = DType2(1 << ElemTypeCstInner.int8.code)
+    Int16 = DType2(1 << ElemTypeCstInner.int16.code)
+    Int32 = DType2(1 << ElemTypeCstInner.int32.code)
+    Int64 = DType2(1 << ElemTypeCstInner.int64.code)
+    UInt8 = DType2(1 << ElemTypeCstInner.uint8.code)
+    UInt16 = DType2(1 << ElemTypeCstInner.uint16.code)
+    UInt32 = DType2(1 << ElemTypeCstInner.uint32.code)
+    UInt64 = DType2(1 << ElemTypeCstInner.uint64.code)
+    BFloat16 = DType2(1 << ElemTypeCstInner.bfloat16.code)
+    Float16 = DType2(1 << ElemTypeCstInner.float16.code)
+    Float32 = DType2(1 << ElemTypeCstInner.float32.code)
+    Float64 = DType2(1 << ElemTypeCstInner.float64.code)
+    Complex64 = DType2(1 << ElemTypeCstInner.complex64.code)
+    Complex128 = DType2(1 << ElemTypeCstInner.complex128.code)
 
     Numerics = ElemTypeCstSet.combined(ElemTypeCstSet.numerics)
     Floats = ElemTypeCstSet.combined(ElemTypeCstSet.floats)
@@ -131,13 +188,13 @@ class ElemType(ElemTypeCst):
     names_int = {
         att: getattr(ElemTypeCstInner, att)
         for att in dir(ElemTypeCstInner)
-        if isinstance(getattr(ElemTypeCstInner, att), int)
+        if isinstance(getattr(ElemTypeCstInner, att), DType)
     }
 
     int_names = {
         getattr(ElemTypeCstInner, att): att
         for att in dir(ElemTypeCstInner)
-        if isinstance(getattr(ElemTypeCstInner, att), int)
+        if isinstance(getattr(ElemTypeCstInner, att), DType)
     }
 
     set_names = {
@@ -150,12 +207,12 @@ class ElemType(ElemTypeCst):
         **{
             getattr(np, att): getattr(ElemTypeCst, att)
             for att in dir(ElemTypeCst)
-            if isinstance(getattr(ElemTypeCst, att), int) and hasattr(np, att)
+            if isinstance(getattr(ElemTypeCst, att), DType) and hasattr(np, att)
         },
         **{
             np.dtype(att): getattr(ElemTypeCst, att)
             for att in dir(ElemTypeCst)
-            if isinstance(getattr(ElemTypeCst, att), int) and hasattr(np, att)
+            if isinstance(getattr(ElemTypeCst, att), DType) and hasattr(np, att)
         },
     }
 
@@ -167,7 +224,7 @@ class ElemType(ElemTypeCst):
             dtype = ElemType.names_int[dtype]
         elif dtype in ElemType.numpy_map:
             dtype = ElemType.numpy_map[dtype]
-        elif dtype == 0:
+        elif dtype == DType(0):
             pass
         elif dtype not in ElemType.allowed:
             raise ValueError(f"Unexpected dtype {dtype} not in {ElemType.allowed}.")
@@ -197,7 +254,10 @@ class ElemType(ElemTypeCst):
                 tt.append(dt.dtype)
         dtypes = set(tt)
         for d in dir(cls):
-            if dtypes == getattr(cls, d):
+            att = getattr(cls, d)
+            if not isinstance(att, set):
+                continue
+            if dtypes == att:
                 return d
         return None
 
@@ -333,7 +393,7 @@ class TensorType(WrapperType):
             if isinstance(a, tuple):
                 shape = a
                 continue
-            if isinstance(a, int):
+            if isinstance(a, DType):
                 if dtypes is not None:
                     raise TypeError(f"Unexpected type {type(a)} in {args}.")
                 dtypes = (a,)
@@ -363,7 +423,7 @@ class TensorType(WrapperType):
                 check.append(dt)
             elif dt in ElemType.allowed:
                 check.append(ElemType[dt])
-            elif isinstance(dt, int):
+            elif isinstance(dt, DType):
                 check.append(ElemType[dt])
             else:
                 raise TypeError(f"Unexpected type {type(dt)} in {dtypes}, args={args}.")

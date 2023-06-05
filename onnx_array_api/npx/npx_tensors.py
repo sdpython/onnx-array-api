@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
+from .npx_types import DType
 from .npx_array_api import BaseArrayApi, ArrayApiError
 
 
@@ -73,7 +74,7 @@ class EagerTensor(BaseArrayApi):
         return meth(obj, index)
 
     @staticmethod
-    def _astype_impl(x, dtype: int = None, method_name=None):
+    def _astype_impl(x, dtype: Optional[DType] = None, method_name=None):
         # avoids circular imports.
         if dtype is None:
             raise ValueError("dtype cannot be None.")
@@ -131,9 +132,11 @@ class EagerTensor(BaseArrayApi):
         new_args = []
         for a in args:
             if isinstance(a, np.ndarray):
-                new_args.append(self.__class__(a.astype(self.dtype)))
+                new_args.append(self.__class__(a.astype(self.dtype.np_dtype)))
             elif isinstance(a, (int, float)):
-                new_args.append(self.__class__(np.array([a]).astype(self.dtype)))
+                new_args.append(
+                    self.__class__(np.array([a]).astype(self.dtype.np_dtype))
+                )
             else:
                 new_args.append(a)
 

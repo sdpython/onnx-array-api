@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple, Union
 import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
-from onnx.helper import np_dtype_to_tensor_dtype
+from onnx.helper import np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
 from onnx.numpy_helper import from_array
 
 from .npx_constants import FUNCTION_DOMAIN
@@ -407,6 +407,11 @@ def isdtype(
     See :epkg:`BaseArrayAPI:isdtype`.
     This function is not converted into an onnx graph.
     """
+    if isinstance(dtype, DType):
+        dti = tensor_dtype_to_np_dtype(dtype.code)
+        return np_array_api.isdtype(dti, kind)
+    if isinstance(dtype, int):
+        raise TypeError(f"Unexpected type {type(dtype)}.")
     return np_array_api.isdtype(dtype, kind)
 
 

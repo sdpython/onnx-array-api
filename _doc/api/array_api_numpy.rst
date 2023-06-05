@@ -1,5 +1,5 @@
-onnx_array_api.array_api_onnx_numpy.onnx_numpy_array_api
-========================================================
+onnx_array_api.array_api.onnx_numpy
+=============================================
 
-.. autoclass:: onnx_array_api.array_api_onnx_numpy.onnx_numpy_array_api
+.. automodule:: onnx_array_api.array_api.onnx_numpy
     :members:

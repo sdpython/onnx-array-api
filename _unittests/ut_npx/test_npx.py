@@ -95,6 +95,7 @@ from onnx_array_api.npx.npx_functions_test import (
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
 from onnx_array_api.npx.npx_types import (
     Bool,
+    DType,
     Float32,
     Float64,
     Int64,
@@ -2318,7 +2319,7 @@ class TestNpx(ExtTestCase):
         self.assertEqual(f.n_versions, 1)
         self.assertEqual(len(f.available_versions), 1)
         self.assertEqual(f.available_versions, [((np.float64, 2), (np.float64, 2))])
-        key = ((np.dtype("float64"), 2), (np.dtype("float64"), 2))
+        key = ((DType(TensorProto.DOUBLE), 2), (DType(TensorProto.DOUBLE), 2))
         onx = f.get_onnx(key)
         self.assertIsInstance(onx, ModelProto)
         self.assertRaise(lambda: f.get_onnx(2), ValueError)
@@ -2379,7 +2380,12 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(got[1], dist)
         self.assertEqual(f.n_versions, 1)
         self.assertEqual(len(f.available_versions), 1)
-        key = ((np.dtype("float64"), 2), (np.dtype("float64"), 2), "use_sqrt", True)
+        key = (
+            (DType(TensorProto.DOUBLE), 2),
+            (DType(TensorProto.DOUBLE), 2),
+            "use_sqrt",
+            True,
+        )
         self.assertEqual(f.available_versions, [key])
         onx = f.get_onnx(key)
         self.assertIsInstance(onx, ModelProto)

@@ -1,5 +1,5 @@
-onnx_array_api.array_api_onnx_ort.onnx_ort_array_api
-====================================================
+onnx_array_api.array_api.onnx_ort
+=================================
 
-.. autoclass:: onnx_array_api.array_api_onnx_ort.onnx_ort_array_api
+.. automodule:: onnx_array_api.array_api.onnx_ort
     :members:

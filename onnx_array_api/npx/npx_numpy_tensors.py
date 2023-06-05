@@ -2,10 +2,11 @@ from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 from onnx import ModelProto
+from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.reference import ReferenceEvaluator
 
 from .npx_tensors import EagerTensor, JitTensor
-from .npx_types import TensorType
+from .npx_types import DType, TensorType
 
 
 class NumpyTensor:
@@ -80,9 +81,9 @@ class NumpyTensor:
         return self._tensor
 
     @property
-    def dtype(self) -> Any:
+    def dtype(self) -> DType:
         "Returns the element type of this tensor."
-        return self._tensor.dtype
+        return DType(np_dtype_to_tensor_dtype(self._tensor.dtype))
 
     @property
     def key(self) -> Any:
@@ -176,9 +177,9 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         Returns the module holding all the available functions.
         """
         if api_version is None or api_version == "2022.12":
-            from onnx_array_api.array_api_onnx_numpy import onnx_numpy_array_api
+            from onnx_array_api.array_api import onnx_numpy
 
-            return onnx_numpy_array_api
+            return onnx_numpy
         raise ValueError(
             f"Unable to return an implementation for api_version={api_version!r}."
         )

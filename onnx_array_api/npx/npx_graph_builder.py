@@ -38,6 +38,7 @@ from .npx_helper import (
     rename_in_onnx_graph,
 )
 from .npx_types import (
+    DType,
     ElemType,
     OptParType,
     ParType,
@@ -226,6 +227,8 @@ class _GraphBuilder:
                     protos.append(att)
                 elif v.value is not None:
                     new_kwargs[k] = v.value
+            elif isinstance(v, DType):
+                new_kwargs[k] = v.code
             else:
                 new_kwargs[k] = v
 
@@ -337,7 +340,7 @@ class _GraphBuilder:
         if tensor_type.shape is None:
             type_proto = TypeProto()
             tensor_type_proto = type_proto.tensor_type
-            tensor_type_proto.elem_type = tensor_type.dtypes[0].dtype
+            tensor_type_proto.elem_type = tensor_type.dtypes[0].dtype.code
             value_info_proto = ValueInfoProto()
             value_info_proto.name = name
             # tensor_type_proto.shape.dim.extend([])
@@ -348,7 +351,7 @@ class _GraphBuilder:
             # with fixed rank. This can be changed here and in methods
             # `make_key`.
             shape = [None for _ in tensor_type.shape]
-            info = make_tensor_value_info(name, tensor_type.dtypes[0].dtype, shape)
+            info = make_tensor_value_info(name, tensor_type.dtypes[0].dtype.code, shape)
             # check_value_info fails if the shape is left undefined
             check_value_info(info, self.check_context)
         return info
