@@ -4,13 +4,11 @@ Array API valid for an :class:`EagerNumpyTensor`.
 from typing import Any, Optional
 import numpy as np
 from onnx import TensorProto
-from ..npx.npx_array_api import BaseArrayApi
 from ..npx.npx_functions import (
     all,
     abs,
     absolute,
     astype,
-    copy as copy_inline,
     equal,
     isdtype,
     reshape,
@@ -19,6 +17,7 @@ from ..npx.npx_functions import (
 from ..npx.npx_functions import zeros as generic_zeros
 from ..npx.npx_numpy_tensors import EagerNumpyTensor
 from ..npx.npx_types import DType, ElemType, TensorType, OptParType
+from ._onnx_common import template_asarray
 from . import _finalize_array_api
 
 __all__ = [
@@ -45,36 +44,9 @@ def asarray(
     """
     Converts anything into an array.
     """
-    if order not in ("C", None):
-        raise NotImplementedError(f"asarray is not implemented for order={order!r}.")
-    if like is not None:
-        raise NotImplementedError(
-            f"asarray is not implemented for like != None (type={type(like)})."
-        )
-    if isinstance(a, BaseArrayApi):
-        if copy:
-            if dtype is None:
-                return copy_inline(a)
-            return copy_inline(a).astype(dtype=dtype)
-        if dtype is None:
-            return a
-        return a.astype(dtype=dtype)
-
-    if isinstance(a, int):
-        v = EagerNumpyTensor(np.array(a, dtype=np.int64))
-    elif isinstance(a, float):
-        v = EagerNumpyTensor(np.array(a, dtype=np.float32))
-    elif isinstance(a, bool):
-        v = EagerNumpyTensor(np.array(a, dtype=np.bool_))
-    elif isinstance(a, str):
-        v = EagerNumpyTensor(np.array(a, dtype=np.str_))
-    else:
-        raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
-    if dtype is not None:
-        vt = v.astype(dtype=dtype)
-    else:
-        vt = v
-    return vt
+    return template_asarray(
+        EagerNumpyTensor, a, dtype=dtype, order=order, like=like, copy=copy
+    )
 
 
 def zeros(
