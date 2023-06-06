@@ -1,9 +1,9 @@
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
-from .npx_types import DType
+from .npx_types import DType, OptParType
 from .npx_array_api import BaseArrayApi, ArrayApiError
 
 
@@ -74,7 +74,7 @@ class EagerTensor(BaseArrayApi):
         return meth(obj, index)
 
     @staticmethod
-    def _astype_impl(x, dtype: Optional[DType] = None, method_name=None):
+    def _astype_impl(x, dtype: OptParType[DType] = None, method_name=None):
         # avoids circular imports.
         if dtype is None:
             raise ValueError("dtype cannot be None.")

@@ -195,6 +195,12 @@ class JitEager:
             constraints = {}
             new_kwargs = {}
             for i, (v, iname) in enumerate(zip(values, names)):
+                if i < len(annot_values) and not isinstance(annot_values[i], type):
+                    raise TypeError(
+                        f"annotation {i} is not a type but is {annot_values[i]!r}."
+                        f"for function {self.f} "
+                        f"from module {self.f.__module__!r}."
+                    )
                 if isinstance(v, (EagerTensor, JitTensor)) and (
                     i >= len(annot_values) or issubclass(annot_values[i], TensorType)
                 ):

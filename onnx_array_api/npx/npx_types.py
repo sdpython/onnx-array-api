@@ -200,7 +200,7 @@ class ElemType(ElemTypeCst):
     """
     Allowed element type based on numpy dtypes.
 
-    :param dtype: integer or a string
+    :param dtype: DType or a string
     """
 
     names_int = {
@@ -237,7 +237,7 @@ class ElemType(ElemTypeCst):
     __slots__ = ["dtype"]
 
     @classmethod
-    def __class_getitem__(cls, dtype: Union[str, int]):
+    def __class_getitem__(cls, dtype: Union[str, DType]):
         if isinstance(dtype, str):
             dtype = ElemType.names_int[dtype]
         elif dtype in ElemType.numpy_map:

@@ -1483,7 +1483,7 @@ class TestNpx(ExtTestCase):
     def test_identity(self):
         f = identity_inline(2, dtype=np.float64)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
-        self.assertIn("dtype:", str(onx))
+        self.assertIn('name: "dtype"', str(onx))
         z = np.identity(2).astype(np.float64)
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {})

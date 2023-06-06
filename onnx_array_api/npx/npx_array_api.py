@@ -128,7 +128,7 @@ class BaseArrayApi:
         return self.generic_method("T")
 
     def astype(self, dtype: Any) -> "BaseArrayApi":
-        return self.generic_method("astype", dtype)
+        return self.generic_method("astype", dtype=dtype)
 
     @property
     def shape(self) -> "BaseArrayApi":
