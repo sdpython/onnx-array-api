@@ -258,7 +258,7 @@ class JitEager:
                 kwargs = new_kwargs
             else:
                 kwargs = kwargs.copy()
-                kwargs.update(kwargs)
+                kwargs.update(new_kwargs)
 
         var = self.f(*inputs, **kwargs)
 
@@ -347,8 +347,10 @@ class JitEager:
             try:
                 onx, fct = self.to_jit(*values, **kwargs)
             except Exception as e:
-                raise RuntimeError(f"ERROR with self.f={self.f}, "
-                            f"values={values!r}, kwargs={kwargs!r}") from e
+                raise RuntimeError(
+                    f"ERROR with self.f={self.f}, "
+                    f"values={values!r}, kwargs={kwargs!r}"
+                ) from e
             if self.input_to_kwargs_ is None:
                 raise RuntimeError(
                     f"Attribute 'input_to_kwargs_' should be set for "
