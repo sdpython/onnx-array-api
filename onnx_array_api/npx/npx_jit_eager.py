@@ -131,7 +131,7 @@ class JitEager:
         for iv, v in enumerate(values):
             if isinstance(v, (Var, EagerTensor, JitTensor)):
                 res.append(v.key)
-            elif isinstance(v, (int, float)):
+            elif isinstance(v, (int, float, DType)):
                 res.append(v)
             elif isinstance(v, slice):
                 res.append(("slice", v.start, v.stop, v.step))
@@ -344,7 +344,11 @@ class JitEager:
         self.info("+", "jit_call")
         if self.input_to_kwargs_ is None:
             # No jitting was ever called.
-            onx, fct = self.to_jit(*values, **kwargs)
+            try:
+                onx, fct = self.to_jit(*values, **kwargs)
+            except Exception as e:
+                raise RuntimeError(f"ERROR with self.f={self.f}, "
+                            f"values={values!r}, kwargs={kwargs!r}") from e
             if self.input_to_kwargs_ is None:
                 raise RuntimeError(
                     f"Attribute 'input_to_kwargs_' should be set for "

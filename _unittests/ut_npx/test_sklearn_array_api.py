@@ -27,6 +27,8 @@ class TestSklearnArrayAPI(ExtTestCase):
         new_x = EagerNumpyTensor(X)
         self.assertStartsWith("EagerNumpyTensor(array([[", repr(new_x))
         with config_context(array_api_dispatch=True):
+            # It fails if scikit-learn <= 1.2.2 because the ArrayAPI
+            # is not strictly applied.
             got = ana.predict(new_x)
         self.assertEqualArray(expected, got.numpy())
 
