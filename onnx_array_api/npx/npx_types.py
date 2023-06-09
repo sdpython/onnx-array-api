@@ -1,7 +1,7 @@
 from typing import Any, Tuple, Union
 
 import numpy as np
-from onnx import AttributeProto
+from onnx import AttributeProto, TensorProto
 from onnx.helper import np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
 
 
@@ -49,10 +49,12 @@ class DType(WrapperType):
         "Compares two types."
         if dt.__class__ is DType:
             return self.code_ == dt.code_
-        if isinstance(dt, int):
-            raise TypeError(f"dt must be DType not {type(dt)}.")
-        if isinstance(dt, str):
+        if isinstance(dt, (int, bool, str)):
             return False
+        if dt is str:
+            return self.code_ == TensorProto.STRING
+        if dt is bool:
+            return self.code_ == TensorProto.BOOL
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_

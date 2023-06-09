@@ -48,7 +48,15 @@ def all(
     axis: Optional[TensorType[ElemType.int64, "I"]] = None,
     keepdims: ParType[int] = 0,
 ) -> TensorType[ElemType.bool_, "T"]:
-    "See :func:`numpy.all`."
+    """
+    See :func:`numpy.all`.
+    If input x is empty, the answer is True.
+    """
+    # size = var(x, op="Size")
+    # empty = var(size, cst(np.array(0, dtype=np.int64)), op="Equal")
+
+    # z = make_tensor_value_info("Z", TensorProto.BOOL, [1])
+    # g1 = make_graph([make_node("Constant", [], ["Z"], value_bool=[True])], [], [z])
 
     xi = var(x, op="Cast", to=TensorProto.INT64)
 

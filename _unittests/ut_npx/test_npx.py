@@ -2492,7 +2492,18 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data})
         self.assertEqualArray(y, got[0])
 
+    def test_numpy_all_empty(self):
+        data = np.zeros((0, 1), dtype=np.bool_)
+        y = np.all(data)
+
+        f = all_inline(Input("A"), axis=1)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
 
 if __name__ == "__main__":
-    TestNpx().test_identity()
+    TestNpx().test_numpy_all_empty()
     unittest.main(verbosity=2)
