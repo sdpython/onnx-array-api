@@ -36,7 +36,7 @@ jobs:
       python -m pip install . -v -v -v
     displayName: 'install wheel'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - task: PublishPipelineArtifact@0
     inputs:
@@ -87,8 +87,55 @@ jobs:
       black --diff .
     displayName: 'Black'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
+
+- job: 'TestLinuxArrayApi'
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Python310-Linux:
+        python.version: '3.11'
+    maxParallel: 3
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+  - script: sudo apt-get update
+    displayName: 'AptGet Update'
+  - script: python -m pip install --upgrade pip setuptools wheel
+    displayName: 'Install tools'
+  - script: pip install -r requirements.txt
+    displayName: 'Install Requirements'
+  - script: python setup.py install
+    displayName: 'Install onnx_array_api'
+  - script: |
+      git clone https://github.com/data-apis/array-api-tests.git
+    displayName: 'clone array-api-tests'
+  - script: |
+      cd array-api-tests
+      git submodule update --init --recursive
+      cd ..
+    displayName: 'get submodules for array-api-tests'
+  - script: pip install -r array-api-tests/requirements.txt
+    displayName: 'Install Requirements dev'
+  - script: |
+      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
+      cd array-api-tests
+    displayName: 'Set API'
+  - script: |
+      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
+      cd array-api-tests
+      python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
+    displayName: "test_creation_functions.py::test_zeros"
+  #- script: |
+  #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
+  #    cd array-api-tests
+  #    python -m pytest -x array_api_tests
+  #  displayName: "all tests"
 
 - job: 'TestLinux'
   pool:
@@ -130,7 +177,7 @@ jobs:
       black --diff .
     displayName: 'Black'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
@@ -166,7 +213,7 @@ jobs:
   - script: pip install onnxmltools --no-deps
     displayName: 'Install onnxmltools'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
@@ -216,7 +263,7 @@ jobs:
   - script: pip install onnxmltools --no-deps
     displayName: 'Install onnxmltools'
   - script: |
-      python -m pytest -v -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel

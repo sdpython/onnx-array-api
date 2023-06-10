@@ -3,7 +3,6 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 import numpy as np
 from onnx import ModelProto, TensorProto
 from onnx.defs import onnx_opset_version
-from onnx.helper import tensor_dtype_to_np_dtype
 from onnxruntime import InferenceSession, RunOptions, get_available_providers
 from onnxruntime.capi._pybind_state import OrtDevice as C_OrtDevice
 from onnxruntime.capi._pybind_state import OrtMemType
@@ -11,7 +10,7 @@ from onnxruntime.capi._pybind_state import OrtValue as C_OrtValue
 from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 
 from ..npx.npx_tensors import EagerTensor, JitTensor
-from ..npx.npx_types import TensorType
+from ..npx.npx_types import DType, TensorType
 
 
 class OrtTensor:
@@ -152,9 +151,9 @@ class OrtTensor:
         return self._tensor.shape()
 
     @property
-    def dtype(self) -> Any:
+    def dtype(self) -> DType:
         "Returns the element type of this tensor."
-        return tensor_dtype_to_np_dtype(self._tensor.element_type())
+        return DType(self._tensor.element_type())
 
     @property
     def key(self) -> Any:
@@ -234,7 +233,17 @@ class EagerOrtTensor(OrtTensor, OrtCommon, EagerTensor):
     Defines a value for :epkg:`onnxruntime` as a backend.
     """
 
-    pass
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Returns the module holding all the available functions.
+        """
+        if api_version is None or api_version == "2022.12":
+            from onnx_array_api.array_api import onnx_ort
+
+            return onnx_ort
+        raise ValueError(
+            f"Unable to return an implementation for api_version={api_version!r}."
+        )
 
 
 class JitOrtTensor(OrtTensor, OrtCommon, JitTensor):

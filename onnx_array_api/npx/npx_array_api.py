@@ -20,15 +20,9 @@ class BaseArrayApi:
 
     def __array_namespace__(self, api_version: Optional[str] = None):
         """
-        Returns the module holding all the available functions.
+        This method must be overloaded.
         """
-        if api_version is None or api_version == "2022.12":
-            from onnx_array_api.npx import npx_functions
-
-            return npx_functions
-        raise ValueError(
-            f"Unable to return an implementation for api_version={api_version!r}."
-        )
+        raise NotImplementedError("Method '__array_namespace__' must be implemented.")
 
     def generic_method(self, method_name, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError(
@@ -134,7 +128,7 @@ class BaseArrayApi:
         return self.generic_method("T")
 
     def astype(self, dtype: Any) -> "BaseArrayApi":
-        return self.generic_method("astype", dtype)
+        return self.generic_method("astype", dtype=dtype)
 
     @property
     def shape(self) -> "BaseArrayApi":

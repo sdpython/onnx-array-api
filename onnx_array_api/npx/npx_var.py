@@ -6,7 +6,7 @@ from onnx.helper import np_dtype_to_tensor_dtype
 
 from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
-from .npx_types import ElemType, OptParType, ParType, TensorType, TupleType
+from .npx_types import DType, ElemType, OptParType, ParType, TensorType, TupleType
 
 
 class Par:
@@ -276,7 +276,7 @@ class Var(BaseArrayApi):
         op: Union[
             Callable, str, Tuple[str, str], FunctionProto, ModelProto, NodeProto
         ] = None,
-        dtype: type = None,
+        dtype: Union[type, DType] = None,
         inline: bool = False,
         n_var_outputs: Optional[int] = 1,
         input_indices: Optional[List[int]] = None,
@@ -298,11 +298,11 @@ class Var(BaseArrayApi):
 
         self.onnx_op_kwargs = kwargs
         self._prefix = None
-        if hasattr(dtype, "type_name"):
-            self.dtype = dtype
-        elif isinstance(dtype, int):
+        if isinstance(dtype, DType):
             # regular parameter
             self.onnx_op_kwargs["dtype"] = dtype
+        elif hasattr(dtype, "type_name"):
+            self.dtype = dtype
         elif dtype is None:
             self.dtype = None
         else:

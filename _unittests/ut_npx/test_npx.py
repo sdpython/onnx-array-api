@@ -29,6 +29,7 @@ from onnx_array_api.npx.npx_core_api import (
     npxapi_inline,
 )
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
+from onnx_array_api.npx.npx_functions import all as all_inline
 from onnx_array_api.npx.npx_functions import arange as arange_inline
 from onnx_array_api.npx.npx_functions import arccos as arccos_inline
 from onnx_array_api.npx.npx_functions import arccosh as arccosh_inline
@@ -50,6 +51,7 @@ from onnx_array_api.npx.npx_functions import cumsum as cumsum_inline
 from onnx_array_api.npx.npx_functions import det as det_inline
 from onnx_array_api.npx.npx_functions import dot as dot_inline
 from onnx_array_api.npx.npx_functions import einsum as einsum_inline
+from onnx_array_api.npx.npx_functions import equal as equal_inline
 from onnx_array_api.npx.npx_functions import erf as erf_inline
 from onnx_array_api.npx.npx_functions import exp as exp_inline
 from onnx_array_api.npx.npx_functions import expand_dims as expand_dims_inline
@@ -95,6 +97,7 @@ from onnx_array_api.npx.npx_functions_test import (
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
 from onnx_array_api.npx.npx_types import (
     Bool,
+    DType,
     Float32,
     Float64,
     Int64,
@@ -127,18 +130,25 @@ class TestNpx(ExtTestCase):
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEmpty(dt.shape)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
+
         dt = TensorType["float32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
+
         dt = TensorType[np.float32]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEqual(dt.type_name(), "TensorType['float32']")
         self.assertEmpty(dt.shape)
 
+        dt = TensorType[np.str_]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
+        self.assertEqual(dt.type_name(), "TensorType[strings]")
+        self.assertEmpty(dt.shape)
+
         self.assertRaise(lambda: TensorType[None], TypeError)
-        self.assertRaise(lambda: TensorType[np.str_], TypeError)
         self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
 
     def test_superset(self):
@@ -1155,6 +1165,16 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    def test_astype_dtype(self):
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(7)))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Float64[None]})
+        x = np.array([[-5.4, 6.6]], dtype=np.float64)
+        z = np.abs(x.astype(np.int64))
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": x})
+        self.assertEqualArray(z, got[0])
+
     def test_astype_int(self):
         f = absolute_inline(copy_inline(Input("A")).astype(1))
         self.assertIsInstance(f, Var)
@@ -1413,6 +1433,9 @@ class TestNpx(ExtTestCase):
             lambda x, y: np.einsum(equation, x, y),
         )
 
+    def test_equal(self):
+        self.common_test_inline_bin(equal_inline, np.equal)
+
     @unittest.skipIf(scipy is None, reason="scipy is not installed.")
     def test_erf(self):
         self.common_test_inline(erf_inline, scipy.special.erf)
@@ -1460,7 +1483,17 @@ class TestNpx(ExtTestCase):
     def test_identity(self):
         f = identity_inline(2, dtype=np.float64)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
-        z = np.identity(2)
+        self.assertIn('name: "dtype"', str(onx))
+        z = np.identity(2).astype(np.float64)
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {})
+        self.assertEqualArray(z, got[0])
+
+    def test_identity_uint8(self):
+        f = identity_inline(2, dtype=np.uint8)
+        onx = f.to_onnx(constraints={(0, False): Float64[None]})
+        self.assertIn('name: "dtype"', str(onx))
+        z = np.identity(2).astype(np.uint8)
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {})
         self.assertEqualArray(z, got[0])
@@ -2318,7 +2351,7 @@ class TestNpx(ExtTestCase):
         self.assertEqual(f.n_versions, 1)
         self.assertEqual(len(f.available_versions), 1)
         self.assertEqual(f.available_versions, [((np.float64, 2), (np.float64, 2))])
-        key = ((np.dtype("float64"), 2), (np.dtype("float64"), 2))
+        key = ((DType(TensorProto.DOUBLE), 2), (DType(TensorProto.DOUBLE), 2))
         onx = f.get_onnx(key)
         self.assertIsInstance(onx, ModelProto)
         self.assertRaise(lambda: f.get_onnx(2), ValueError)
@@ -2379,7 +2412,12 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(got[1], dist)
         self.assertEqual(f.n_versions, 1)
         self.assertEqual(len(f.available_versions), 1)
-        key = ((np.dtype("float64"), 2), (np.dtype("float64"), 2), "use_sqrt", True)
+        key = (
+            (DType(TensorProto.DOUBLE), 2),
+            (DType(TensorProto.DOUBLE), 2),
+            "use_sqrt",
+            True,
+        )
         self.assertEqual(f.available_versions, [key])
         onx = f.get_onnx(key)
         self.assertIsInstance(onx, ModelProto)
@@ -2452,7 +2490,52 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data, "B": indices})
         self.assertEqualArray(y, got[0])
 
+    def test_numpy_all(self):
+        data = np.array([[1, 0], [1, 1]]).astype(np.bool_)
+        y = np.all(data, axis=1)
+
+        f = all_inline(Input("A"), axis=1)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
+    def test_numpy_all_empty(self):
+        data = np.zeros((0,), dtype=np.bool_)
+        y = np.all(data)
+
+        f = all_inline(Input("A"))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
+    @unittest.skipIf(True, reason="ReduceMin does not support shape[axis] == 0")
+    def test_numpy_all_empty_axis_0(self):
+        data = np.zeros((0, 1), dtype=np.bool_)
+        y = np.all(data, axis=0)
+
+        f = all_inline(Input("A"), axis=0)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
+    def test_numpy_all_empty_axis_1(self):
+        data = np.zeros((0, 1), dtype=np.bool_)
+        y = np.all(data, axis=1)
+
+        f = all_inline(Input("A"), axis=1)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
 
 if __name__ == "__main__":
-    TestNpx().test_take()
+    # TestNpx().test_numpy_all_empty_axis_0()
     unittest.main(verbosity=2)

@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from .npx_tensors import EagerTensor, JitTensor
-from .npx_types import TensorType
+from .npx_types import DType, TensorType
 from .npx_var import Cst, Input, Var
 
 logger = getLogger("onnx-array-api")
@@ -131,7 +131,7 @@ class JitEager:
         for iv, v in enumerate(values):
             if isinstance(v, (Var, EagerTensor, JitTensor)):
                 res.append(v.key)
-            elif isinstance(v, (int, float)):
+            elif isinstance(v, (int, float, DType)):
                 res.append(v)
             elif isinstance(v, slice):
                 res.append(("slice", v.start, v.stop, v.step))
@@ -153,7 +153,7 @@ class JitEager:
                 )
         if kwargs:
             for k, v in sorted(kwargs.items()):
-                if isinstance(v, (int, float, str, type)):
+                if isinstance(v, (int, float, str, type, DType)):
                     res.append(k)
                     res.append(v)
                 elif isinstance(v, tuple):
@@ -168,6 +168,8 @@ class JitEager:
                         else:
                             newv.append(t)
                     res.append(tuple(newv))
+                elif v is None and k in {"dtype"}:
+                    continue
                 else:
                     raise TypeError(
                         f"Type {type(v)} is not yet supported, "
@@ -193,6 +195,12 @@ class JitEager:
             constraints = {}
             new_kwargs = {}
             for i, (v, iname) in enumerate(zip(values, names)):
+                if i < len(annot_values) and not isinstance(annot_values[i], type):
+                    raise TypeError(
+                        f"annotation {i} is not a type but is {annot_values[i]!r}."
+                        f"for function {self.f} "
+                        f"from module {self.f.__module__!r}."
+                    )
                 if isinstance(v, (EagerTensor, JitTensor)) and (
                     i >= len(annot_values) or issubclass(annot_values[i], TensorType)
                 ):
@@ -250,7 +258,7 @@ class JitEager:
                 kwargs = new_kwargs
             else:
                 kwargs = kwargs.copy()
-                kwargs.update(kwargs)
+                kwargs.update(new_kwargs)
 
         var = self.f(*inputs, **kwargs)
 
@@ -336,7 +344,13 @@ class JitEager:
         self.info("+", "jit_call")
         if self.input_to_kwargs_ is None:
             # No jitting was ever called.
-            onx, fct = self.to_jit(*values, **kwargs)
+            try:
+                onx, fct = self.to_jit(*values, **kwargs)
+            except Exception as e:
+                raise RuntimeError(
+                    f"ERROR with self.f={self.f}, "
+                    f"values={values!r}, kwargs={kwargs!r}"
+                ) from e
             if self.input_to_kwargs_ is None:
                 raise RuntimeError(
                     f"Attribute 'input_to_kwargs_' should be set for "
@@ -520,6 +534,8 @@ class EagerOnnx(JitEager):
             elif isinstance(n, (int, float)):
                 new_args.append(self.tensor_class(np.array(n)))
                 modified = True
+            elif isinstance(n, DType):
+                new_args.append(n)
             elif n in (int, float):
                 # usually used to cast
                 new_args.append(n)
@@ -554,7 +570,17 @@ class EagerOnnx(JitEager):
                     lambda t: t is not None
                     and not isinstance(
                         t,
-                        (EagerTensor, Cst, int, float, tuple, slice, type, np.ndarray),
+                        (
+                            EagerTensor,
+                            Cst,
+                            int,
+                            float,
+                            tuple,
+                            slice,
+                            type,
+                            np.ndarray,
+                            DType,
+                        ),
                     ),
                     args,
                 )

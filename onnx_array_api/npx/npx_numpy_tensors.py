@@ -1,11 +1,13 @@
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 from onnx import ModelProto
+from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.reference import ReferenceEvaluator
 
+from .npx_numpy_tensors_ops import ConstantOfShape
 from .npx_tensors import EagerTensor, JitTensor
-from .npx_types import TensorType
+from .npx_types import DType, TensorType
 
 
 class NumpyTensor:
@@ -24,7 +26,7 @@ class NumpyTensor:
         """
 
         def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
-            self.ref = ReferenceEvaluator(onx)
+            self.ref = ReferenceEvaluator(onx, new_ops=[ConstantOfShape])
             self.input_names = input_names
             self.tensor_class = tensor_class
 
@@ -54,17 +56,18 @@ class NumpyTensor:
         elif isinstance(
             tensor,
             (
-                np.int64,
+                np.float16,
                 np.float32,
                 np.float64,
+                np.int64,
                 np.int32,
-                np.float16,
-                np.int8,
                 np.int16,
-                np.uint8,
-                np.uint16,
-                np.uint32,
+                np.int8,
                 np.uint64,
+                np.uint32,
+                np.uint16,
+                np.uint8,
+                np.bool_,
             ),
         ):
             self._tensor = np.array(tensor)
@@ -80,9 +83,9 @@ class NumpyTensor:
         return self._tensor
 
     @property
-    def dtype(self) -> Any:
+    def dtype(self) -> DType:
         "Returns the element type of this tensor."
-        return self._tensor.dtype
+        return DType(np_dtype_to_tensor_dtype(self._tensor.dtype))
 
     @property
     def key(self) -> Any:
@@ -171,7 +174,17 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
     Defines a value for a specific backend.
     """
 
-    pass
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Returns the module holding all the available functions.
+        """
+        if api_version is None or api_version == "2022.12":
+            from onnx_array_api.array_api import onnx_numpy
+
+            return onnx_numpy
+        raise ValueError(
+            f"Unable to return an implementation for api_version={api_version!r}."
+        )
 
 
 class JitNumpyTensor(NumpyTensor, JitTensor):

@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 from onnx.helper import np_dtype_to_tensor_dtype
 
+from .npx_types import DType, ElemType, ParType, TensorType
 from .npx_array_api import BaseArrayApi, ArrayApiError
 
 
@@ -73,7 +74,9 @@ class EagerTensor(BaseArrayApi):
         return meth(obj, index)
 
     @staticmethod
-    def _astype_impl(x, dtype: int = None, method_name=None):
+    def _astype_impl(
+        x: TensorType[ElemType.allowed, "T1"], dtype: ParType[DType], method_name=None
+    ) -> TensorType[ElemType.allowed, "T2"]:
         # avoids circular imports.
         if dtype is None:
             raise ValueError("dtype cannot be None.")
@@ -131,9 +134,11 @@ class EagerTensor(BaseArrayApi):
         new_args = []
         for a in args:
             if isinstance(a, np.ndarray):
-                new_args.append(self.__class__(a.astype(self.dtype)))
+                new_args.append(self.__class__(a.astype(self.dtype.np_dtype)))
             elif isinstance(a, (int, float)):
-                new_args.append(self.__class__(np.array([a]).astype(self.dtype)))
+                new_args.append(
+                    self.__class__(np.array([a]).astype(self.dtype.np_dtype))
+                )
             else:
                 new_args.append(a)
 
@@ -179,18 +184,17 @@ class EagerTensor(BaseArrayApi):
             dtype = np.dtype("float64")
         return np_dtype_to_tensor_dtype(dtype)
 
-    def _generic_method_astype(self, method_name, *args: Any, **kwargs: Any) -> Any:
+    def _generic_method_astype(
+        self, method_name, dtype: Union[DType, "Var"], **kwargs: Any
+    ) -> Any:
         # avoids circular imports.
         from .npx_jit_eager import eager_onnx
         from .npx_var import Var
 
-        if len(args) != 1:
-            raise ValueError(f"astype takes only one argument not {len(args)}.")
-
         dtype = (
-            args[0]
-            if isinstance(args[0], (int, Var))
-            else self._np_dtype_to_tensor_dtype(args[0])
+            dtype
+            if isinstance(dtype, (DType, Var))
+            else self._np_dtype_to_tensor_dtype(dtype)
         )
         eag = eager_onnx(EagerTensor._astype_impl, self.__class__, bypass_eager=True)
         res = eag(self, dtype, method_name=method_name, already_eager=True, **kwargs)

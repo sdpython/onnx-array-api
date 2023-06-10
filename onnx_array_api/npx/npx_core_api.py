@@ -5,7 +5,7 @@ import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto
 
 from .npx_tensors import EagerTensor
-from .npx_types import ElemType, OptParType, ParType, TupleType
+from .npx_types import DType, ElemType, OptParType, ParType, TupleType
 from .npx_var import Cst, Input, ManyIdentity, Par, Var
 
 
@@ -74,7 +74,7 @@ def _process_parameter(fn, sig, k, v, new_pars, inline):
                 parent_op=(fn.__module__, fn.__name__, 0),
             )
         return
-    if isinstance(v, (int, float, str, tuple)):
+    if isinstance(v, (int, float, str, tuple, DType)):
         if inline:
             new_pars[k] = v
         else:

@@ -1,29 +1,54 @@
+=============
 npx.npx_types
 =============
 
+DType
+=====
+
+.. autoclass:: onnx_array_api.npx.npx_types.DType
+    :members:
+
 Annotations
-+++++++++++
+===========
+
+ElemType
+++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.ElemType
     :members:
 
+ParType
++++++++
+
 .. autoclass:: onnx_array_api.npx.npx_types.ParType
     :members:
+
+OptParType
+++++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.OptParType
     :members:
 
+TensorType
+++++++++++
+
 .. autoclass:: onnx_array_api.npx.npx_types.TensorType
     :members:
 
+SequenceType
+++++++++++++
+
 .. autoclass:: onnx_array_api.npx.npx_types.SequenceType
     :members:
+
+TupleType
++++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.TupleType
     :members:
 
 Shortcuts
-+++++++++
+=========
 
 .. autoclass:: onnx_array_api.npx.npx_types.Bool
 

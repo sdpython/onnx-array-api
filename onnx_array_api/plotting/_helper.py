@@ -11,6 +11,7 @@ from onnx import (
 )
 from onnx.helper import tensor_dtype_to_np_dtype
 from onnx.numpy_helper import to_array
+from ..npx.npx_types import DType
 
 
 class Graph:
@@ -44,7 +45,7 @@ class SparseTensor:
         self.shape = shape
 
     @property
-    def dtype(self) -> Any:
+    def dtype(self) -> DType:
         return self.values.dtype
 
 
