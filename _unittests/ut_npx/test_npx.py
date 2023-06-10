@@ -1489,6 +1489,15 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {})
         self.assertEqualArray(z, got[0])
 
+    def test_identity_uint8(self):
+        f = identity_inline(2, dtype=np.uint8)
+        onx = f.to_onnx(constraints={(0, False): Float64[None]})
+        self.assertIn('name: "dtype"', str(onx))
+        z = np.identity(2).astype(np.uint8)
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {})
+        self.assertEqualArray(z, got[0])
+
     def test_isnan(self):
         self.common_test_inline(isnan_inline, np.isnan)
 
@@ -2493,8 +2502,31 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(y, got[0])
 
     def test_numpy_all_empty(self):
-        data = np.zeros((0, 1), dtype=np.bool_)
+        data = np.zeros((0,), dtype=np.bool_)
         y = np.all(data)
+
+        f = all_inline(Input("A"))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
+    @unittest.skipIf(True, reason="ReduceMin does not support shape[axis] == 0")
+    def test_numpy_all_empty_axis_0(self):
+        data = np.zeros((0, 1), dtype=np.bool_)
+        y = np.all(data, axis=0)
+
+        f = all_inline(Input("A"), axis=0)
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(constraints={"A": Bool[None]})
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"A": data})
+        self.assertEqualArray(y, got[0])
+
+    def test_numpy_all_empty_axis_1(self):
+        data = np.zeros((0, 1), dtype=np.bool_)
+        y = np.all(data, axis=1)
 
         f = all_inline(Input("A"), axis=1)
         self.assertIsInstance(f, Var)
@@ -2505,5 +2537,5 @@ class TestNpx(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestNpx().test_numpy_all_empty()
+    # TestNpx().test_numpy_all_empty_axis_0()
     unittest.main(verbosity=2)

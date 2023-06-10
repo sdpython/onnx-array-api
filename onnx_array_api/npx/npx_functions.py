@@ -61,7 +61,12 @@ def all(
     xi = var(x, op="Cast", to=TensorProto.INT64)
 
     if axis is None:
-        red = xi.min(keepdims=keepdims)
+        new_shape = cst(np.array([-1], dtype=np.int64))
+        xifl = var(xi, new_shape, op="Reshape")
+        # in case xifl is empty, we need to add one element
+        one = cst(np.array([1], dtype=np.int64))
+        xifl1 = var(xifl, one, op="Concat", axis=0)
+        red = xifl1.min(keepdims=keepdims)
     else:
         if isinstance(axis, int):
             axis = [axis]

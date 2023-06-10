@@ -5,6 +5,7 @@ from onnx import ModelProto
 from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.reference import ReferenceEvaluator
 
+from .npx_numpy_tensors_ops import ConstantOfShape
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import DType, TensorType
 
@@ -25,7 +26,7 @@ class NumpyTensor:
         """
 
         def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
-            self.ref = ReferenceEvaluator(onx)
+            self.ref = ReferenceEvaluator(onx, new_ops=[ConstantOfShape])
             self.input_names = input_names
             self.tensor_class = tensor_class
 
