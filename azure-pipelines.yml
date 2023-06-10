@@ -36,7 +36,7 @@ jobs:
       python -m pip install . -v -v -v
     displayName: 'install wheel'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - task: PublishPipelineArtifact@0
     inputs:
@@ -87,7 +87,7 @@ jobs:
       black --diff .
     displayName: 'Black'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
 
 - job: 'TestLinuxArrayApi'
@@ -129,7 +129,7 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
-      python -m pytest -xv array_api_tests/test_creation_functions.py::test_zeros
+      python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
     displayName: "test_creation_functions.py::test_zeros"
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
@@ -177,7 +177,7 @@ jobs:
       black --diff .
     displayName: 'Black'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
@@ -213,7 +213,7 @@ jobs:
   - script: pip install onnxmltools --no-deps
     displayName: 'Install onnxmltools'
   - script: |
-      python -m pytest -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
@@ -263,7 +263,7 @@ jobs:
   - script: pip install onnxmltools --no-deps
     displayName: 'Install onnxmltools'
   - script: |
-      python -m pytest -v -v
+      python -m pytest
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel

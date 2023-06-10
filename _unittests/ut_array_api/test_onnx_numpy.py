@@ -9,6 +9,9 @@ class TestOnnxNumpy(ExtTestCase):
     def test_abs(self):
         c = EagerNumpyTensor(np.array([4, 5], dtype=np.int64))
         mat = xp.zeros(c, dtype=xp.int64)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (4, 5))
+        self.assertNotEmpty(matnp[0, 0])
         a = xp.absolute(mat)
         self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
 

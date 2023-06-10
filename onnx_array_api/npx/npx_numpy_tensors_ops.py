@@ -31,6 +31,7 @@ class ConstantOfShape(OpRun):
             ),
         ):
             raise TypeError(f"value must be a real not {type(cst)}")
+        return cst
 
     def _run(self, data, value=None):
         cst = self._process(value)
