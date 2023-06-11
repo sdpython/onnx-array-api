@@ -3,6 +3,10 @@ from ..npx.npx_types import DType
 
 
 def _finalize_array_api(module):
+    """
+    Adds common attributes to Array API defined in this modules
+    such as types.
+    """
     module.float16 = DType(TensorProto.FLOAT16)
     module.float32 = DType(TensorProto.FLOAT)
     module.float64 = DType(TensorProto.DOUBLE)

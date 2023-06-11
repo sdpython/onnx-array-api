@@ -58,10 +58,20 @@ def zeros(
         return generic_zeros(
             EagerNumpyTensor(np.array(shape, dtype=np.int64)), dtype=dtype, order=order
         )
+    if isinstance(shape, int):
+        return generic_zeros(
+            EagerNumpyTensor(np.array([shape], dtype=np.int64)),
+            dtype=dtype,
+            order=order,
+        )
     return generic_zeros(shape, dtype=dtype, order=order)
 
 
 def _finalize():
+    """
+    Adds common attributes to Array API defined in this modules
+    such as types.
+    """
     from . import onnx_numpy
 
     _finalize_array_api(onnx_numpy)

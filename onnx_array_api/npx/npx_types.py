@@ -18,13 +18,18 @@ class DType(WrapperType):
     Type of the element type returned by tensors
     following the :epkg:`Array API`.
 
-    :param code: element type based on onnx definition
+    :param code: element type based on onnx definition,
+        if str, it looks into class :class:`onnxTensorProto`
+        to retrieve the code
     """
 
     __slots__ = ["code_"]
 
-    def __init__(self, code: int):
-        self.code_ = code
+    def __init__(self, code: Union[int, str]):
+        if isinstance(code, str):
+            self.code_ = getattr(TensorProto, code)
+        else:
+            self.code_ = code
 
     def __repr__(self) -> str:
         "usual"

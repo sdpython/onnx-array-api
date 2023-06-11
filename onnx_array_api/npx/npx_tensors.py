@@ -77,9 +77,9 @@ class EagerTensor(BaseArrayApi):
     def _astype_impl(
         x: TensorType[ElemType.allowed, "T1"], dtype: ParType[DType], method_name=None
     ) -> TensorType[ElemType.allowed, "T2"]:
-        # avoids circular imports.
         if dtype is None:
             raise ValueError("dtype cannot be None.")
+        # avoids circular imports.
         from .npx_var import Var
 
         if not isinstance(x, Var):

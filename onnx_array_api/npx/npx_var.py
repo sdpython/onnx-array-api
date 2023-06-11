@@ -199,6 +199,15 @@ class Var(BaseArrayApi):
     :param onnx_input_type_: names given to the variables
     """
 
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Raises an exception if called.
+        """
+        raise RuntimeError(
+            f"This function should never be called for class {type(self)}. "
+            f"It should be called for an eager tensor."
+        )
+
     @staticmethod
     def get_cst_var():
         from .npx_core_api import cst, var

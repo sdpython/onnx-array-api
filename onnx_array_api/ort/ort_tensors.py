@@ -148,7 +148,7 @@ class OrtTensor:
     @property
     def shape(self) -> Tuple[int, ...]:
         "Returns the shape of the tensor."
-        return self._tensor.shape()
+        return tuple(self._tensor.shape())
 
     @property
     def dtype(self) -> DType:

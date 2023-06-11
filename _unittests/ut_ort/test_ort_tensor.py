@@ -1,18 +1,17 @@
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
-
 import numpy as np
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
-
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.npx import eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
 from onnx_array_api.npx.npx_functions import cdist as cdist_inline
 from onnx_array_api.npx.npx_functions_test import absolute
-from onnx_array_api.npx.npx_types import Float32, Float64
+from onnx_array_api.npx.npx_functions import copy as copy_inline
+from onnx_array_api.npx.npx_types import Float32, Float64, DType
 from onnx_array_api.npx.npx_var import Input
 from onnx_array_api.ort.ort_tensors import EagerOrtTensor, JitOrtTensor, OrtTensor
 
@@ -192,6 +191,49 @@ class TestOrtTensor(ExtTestCase):
         pieces = str(onx).split('s: "euclidean"')
         if len(pieces) > 2:
             raise AssertionError(f"Function is not using argument:\n{onx}")
+
+    def test_astype(self):
+        f = absolute_inline(copy_inline(Input("A")).astype(np.float32))
+        onx = f.to_onnx(constraints={"A": Float64[None]})
+        x = np.array([[-5, 6]], dtype=np.float64)
+        z = np.abs(x.astype(np.float32))
+        ref = InferenceSession(
+            onx.SerializeToString(), providers=["CPUExecutionProvider"]
+        )
+        got = ref.run(None, {"A": x})
+        self.assertEqualArray(z, got[0])
+
+    def test_astype0(self):
+        f = absolute_inline(copy_inline(Input("A")).astype(np.float32))
+        onx = f.to_onnx(constraints={"A": Float64[None]})
+        x = np.array(-5, dtype=np.float64)
+        z = np.abs(x.astype(np.float32))
+        ref = InferenceSession(
+            onx.SerializeToString(), providers=["CPUExecutionProvider"]
+        )
+        got = ref.run(None, {"A": x})
+        self.assertEqualArray(z, got[0])
+
+    def test_eager_ort_cast(self):
+        def impl(A):
+            return A.astype(DType("FLOAT"))
+
+        e = eager_onnx(impl)
+        self.assertEqual(len(e.versions), 0)
+
+        # Float64
+        x = np.array([0, 1, -2], dtype=np.float64)
+        z = x.astype(np.float32)
+        res = e(x)
+        self.assertEqualArray(z, res)
+        self.assertEqual(res.dtype, np.float32)
+
+        # again
+        x = np.array(1, dtype=np.float64)
+        z = x.astype(np.float32)
+        res = e(x)
+        self.assertEqualArray(z, res)
+        self.assertEqual(res.dtype, np.float32)
 
 
 if __name__ == "__main__":
