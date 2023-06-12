@@ -110,6 +110,8 @@ jobs:
     displayName: 'Install tools'
   - script: pip install -r requirements.txt
     displayName: 'Install Requirements'
+  - script: pip install onnxruntime
+    displayName: 'Install onnxruntime'
   - script: python setup.py install
     displayName: 'Install onnx_array_api'
   - script: |
@@ -130,12 +132,12 @@ jobs:
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
       python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
-    displayName: "test_creation_functions.py::test_zeros"
+    displayName: "numpy test_zeros"
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort
       cd array-api-tests
       python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
-    displayName: "test_creation_functions.py::test_zeros"
+    displayName: "ort test_zeros"
   #- script: |
   #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
   #    cd array-api-tests
