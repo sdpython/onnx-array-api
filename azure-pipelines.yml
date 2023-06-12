@@ -253,16 +253,8 @@ jobs:
     displayName: 'export'
   - script: gcc --version
     displayName: 'gcc version'
-  - script: brew install llvm
-    displayName: 'install llvm'
-  - script: brew install libomp
-    displayName: 'Install omp'
-  - script: brew install p7zip
-    displayName: 'Install p7zip'
   - script: python -m pip install --upgrade pip setuptools wheel
     displayName: 'Install tools'
-  - script: brew install pybind11
-    displayName: 'Install pybind11'
   - script: pip install -r requirements.txt
     displayName: 'Install Requirements'
   - script: pip install -r requirements-dev.txt
