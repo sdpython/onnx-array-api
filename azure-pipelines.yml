@@ -136,7 +136,7 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-numpy-skips.txt -v
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-ort-skips.txt -v
     displayName: "ort test_creation_functions.py"
   #- script: |
   #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
