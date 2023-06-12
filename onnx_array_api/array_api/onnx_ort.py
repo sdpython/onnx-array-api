@@ -12,6 +12,8 @@ from ..npx.npx_functions import (
     astype,
     equal,
     isdtype,
+    isnan,
+    isfinite,
     reshape,
     take,
 )
@@ -28,6 +30,8 @@ __all__ = [
     "astype",
     "equal",
     "isdtype",
+    "isfinite",
+    "isnan",
     "reshape",
     "take",
 ]

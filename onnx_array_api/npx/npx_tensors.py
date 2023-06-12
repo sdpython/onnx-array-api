@@ -1,8 +1,6 @@
 from typing import Any, Union
-
 import numpy as np
-from onnx.helper import np_dtype_to_tensor_dtype
-
+from .._helpers import np_dtype_to_tensor_dtype
 from .npx_types import DType, ElemType, ParType, TensorType
 from .npx_array_api import BaseArrayApi, ArrayApiError
 
@@ -178,10 +176,6 @@ class EagerTensor(BaseArrayApi):
 
     @staticmethod
     def _np_dtype_to_tensor_dtype(dtype):
-        if dtype == int:
-            dtype = np.dtype("int64")
-        elif dtype == float:
-            dtype = np.dtype("float64")
         return np_dtype_to_tensor_dtype(dtype)
 
     def _generic_method_astype(

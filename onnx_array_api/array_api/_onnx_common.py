@@ -41,6 +41,8 @@ def template_asarray(
         v = TEagerTensor(np.array(a, dtype=np.bool_))
     elif isinstance(a, str):
         v = TEagerTensor(np.array(a, dtype=np.str_))
+    elif isinstance(a, list):
+        v = TEagerTensor(np.array(a))
     else:
         raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
     if dtype is not None:

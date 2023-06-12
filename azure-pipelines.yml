@@ -131,13 +131,13 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
-    displayName: "numpy test_zeros"
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips_file=../_unittests/onnx-numpy-skips.txt -v
+    displayName: "numpy test_creation_functions.py"
   - script: |
-      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort
+      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort --skips_file=../_unittests/onnx-numpy-skips.txt -v
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
-    displayName: "ort test_zeros"
+      python -m pytest -x array_api_tests/test_creation_functions.py
+    displayName: "ort test_creation_functions.py"
   #- script: |
   #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
   #    cd array-api-tests

@@ -2,7 +2,8 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 from onnx import AttributeProto, TensorProto
-from onnx.helper import np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
+from onnx.helper import tensor_dtype_to_np_dtype
+from .._helpers import np_dtype_to_tensor_dtype
 
 
 class WrapperType:
@@ -28,8 +29,10 @@ class DType(WrapperType):
     def __init__(self, code: Union[int, str]):
         if isinstance(code, str):
             self.code_ = getattr(TensorProto, code)
-        else:
+        elif isinstance(code, int):
             self.code_ = code
+        else:
+            raise TypeError(f"Unsupported type {type(code)}:{code!r}")
 
     def __repr__(self) -> str:
         "usual"
@@ -60,6 +63,8 @@ class DType(WrapperType):
             return self.code_ == TensorProto.STRING
         if dt is bool:
             return self.code_ == TensorProto.BOOL
+        if isinstance(dt, list):
+            return False
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_

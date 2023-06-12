@@ -1,10 +1,8 @@
 from typing import Any, Callable, List, Optional, Tuple
-
 import numpy as np
 from onnx import ModelProto
-from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.reference import ReferenceEvaluator
-
+from .._helpers import np_dtype_to_tensor_dtype
 from .npx_numpy_tensors_ops import ConstantOfShape
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import DType, TensorType
