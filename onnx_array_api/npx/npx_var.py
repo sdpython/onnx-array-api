@@ -985,7 +985,7 @@ class Var(BaseArrayApi):
         cst, var = Var.get_cst_var()
 
         if self.n_var_outputs != 1:
-            # Multioutut
+            # Multioutput
             if not isinstance(index, int):
                 raise TypeError(
                     f"Only indices are allowed when selecting an output, "

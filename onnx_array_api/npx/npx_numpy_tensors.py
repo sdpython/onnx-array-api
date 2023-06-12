@@ -107,13 +107,12 @@ class NumpyTensor:
         """
         Returns the dimensions of the tensor.
         First dimension is the batch dimension if the tensor
-        has more than one dimension.
+        has more than one dimension. It is always left undefined.
         """
-        if len(self._tensor.shape) == 0:
-            return (0,)
-        if len(self._tensor.shape) == 1:
+        if len(self._tensor.shape) <= 1:
+            # a scalar (len==0) or a 1D tensor
             return self._tensor.shape
-        return (None,) + self._tensor.shape[1:]
+        return (None, *tuple(self.shape[1:]))
 
     @property
     def ndim(self):

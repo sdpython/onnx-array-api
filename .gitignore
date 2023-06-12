@@ -8,6 +8,7 @@ _cache/*
 dist/*
 build/*
 .eggs/*
+.hypothesis/*
 *egg-info/*
 _doc/auto_examples/*
 _doc/examples/_cache/*
