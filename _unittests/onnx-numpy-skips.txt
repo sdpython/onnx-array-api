@@ -1,5 +1,4 @@
 # API failures
-array_api_tests/test_creation_functions.py::test_arange
 array_api_tests/test_creation_functions.py::test_asarray_scalars
 array_api_tests/test_creation_functions.py::test_asarray_arrays
 array_api_tests/test_creation_functions.py::test_empty

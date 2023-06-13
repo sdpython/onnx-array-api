@@ -16,6 +16,7 @@ from ..npx.npx_functions import (
     reshape,
     take,
 )
+from ..npx.npx_functions import arange as generic_arange
 from ..npx.npx_functions import ones as generic_ones
 from ..npx.npx_functions import zeros as generic_zeros
 from ..npx.npx_numpy_tensors import EagerNumpyTensor
@@ -27,6 +28,7 @@ __all__ = [
     "abs",
     "absolute",
     "all",
+    "arange",
     "asarray",
     "astype",
     "equal",
@@ -53,6 +55,22 @@ def asarray(
     return template_asarray(
         EagerNumpyTensor, a, dtype=dtype, order=order, like=like, copy=copy
     )
+
+
+def arange(
+    start_or_stop: TensorType[ElemType.int64, "I", (1,)],
+    stop_or_step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
+    step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
+    dtype: OptParType[DType] = None,
+) -> TensorType[ElemType.numerics, "T"]:
+    print("####", start_or_stop, stop_or_step, step, dtype)
+    if isinstance(start_or_stop, int):
+        start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.int64))
+    if isinstance(stop_or_step, int):
+        stop_or_step = EagerNumpyTensor(np.array([stop_or_step], dtype=np.int64))
+    if isinstance(step, int):
+        step = EagerNumpyTensor(np.array([step], dtype=np.int64))
+    return generic_arange(start_or_stop, stop_or_step, step, dtype=dtype)
 
 
 def ones(

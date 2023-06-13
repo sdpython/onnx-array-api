@@ -76,20 +76,6 @@ def all(
 
 
 @npxapi_inline
-def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccos`."
-    return var(x, op="Acos")
-
-
-@npxapi_inline
-def arccosh(
-    x: TensorType[ElemType.numerics, "T"]
-) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccosh`."
-    return var(x, op="Acosh")
-
-
-@npxapi_inline
 def amax(
     x: TensorType[ElemType.numerics, "T"],
     axis: OptParType[int] = 0,
@@ -118,7 +104,7 @@ def arange(
     start_or_stop: TensorType[ElemType.int64, "I", (1,)],
     stop_or_step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
     step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
-    dtype=None,
+    dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."
     if stop_or_step is None:
@@ -137,6 +123,20 @@ def arange(
     if dtype is not None:
         return var(v, op="Cast", to=dtype)
     return v
+
+
+@npxapi_inline
+def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.arccos`."
+    return var(x, op="Acos")
+
+
+@npxapi_inline
+def arccosh(
+    x: TensorType[ElemType.numerics, "T"]
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.arccosh`."
+    return var(x, op="Acosh")
 
 
 @npxapi_inline
