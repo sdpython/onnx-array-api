@@ -267,6 +267,18 @@ class JitEager:
             target_opsets=self.target_opsets,
             ir_version=self.ir_version,
         )
+        if len(values) > 0 and len(values[0].shape) == 0:
+            inps = onx.graph.input[0]
+            shape = []
+            for d in inps.type.tensor_type.shape.dim:
+                v = d.dim_value if d.dim_value > 0 else d.dim_param
+                shape.append(v)
+            if len(shape) != 0:
+                raise RuntimeError(
+                    f"Shape mismatch, values[0]={values[0]} "
+                    f"and inputs={onx.graph.input}."
+                )
+
         exe = self.tensor_class.create_function(names, onx)
         self.info("-", "to_jit")
         return onx, exe

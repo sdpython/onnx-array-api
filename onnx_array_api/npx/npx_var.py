@@ -1,9 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
 import numpy as np
-from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
-from onnx.helper import np_dtype_to_tensor_dtype
-
+from onnx import FunctionProto, ModelProto, NodeProto
+from .._helpers import np_dtype_to_tensor_dtype
 from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
 from .npx_types import DType, ElemType, OptParType, ParType, TensorType, TupleType
@@ -198,6 +196,15 @@ class Var(BaseArrayApi):
 
     :param onnx_input_type_: names given to the variables
     """
+
+    def __array_namespace__(self, api_version: Optional[str] = None):
+        """
+        Raises an exception if called.
+        """
+        raise RuntimeError(
+            f"This function should never be called for class {type(self)}. "
+            f"It should be called for an eager tensor."
+        )
 
     @staticmethod
     def get_cst_var():
@@ -822,38 +829,7 @@ class Var(BaseArrayApi):
         if isinstance(dtype, Var):
             return var(self.self_var, dtype, op="CastLike")
         if not isinstance(dtype, int):
-            try:
-                dtype = np_dtype_to_tensor_dtype(dtype)
-            except KeyError:
-                if dtype == np.float32:
-                    dtype = TensorProto.FLOAT
-                elif dtype == np.float64:
-                    dtype = TensorProto.DOUBLE
-                elif dtype == np.int64:
-                    dtype = TensorProto.INT64
-                elif dtype == np.int32:
-                    dtype = TensorProto.INT32
-                elif dtype == np.int16:
-                    dtype = TensorProto.INT16
-                elif dtype == np.int8:
-                    dtype = TensorProto.INT8
-                elif dtype == np.uint64:
-                    dtype = TensorProto.UINT64
-                elif dtype == np.uint32:
-                    dtype = TensorProto.UINT32
-                elif dtype == np.uint16:
-                    dtype = TensorProto.UINT16
-                elif dtype == np.uint8:
-                    dtype = TensorProto.UINT8
-                elif dtype == np.float16:
-                    dtype = TensorProto.FLOAT16
-                elif dtype in (bool, np.bool_):
-                    dtype = TensorProto.BOOL
-                elif dtype in (str, np.str_):
-                    dtype = TensorProto.STRING
-                else:
-                    raise RuntimeError(f"Unable to guess type for dtype={dtype}.")
-
+            dtype = np_dtype_to_tensor_dtype(dtype)
         return var(self.self_var, op="Cast", to=dtype)
 
     @property
@@ -976,7 +952,7 @@ class Var(BaseArrayApi):
         cst, var = Var.get_cst_var()
 
         if self.n_var_outputs != 1:
-            # Multioutut
+            # Multioutput
             if not isinstance(index, int):
                 raise TypeError(
                     f"Only indices are allowed when selecting an output, "

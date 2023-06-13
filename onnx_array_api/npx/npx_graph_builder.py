@@ -273,7 +273,7 @@ class _GraphBuilder:
         self, index: int, name: str, tensor_type: Optional[type], is_input: bool
     ) -> ValueInfoProto:
         """
-        Converts an input or outut into :class:`onnx.ValueInfoProto`.
+        Converts an input or output into :class:`onnx.ValueInfoProto`.
 
         :param index: index of the input or output to add
         :param name: input or output name

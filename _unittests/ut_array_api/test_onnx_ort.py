@@ -1,11 +1,11 @@
 import unittest
 import numpy as np
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.array_api import onnx_numpy as xp
-from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor as EagerTensor
+from onnx_array_api.array_api import onnx_ort as xp
+from onnx_array_api.ort.ort_tensors import EagerOrtTensor as EagerTensor
 
 
-class TestOnnxNumpy(ExtTestCase):
+class TestOnnxOrt(ExtTestCase):
     def test_abs(self):
         c = EagerTensor(np.array([4, 5], dtype=np.int64))
         mat = xp.zeros(c, dtype=xp.int64)

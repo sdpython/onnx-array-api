@@ -1,8 +1,6 @@
 from typing import Any, Union
-
 import numpy as np
-from onnx.helper import np_dtype_to_tensor_dtype
-
+from .._helpers import np_dtype_to_tensor_dtype
 from .npx_types import DType, ElemType, ParType, TensorType
 from .npx_array_api import BaseArrayApi, ArrayApiError
 
@@ -77,9 +75,9 @@ class EagerTensor(BaseArrayApi):
     def _astype_impl(
         x: TensorType[ElemType.allowed, "T1"], dtype: ParType[DType], method_name=None
     ) -> TensorType[ElemType.allowed, "T2"]:
-        # avoids circular imports.
         if dtype is None:
             raise ValueError("dtype cannot be None.")
+        # avoids circular imports.
         from .npx_var import Var
 
         if not isinstance(x, Var):
@@ -178,10 +176,6 @@ class EagerTensor(BaseArrayApi):
 
     @staticmethod
     def _np_dtype_to_tensor_dtype(dtype):
-        if dtype == int:
-            dtype = np.dtype("int64")
-        elif dtype == float:
-            dtype = np.dtype("float64")
         return np_dtype_to_tensor_dtype(dtype)
 
     def _generic_method_astype(

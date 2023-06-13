@@ -1,11 +1,10 @@
 from typing import Optional, Tuple, Union
-
 import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
-from onnx.helper import make_tensor, np_dtype_to_tensor_dtype, tensor_dtype_to_np_dtype
+from onnx.helper import make_tensor, tensor_dtype_to_np_dtype
 from onnx.numpy_helper import from_array
-
+from .._helpers import np_dtype_to_tensor_dtype
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
 from .npx_types import (
@@ -203,15 +202,7 @@ def astype(
         raise TypeError(
             f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
         )
-    try:
-        to = np_dtype_to_tensor_dtype(dtype)
-    except KeyError:
-        if dtype is int:
-            to = TensorProto.INT64
-        elif dtype is float:
-            to = TensorProto.float64
-        else:
-            raise ValueError(f"Unable to guess tensor type from {dtype}.")
+    to = np_dtype_to_tensor_dtype(dtype)
     return var(a, op="Cast", to=to)
 
 
@@ -351,7 +342,7 @@ def einsum(
 def equal(
     x: TensorType[ElemType.allowed, "T"], y: TensorType[ElemType.allowed, "T"]
 ) -> TensorType[ElemType.bool_, "T1"]:
-    "See :func:`numpy.isnan`."
+    "See :func:`numpy.equal`."
     return var(x, y, op="Equal")
 
 
@@ -438,6 +429,12 @@ def isdtype(
 
 
 @npxapi_inline
+def isfinite(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T1"]:
+    "See :func:`numpy.isfinite`."
+    return var(x, op="IsInf")
+
+
+@npxapi_inline
 def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
@@ -462,6 +459,26 @@ def matmul(
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.matmul`."
     return var(a, b, op="MatMul")
+
+
+@npxapi_inline
+def ones(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    if order != "C":
+        raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    if dtype is None:
+        dtype = DType(TensorProto.FLOAT)
+    return var(
+        shape,
+        value=make_tensor(name="one", data_type=dtype.code, dims=[1], vals=[1]),
+        op="ConstantOfShape",
+    )
 
 
 @npxapi_inline

@@ -110,6 +110,8 @@ jobs:
     displayName: 'Install tools'
   - script: pip install -r requirements.txt
     displayName: 'Install Requirements'
+  - script: pip install onnxruntime
+    displayName: 'Install onnxruntime'
   - script: python setup.py install
     displayName: 'Install onnx_array_api'
   - script: |
@@ -129,8 +131,13 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py::test_zeros
-    displayName: "test_creation_functions.py::test_zeros"
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-numpy-skips.txt -v
+    displayName: "numpy test_creation_functions.py"
+  - script: |
+      export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort
+      cd array-api-tests
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-ort-skips.txt -v
+    displayName: "ort test_creation_functions.py"
   #- script: |
   #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
   #    cd array-api-tests
@@ -246,16 +253,8 @@ jobs:
     displayName: 'export'
   - script: gcc --version
     displayName: 'gcc version'
-  - script: brew install llvm
-    displayName: 'install llvm'
-  - script: brew install libomp
-    displayName: 'Install omp'
-  - script: brew install p7zip
-    displayName: 'Install p7zip'
   - script: python -m pip install --upgrade pip setuptools wheel
     displayName: 'Install tools'
-  - script: brew install pybind11
-    displayName: 'Install pybind11'
   - script: pip install -r requirements.txt
     displayName: 'Install Requirements'
   - script: pip install -r requirements-dev.txt
