@@ -2501,7 +2501,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data})
         self.assertEqualArray(y, got[0])
 
-    def test_numpy_all_empty(self):
+    def test_numpy_all_zeros(self):
         data = np.zeros((0,), dtype=np.bool_)
         y = np.all(data)
 
@@ -2513,7 +2513,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(y, got[0])
 
     @unittest.skipIf(True, reason="ReduceMin does not support shape[axis] == 0")
-    def test_numpy_all_empty_axis_0(self):
+    def test_numpy_all_zeros_axis_0(self):
         data = np.zeros((0, 1), dtype=np.bool_)
         y = np.all(data, axis=0)
 
@@ -2535,7 +2535,13 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data})
         self.assertEqualArray(y, got[0])
 
+    @unittest.skipIf(True, reason="Fails to follow Array API")
+    def test_get_item(self):
+        a = EagerNumpyTensor(np.array([True], dtype=np.bool_))
+        i = a[0]
+        self.assertEqualArray(i.numpy(), a.numpy()[0])
+
 
 if __name__ == "__main__":
-    # TestNpx().test_numpy_all_empty_axis_0()
+    # TestNpx().test_get_item()
     unittest.main(verbosity=2)

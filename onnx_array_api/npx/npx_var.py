@@ -962,6 +962,7 @@ class Var(BaseArrayApi):
 
         if isinstance(index, Var):
             # scenario 2
+            # TODO: fix this when index is an integer
             new_shape = cst(np.array([-1], dtype=np.int64))
             new_self = self.reshape(new_shape)
             new_index = index.reshape(new_shape)
@@ -973,6 +974,9 @@ class Var(BaseArrayApi):
 
         if not isinstance(index, tuple):
             index = (index,)
+        elif len(index) == 0:
+            # The array contains a scalar and it needs to be returned.
+            return var(self, op="Identity")
 
         # only one integer?
         ni = None

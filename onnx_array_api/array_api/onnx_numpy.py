@@ -29,6 +29,7 @@ __all__ = [
     "all",
     "asarray",
     "astype",
+    "empty",
     "equal",
     "isdtype",
     "isfinite",
@@ -71,6 +72,17 @@ def ones(
             order=order,
         )
     return generic_ones(shape, dtype=dtype, order=order)
+
+
+def empty(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    raise RuntimeError(
+        "ONNX assumes there is no inplace implementation. "
+        "empty function is only used in that case."
+    )
 
 
 def zeros(
