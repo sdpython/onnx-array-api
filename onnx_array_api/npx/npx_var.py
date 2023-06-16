@@ -973,6 +973,9 @@ class Var(BaseArrayApi):
 
         if not isinstance(index, tuple):
             index = (index,)
+        elif len(index) == 0:
+            # The array contains a scalar and it needs to be returned.
+            return var(self, op="Identity")
 
         # only one integer?
         ni = None

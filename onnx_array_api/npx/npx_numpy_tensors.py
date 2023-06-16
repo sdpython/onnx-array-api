@@ -1,6 +1,6 @@
 from typing import Any, Callable, List, Optional, Tuple
 import numpy as np
-from onnx import ModelProto
+from onnx import ModelProto, TensorProto
 from onnx.reference import ReferenceEvaluator
 from .._helpers import np_dtype_to_tensor_dtype
 from .npx_numpy_tensors_ops import ConstantOfShape
@@ -182,6 +182,60 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         raise ValueError(
             f"Unable to return an implementation for api_version={api_version!r}."
         )
+
+    def __bool__(self):
+        "Implicit conversion to bool."
+        if self.dtype != DType(TensorProto.BOOL):
+            raise TypeError(
+                f"Conversion to bool only works for bool scalar, not for {self!r}."
+            )
+        if self.shape == (0,):
+            return False
+        if len(self.shape) != 0:
+            raise ValueError(
+                f"Conversion to bool only works for scalar, not for {self!r}."
+            )
+        return bool(self._tensor)
+
+    def __int__(self):
+        "Implicit conversion to bool."
+        if len(self.shape) != 0:
+            raise ValueError(
+                f"Conversion to bool only works for scalar, not for {self!r}."
+            )
+        if self.dtype not in {
+            DType(TensorProto.INT64),
+            DType(TensorProto.INT32),
+            DType(TensorProto.INT16),
+            DType(TensorProto.INT8),
+            DType(TensorProto.UINT64),
+            DType(TensorProto.UINT32),
+            DType(TensorProto.UINT16),
+            DType(TensorProto.UINT8),
+        }:
+            raise TypeError(
+                f"Conversion to int only works for int scalar, "
+                f"not for dtype={self.dtype}."
+            )
+        return int(self._tensor)
+
+    def __float__(self):
+        "Implicit conversion to bool."
+        if len(self.shape) != 0:
+            raise ValueError(
+                f"Conversion to bool only works for scalar, not for {self!r}."
+            )
+        if self.dtype not in {
+            DType(TensorProto.FLOAT),
+            DType(TensorProto.DOUBLE),
+            DType(TensorProto.FLOAT16),
+            DType(TensorProto.BFLOAT16),
+        }:
+            raise TypeError(
+                f"Conversion to int only works for float scalar, "
+                f"not for dtype={self.dtype}."
+            )
+        return float(self._tensor)
 
 
 class JitNumpyTensor(NumpyTensor, JitTensor):
