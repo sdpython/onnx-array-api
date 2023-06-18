@@ -19,6 +19,16 @@ class TestOnnxNumpy(ExtTestCase):
         a = xp.absolute(mat)
         self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
 
+    def test_full(self):
+        c = EagerTensor(np.array([4, 5], dtype=np.int64))
+        mat = xp.full(c, fill_value=5, dtype=xp.int64)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (4, 5))
+        self.assertNotEmpty(matnp[0, 0])
+        a = xp.absolute(mat)
+        self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
+
 
 if __name__ == "__main__":
+    TestOnnxNumpy().test_full()
     unittest.main(verbosity=2)

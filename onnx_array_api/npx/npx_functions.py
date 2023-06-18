@@ -15,6 +15,7 @@ from .npx_types import (
     SequenceType,
     TensorType,
     TupleType,
+    Scalar,
 )
 from .npx_var import Var
 
@@ -22,7 +23,7 @@ from .npx_var import Var
 def _cstv(x):
     if isinstance(x, Var):
         return x
-    if isinstance(x, (int, float, np.ndarray)):
+    if isinstance(x, (int, float, bool, np.ndarray)):
         return cst(x)
     raise TypeError(f"Unexpected constant type {type(x)}.")
 
@@ -374,6 +375,33 @@ def expand_dims(
 def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`scipy.special.expit`."
     return var(x, op="Sigmoid")
+
+
+@npxapi_inline
+def full(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    fill_value: ParType[Scalar] = None,
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    if order != "C":
+        raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    if fill_value is None:
+        raise AttributeError("fill_value cannot be None.")
+    if dtype is None:
+        dtype = DType(TensorProto.FLOAT)
+    if isinstance(fill_value, (float, int, bool)):
+        value = make_tensor(
+            name="cst", data_type=dtype.code, dims=[1], vals=[fill_value]
+        )
+    else:
+        raise NotImplementedError(
+            f"Unexpected type ({type(fill_value)} for fill_value={fill_value!r}."
+        )
+    return var(shape, value=value, op="ConstantOfShape")
 
 
 @npxapi_inline

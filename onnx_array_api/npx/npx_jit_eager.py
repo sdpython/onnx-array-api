@@ -131,7 +131,7 @@ class JitEager:
         for iv, v in enumerate(values):
             if isinstance(v, (Var, EagerTensor, JitTensor)):
                 res.append(v.key)
-            elif isinstance(v, (int, float, DType)):
+            elif isinstance(v, (int, float, bool, DType)):
                 res.append(v)
             elif isinstance(v, slice):
                 res.append(("slice", v.start, v.stop, v.step))
@@ -153,7 +153,7 @@ class JitEager:
                 )
         if kwargs:
             for k, v in sorted(kwargs.items()):
-                if isinstance(v, (int, float, str, type, DType)):
+                if isinstance(v, (int, float, str, type, bool, DType)):
                     res.append(k)
                     res.append(v)
                 elif isinstance(v, tuple):
@@ -543,12 +543,12 @@ class EagerOnnx(JitEager):
             elif isinstance(n, np.ndarray):
                 new_args.append(self.tensor_class(n))
                 modified = True
-            elif isinstance(n, (int, float)):
+            elif isinstance(n, (int, float, bool)):
                 new_args.append(self.tensor_class(np.array(n)))
                 modified = True
             elif isinstance(n, DType):
                 new_args.append(n)
-            elif n in (int, float):
+            elif n in (int, float, bool):
                 # usually used to cast
                 new_args.append(n)
             elif n is None:
@@ -586,6 +586,7 @@ class EagerOnnx(JitEager):
                             EagerTensor,
                             Cst,
                             int,
+                            bool,
                             float,
                             tuple,
                             slice,
@@ -616,12 +617,13 @@ class EagerOnnx(JitEager):
         else:
             # tries to call the version
             try:
-                res = self.f(*values)
+                res = self.f(*values, **kwargs)
             except (AttributeError, TypeError) as e:
                 inp1 = ", ".join(map(str, map(type, args)))
                 inp2 = ", ".join(map(str, map(type, values)))
                 raise TypeError(
-                    f"Unexpected types, input types are {inp1} " f"and {inp2}."
+                    f"Unexpected types, input types are {inp1} "
+                    f"and {inp2}, kwargs={kwargs}."
                 ) from e
 
             if isinstance(res, EagerTensor) or (

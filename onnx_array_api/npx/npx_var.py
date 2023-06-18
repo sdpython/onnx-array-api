@@ -12,7 +12,7 @@ class Par:
     Defines a named parameter.
 
     :param name: parameter name
-    :param dtype: parameter type (int, str, float)
+    :param dtype: parameter type (bool, int, str, float)
     :param value: value of the parameter if known
     :param parent_op: node type it belongs to
     """
@@ -233,7 +233,7 @@ class Var(BaseArrayApi):
 
         def _setitem1_where(self, index, new_values):
             cst, var = Var.get_cst_var()
-            if isinstance(new_values, (int, float)):
+            if isinstance(new_values, (int, float, bool)):
                 new_values = np.array(new_values)
             if isinstance(new_values, np.ndarray):
                 value = var(cst(new_values), self.parent, op="CastLike")
@@ -446,7 +446,7 @@ class Var(BaseArrayApi):
                     cst = Var.get_cst_var()[0]
                     replacement_cst[id(i)] = cst(i)
                     continue
-                if isinstance(i, (int, float)):
+                if isinstance(i, (int, float, bool)):
                     cst = Var.get_cst_var()[0]
                     replacement_cst[id(i)] = cst(np.array(i))
                     continue
@@ -595,13 +595,13 @@ class Var(BaseArrayApi):
 
     def _binary_op(self, ov: "Var", op_name: str, **kwargs) -> "Var":
         var = Var.get_cst_var()[1]
-        if isinstance(ov, (int, float, np.ndarray, Cst)):
+        if isinstance(ov, (int, float, bool, np.ndarray, Cst)):
             return var(self.self_var, var(ov, self.self_var, op="CastLike"), op=op_name)
         return var(self.self_var, ov, op=op_name, **kwargs)
 
     def _binary_op_right(self, ov: "Var", op_name: str, **kwargs) -> "Var":
         var = Var.get_cst_var()[1]
-        if isinstance(ov, (int, float, np.ndarray, Cst)):
+        if isinstance(ov, (int, float, bool, np.ndarray, Cst)):
             return var(var(ov, self.self_var, op="CastLike"), self.self_var, op=op_name)
         return var(ov, self.self_var, op=op_name, **kwargs)
 
@@ -1112,10 +1112,14 @@ class Cst(Var):
             Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
         elif isinstance(cst, float):
             Var.__init__(self, np.array(cst, dtype=np.float32), op="Identity")
+        elif isinstance(cst, bool):
+            Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
         elif isinstance(cst, list):
             if all(map(lambda t: isinstance(t, int), cst)):
                 Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
-            elif all(map(lambda t: isinstance(t, (float, int)), cst)):
+            elif all(map(lambda t: isinstance(t, bool), cst)):
+                Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
+            elif all(map(lambda t: isinstance(t, (float, int, bool)), cst)):
                 Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
             else:
                 raise ValueError(
