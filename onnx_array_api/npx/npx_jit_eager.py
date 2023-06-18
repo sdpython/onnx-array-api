@@ -132,6 +132,7 @@ class JitEager:
             if isinstance(v, (Var, EagerTensor, JitTensor)):
                 res.append(v.key)
             elif isinstance(v, (int, float, bool, DType)):
+                res.append(type(v))
                 res.append(v)
             elif isinstance(v, slice):
                 res.append(("slice", v.start, v.stop, v.step))
@@ -170,7 +171,8 @@ class JitEager:
                             newv.append(t)
                     res.append(tuple(newv))
                 elif v is None and k in {"dtype"}:
-                    continue
+                    res.append(k)
+                    res.append(v)
                 else:
                     raise TypeError(
                         f"Type {type(v)} is not yet supported, "

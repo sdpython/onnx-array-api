@@ -501,7 +501,7 @@ def matmul(
 @npxapi_inline
 def ones(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -510,7 +510,7 @@ def ones(
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
     if dtype is None:
-        dtype = DType(TensorProto.FLOAT)
+        dtype = DType(TensorProto.DOUBLE)
     return var(
         shape,
         value=make_tensor(name="one", data_type=dtype.code, dims=[1], vals=[1]),
@@ -711,7 +711,7 @@ def where(
 @npxapi_inline
 def zeros(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -720,7 +720,7 @@ def zeros(
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
     if dtype is None:
-        dtype = DType(TensorProto.FLOAT)
+        dtype = DType(TensorProto.DOUBLE)
     return var(
         shape,
         value=make_tensor(name="zero", data_type=dtype.code, dims=[1], vals=[0]),

@@ -3,7 +3,6 @@ Array API valid for an :class:`EagerNumpyTensor`.
 """
 from typing import Any, Optional
 import numpy as np
-from onnx import TensorProto
 from ..npx.npx_functions import (
     all,
     abs,
@@ -60,7 +59,7 @@ def asarray(
 
 def ones(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     if isinstance(shape, tuple):
@@ -78,7 +77,7 @@ def ones(
 
 def empty(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     raise RuntimeError(
@@ -89,7 +88,7 @@ def empty(
 
 def zeros(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     if isinstance(shape, tuple):

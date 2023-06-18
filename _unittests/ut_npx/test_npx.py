@@ -710,8 +710,8 @@ class TestNpx(ExtTestCase):
         keys = list(sorted(f.onxs))
         self.assertIsInstance(f.onxs[keys[0]], ModelProto)
         k = keys[-1]
-        self.assertEqual(len(k), 3)
-        self.assertEqual(k[1:], ("axis", 0))
+        self.assertEqual(len(k), 4)
+        self.assertEqual(k[1:], ("axis", int, 0))
 
     def test_numpy_topk(self):
         f = topk(Input("X"), Input("K"))
@@ -2416,6 +2416,7 @@ class TestNpx(ExtTestCase):
             (DType(TensorProto.DOUBLE), 2),
             (DType(TensorProto.DOUBLE), 2),
             "use_sqrt",
+            bool,
             True,
         )
         self.assertEqual(f.available_versions, [key])
