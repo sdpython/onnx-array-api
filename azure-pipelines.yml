@@ -48,7 +48,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python310-Linux:
+      Python311-Linux:
         python.version: '3.11'
     maxParallel: 3
 
@@ -96,7 +96,7 @@ jobs:
   strategy:
     matrix:
       Python310-Linux:
-        python.version: '3.11'
+        python.version: '3.10'
     maxParallel: 3
 
   steps:
@@ -149,7 +149,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python310-Linux:
+      Python311-Linux:
         python.version: '3.11'
     maxParallel: 3
 
@@ -202,7 +202,7 @@ jobs:
     vmImage: 'windows-latest'
   strategy:
     matrix:
-      Python310-Windows:
+      Python311-Windows:
         python.version: '3.11'
     maxParallel: 3
 
@@ -235,7 +235,7 @@ jobs:
     vmImage: 'macOS-latest'
   strategy:
     matrix:
-      Python310-Mac:
+      Python311-Mac:
         python.version: '3.11'
     maxParallel: 3
 
