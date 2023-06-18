@@ -380,19 +380,28 @@ def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 @npxapi_inline
 def full(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     fill_value: ParType[Scalar] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    Implements :func:`numpy.zeros`.
+    Implements :func:`numpy.full`.
     """
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
     if fill_value is None:
-        raise AttributeError("fill_value cannot be None.")
+        raise TypeError("fill_value cannot be None.")
     if dtype is None:
-        dtype = DType(TensorProto.FLOAT)
+        if isinstance(fill_value, bool):
+            dtype = DType(TensorProto.BOOL)
+        elif isinstance(fill_value, int):
+            dtype = DType(TensorProto.INT64)
+        elif isinstance(fill_value, float):
+            dtype = DType(TensorProto.DOUBLE)
+        else:
+            raise TypeError(
+                f"Unexpected type {type(fill_value)} for fill_value={fill_value!r}."
+            )
     if isinstance(fill_value, (float, int, bool)):
         value = make_tensor(
             name="cst", data_type=dtype.code, dims=[1], vals=[fill_value]

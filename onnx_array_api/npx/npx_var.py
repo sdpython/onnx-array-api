@@ -1108,17 +1108,17 @@ class Cst(Var):
     def __init__(self, cst: Any):
         if isinstance(cst, np.ndarray):
             Var.__init__(self, cst, op="Identity")
+        elif isinstance(cst, bool):
+            Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
         elif isinstance(cst, int):
             Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
         elif isinstance(cst, float):
-            Var.__init__(self, np.array(cst, dtype=np.float32), op="Identity")
-        elif isinstance(cst, bool):
-            Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
+            Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
         elif isinstance(cst, list):
-            if all(map(lambda t: isinstance(t, int), cst)):
-                Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
-            elif all(map(lambda t: isinstance(t, bool), cst)):
+            if all(map(lambda t: isinstance(t, bool), cst)):
                 Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
+            elif all(map(lambda t: isinstance(t, (int, bool)), cst)):
+                Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
             elif all(map(lambda t: isinstance(t, (float, int, bool)), cst)):
                 Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
             else:

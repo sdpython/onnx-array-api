@@ -155,6 +155,7 @@ class JitEager:
             for k, v in sorted(kwargs.items()):
                 if isinstance(v, (int, float, str, type, bool, DType)):
                     res.append(k)
+                    res.append(type(v))
                     res.append(v)
                 elif isinstance(v, tuple):
                     newv = []

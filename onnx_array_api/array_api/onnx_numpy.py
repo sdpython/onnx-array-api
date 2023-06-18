@@ -108,11 +108,11 @@ def zeros(
 def full(
     shape: TensorType[ElemType.int64, "I", (None,)],
     fill_value: ParType[Scalar] = None,
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     if fill_value is None:
-        raise AttributeError("fill_value cannot be None")
+        raise TypeError("fill_value cannot be None")
     value = fill_value
     if isinstance(shape, tuple):
         return generic_full(

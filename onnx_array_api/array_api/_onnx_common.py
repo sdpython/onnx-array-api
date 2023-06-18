@@ -44,7 +44,7 @@ def template_asarray(
             except OverflowError:
                 v = TEagerTensor(np.asarray(a, dtype=np.uint64))
     elif isinstance(a, float):
-        v = TEagerTensor(np.array(a, dtype=np.float32))
+        v = TEagerTensor(np.array(a, dtype=np.float64))
     elif isinstance(a, bool):
         v = TEagerTensor(np.array(a, dtype=np.bool_))
     elif isinstance(a, str):
