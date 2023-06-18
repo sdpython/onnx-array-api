@@ -7,7 +7,9 @@ class ConstantOfShape(OpRun):
     @staticmethod
     def _process(value):
         cst = value[0] if isinstance(value, np.ndarray) else value
-        if isinstance(cst, int):
+        if isinstance(cst, bool):
+            cst = np.bool_(cst)
+        elif isinstance(cst, int):
             cst = np.int64(cst)
         elif isinstance(cst, float):
             cst = np.float64(cst)

@@ -13,7 +13,7 @@ class TestArraysApis(ExtTestCase):
     def test_zeros_numpy_1(self):
         c = xpn.zeros(1)
         d = c.numpy()
-        self.assertEqualArray(np.array([0], dtype=np.float32), d)
+        self.assertEqualArray(np.array([0], dtype=np.float64), d)
 
     def test_zeros_ort_1(self):
         c = xpo.zeros(1)

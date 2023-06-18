@@ -784,7 +784,7 @@ class _GraphBuilder:
                     node_inputs.append(input_name)
                     continue
 
-                if isinstance(i, (int, float)):
+                if isinstance(i, (int, float, bool)):
                     ni = np.array(i)
                     c = Cst(ni)
                     input_name = self._unique(var._prefix)
