@@ -15,6 +15,7 @@ from .npx_types import (
     SequenceType,
     TensorType,
     TupleType,
+    Scalar,
 )
 from .npx_var import Var
 
@@ -22,7 +23,7 @@ from .npx_var import Var
 def _cstv(x):
     if isinstance(x, Var):
         return x
-    if isinstance(x, (int, float, np.ndarray)):
+    if isinstance(x, (int, float, bool, np.ndarray)):
         return cst(x)
     raise TypeError(f"Unexpected constant type {type(x)}.")
 
@@ -377,6 +378,42 @@ def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 
 
 @npxapi_inline
+def full(
+    shape: TensorType[ElemType.int64, "I", (None,)],
+    dtype: OptParType[DType] = None,
+    fill_value: ParType[Scalar] = None,
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.full`.
+    """
+    if order != "C":
+        raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    if fill_value is None:
+        raise TypeError("fill_value cannot be None.")
+    if dtype is None:
+        if isinstance(fill_value, bool):
+            dtype = DType(TensorProto.BOOL)
+        elif isinstance(fill_value, int):
+            dtype = DType(TensorProto.INT64)
+        elif isinstance(fill_value, float):
+            dtype = DType(TensorProto.DOUBLE)
+        else:
+            raise TypeError(
+                f"Unexpected type {type(fill_value)} for fill_value={fill_value!r}."
+            )
+    if isinstance(fill_value, (float, int, bool)):
+        value = make_tensor(
+            name="cst", data_type=dtype.code, dims=[1], vals=[fill_value]
+        )
+    else:
+        raise NotImplementedError(
+            f"Unexpected type ({type(fill_value)} for fill_value={fill_value!r}."
+        )
+    return var(shape, value=value, op="ConstantOfShape")
+
+
+@npxapi_inline
 def floor(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.floor`."
     return var(x, op="Floor")
@@ -464,7 +501,7 @@ def matmul(
 @npxapi_inline
 def ones(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -473,7 +510,7 @@ def ones(
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
     if dtype is None:
-        dtype = DType(TensorProto.FLOAT)
+        dtype = DType(TensorProto.DOUBLE)
     return var(
         shape,
         value=make_tensor(name="one", data_type=dtype.code, dims=[1], vals=[1]),
@@ -674,7 +711,7 @@ def where(
 @npxapi_inline
 def zeros(
     shape: TensorType[ElemType.int64, "I", (None,)],
-    dtype: OptParType[DType] = DType(TensorProto.FLOAT),
+    dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -683,7 +720,7 @@ def zeros(
     if order != "C":
         raise RuntimeError(f"order={order!r} != 'C' not supported.")
     if dtype is None:
-        dtype = DType(TensorProto.FLOAT)
+        dtype = DType(TensorProto.DOUBLE)
     return var(
         shape,
         value=make_tensor(name="zero", data_type=dtype.code, dims=[1], vals=[0]),

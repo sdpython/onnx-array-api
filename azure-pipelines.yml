@@ -48,7 +48,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python310-Linux:
+      Python311-Linux:
         python.version: '3.11'
     maxParallel: 3
 
@@ -96,7 +96,7 @@ jobs:
   strategy:
     matrix:
       Python310-Linux:
-        python.version: '3.11'
+        python.version: '3.10'
     maxParallel: 3
 
   steps:
@@ -131,12 +131,12 @@ jobs:
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-numpy-skips.txt -v
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-numpy-skips.txt --hypothesis-explain
     displayName: "numpy test_creation_functions.py"
   - script: |
       export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_ort
       cd array-api-tests
-      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-ort-skips.txt -v
+      python -m pytest -x array_api_tests/test_creation_functions.py --skips-file=../_unittests/onnx-ort-skips.txt --hypothesis-explain
     displayName: "ort test_creation_functions.py"
   #- script: |
   #    export ARRAY_API_TESTS_MODULE=onnx_array_api.array_api.onnx_numpy
@@ -149,7 +149,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python310-Linux:
+      Python311-Linux:
         python.version: '3.11'
     maxParallel: 3
 
@@ -202,7 +202,7 @@ jobs:
     vmImage: 'windows-latest'
   strategy:
     matrix:
-      Python310-Windows:
+      Python311-Windows:
         python.version: '3.11'
     maxParallel: 3
 
@@ -235,7 +235,7 @@ jobs:
     vmImage: 'macOS-latest'
   strategy:
     matrix:
-      Python310-Mac:
+      Python311-Mac:
         python.version: '3.11'
     maxParallel: 3
 

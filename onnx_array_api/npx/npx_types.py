@@ -292,6 +292,19 @@ class ElemType(ElemTypeCst):
         return None
 
 
+class Scalar:
+    """
+    Defines a scalar.
+    """
+
+    def __init__(self, value: Union[float, int, bool]):
+        self.value = value
+
+    def __repr__(self):
+        "usual"
+        return f"Scalar({self.value!r})"
+
+
 class ParType(WrapperType):
     """
     Defines a parameter type.
@@ -300,11 +313,18 @@ class ParType(WrapperType):
     :param optional: is optional or not
     """
 
-    map_names = {int: "int", float: "float", str: "str", DType: "DType"}
+    map_names = {
+        int: "int",
+        float: "float",
+        str: "str",
+        DType: "DType",
+        bool: "bool",
+        Scalar: "Scalar",
+    }
 
     @classmethod
     def __class_getitem__(cls, dtype):
-        if isinstance(dtype, (int, float)):
+        if isinstance(dtype, (int, float, bool)):
             msg = str(dtype)
         else:
             msg = getattr(dtype, "__name__", str(dtype))
@@ -331,6 +351,8 @@ class ParType(WrapperType):
             return AttributeProto.INT
         if cls.dtype == float:
             return AttributeProto.FLOAT
+        if cls.dtype == bool:
+            return AttributeProto.BOOL
         if cls.dtype == str:
             return AttributeProto.STRING
         raise RuntimeError(
@@ -347,7 +369,7 @@ class OptParType(ParType):
 
     @classmethod
     def __class_getitem__(cls, dtype):
-        if isinstance(dtype, (int, float)):
+        if isinstance(dtype, (int, float, bool)):
             msg = str(dtype)
         else:
             msg = dtype.__name__

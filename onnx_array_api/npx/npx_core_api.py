@@ -169,7 +169,7 @@ def _xapi(fn: Callable, inline: bool):
                 new_inputs.append(i)
             elif isinstance(i, (int, float)):
                 new_inputs.append(
-                    np.array([i], dtype=np.int64 if isinstance(i, int) else np.float32)
+                    np.array([i], dtype=np.int64 if isinstance(i, int) else np.float64)
                 )
             elif isinstance(i, str):
                 new_inputs.append(Input(i))

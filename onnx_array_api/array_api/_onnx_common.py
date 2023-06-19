@@ -34,9 +34,17 @@ def template_asarray(
         return a.astype(dtype=dtype)
 
     if isinstance(a, int):
-        v = TEagerTensor(np.array(a, dtype=np.int64))
+        if a is False:
+            v = TEagerTensor(np.array(False, dtype=np.bool_))
+        elif a is True:
+            v = TEagerTensor(np.array(True, dtype=np.bool_))
+        else:
+            try:
+                v = TEagerTensor(np.asarray(a, dtype=np.int64))
+            except OverflowError:
+                v = TEagerTensor(np.asarray(a, dtype=np.uint64))
     elif isinstance(a, float):
-        v = TEagerTensor(np.array(a, dtype=np.float32))
+        v = TEagerTensor(np.array(a, dtype=np.float64))
     elif isinstance(a, bool):
         v = TEagerTensor(np.array(a, dtype=np.bool_))
     elif isinstance(a, str):

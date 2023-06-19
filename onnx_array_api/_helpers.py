@@ -39,7 +39,7 @@ def np_dtype_to_tensor_dtype(dtype: Any):
         elif dtype is int:
             dt = TensorProto.INT64
         elif dtype is float:
-            dt = TensorProto.FLOAT64
+            dt = TensorProto.DOUBLE
         else:
             raise KeyError(f"Unable to guess type for dtype={dtype}.")
     return dt
