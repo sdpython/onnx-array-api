@@ -4,7 +4,15 @@ from onnx import FunctionProto, ModelProto, NodeProto
 from .._helpers import np_dtype_to_tensor_dtype
 from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
-from .npx_types import DType, ElemType, OptParType, ParType, TensorType, TupleType
+from .npx_types import (
+    DType,
+    ElemType,
+    OptParType,
+    ParType,
+    TensorType,
+    OptTensorType,
+    TupleType,
+)
 
 
 class Par:
@@ -852,7 +860,7 @@ class Var(BaseArrayApi):
     def reduce_function(
         self,
         reduce_op,
-        axis: TensorType[ElemType.int64, "I"] = None,
+        axis: OptTensorType[ElemType.int64, "I"] = None,
         keepdims: ParType[int] = 0,
     ) -> "Var":
         "See :func:`numpy.sum` or any other reduce function."

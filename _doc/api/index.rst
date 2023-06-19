@@ -8,10 +8,10 @@ API
 
     array_api
     npx_functions
-    npx_var
     npx_jit
-    npx_annot
     npx_numpy
+    npx_types
+    npx_var
     onnx_tools
     ort
     plotting

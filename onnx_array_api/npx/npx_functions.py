@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
@@ -11,11 +11,12 @@ from .npx_types import (
     DType,
     ElemType,
     OptParType,
+    OptTensorType,
     ParType,
+    Scalar,
     SequenceType,
     TensorType,
     TupleType,
-    Scalar,
 )
 from .npx_var import Var
 
@@ -45,7 +46,7 @@ def absolute(
 @npxapi_inline
 def all(
     x: TensorType[ElemType.bool_, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
     keepdims: ParType[int] = 0,
 ) -> TensorType[ElemType.bool_, "T"]:
     """
@@ -103,8 +104,8 @@ def amin(
 @npxapi_inline
 def arange(
     start_or_stop: TensorType[ElemType.int64, "I", (1,)],
-    stop_or_step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
-    step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
+    stop_or_step: OptTensorType[ElemType.int64, "I", (1,)] = None,
+    step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."
@@ -298,7 +299,7 @@ def cosh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def cumsum(
     x: TensorType[ElemType.numerics, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.cumsum`."
     if axis is None:
@@ -522,8 +523,8 @@ def ones(
 def pad(
     x: TensorType[ElemType.numerics, "T"],
     pads: TensorType[ElemType.int64, "I"],
-    constant_value: Optional[TensorType[ElemType.numerics, "T"]] = None,
-    axes: Optional[TensorType[ElemType.int64, "I"]] = None,
+    constant_value: OptTensorType[ElemType.numerics, "T"] = None,
+    axes: OptTensorType[ElemType.int64, "I"] = None,
     mode: ParType[str] = "constant",
 ):
     """
@@ -618,7 +619,7 @@ def sqrt(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def squeeze(
     x: TensorType[ElemType.numerics, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.squeeze`."
     if axis is None:

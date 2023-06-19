@@ -148,6 +148,8 @@ class JitEager:
                     else:
                         raise TypeError(f"Input {iv} cannot have such tuple: {v}.")
                 res.append(tuple(subkey))
+            elif v is None:
+                res.append(v)
             else:
                 raise TypeError(
                     f"Unable to build a key, input {iv} has type {type(v)}."
@@ -170,7 +172,8 @@ class JitEager:
                         else:
                             newv.append(t)
                     res.append(tuple(newv))
-                elif v is None and k in {"dtype"}:
+                elif v is None:
+                    # optional parameter or inputs
                     res.append(k)
                     res.append(v)
                 else:
@@ -200,7 +203,9 @@ class JitEager:
             for i, (v, iname) in enumerate(zip(values, names)):
                 if i < len(annot_values) and not isinstance(annot_values[i], type):
                     raise TypeError(
-                        f"annotation {i} is not a type but is {annot_values[i]!r}."
+                        f"annotation {i} is not a type but is "
+                        f"{type(annot_values[i])!r}, "
+                        f"annot_values[i]={annot_values[i]!r}, "
                         f"for function {self.f} "
                         f"from module {self.f.__module__!r}."
                     )
@@ -217,9 +222,11 @@ class JitEager:
             elif self.input_to_kwargs_ != input_to_kwargs:
                 raise RuntimeError(
                     f"Unexpected input and argument. Previous call produced "
-                    f"self.input_to_kwargs_={self.input_to_kwargs_} and "
+                    f"self.input_to_kwargs_={self.input_to_kwargs_}, "
+                    f"self.n_inputs_={self.n_inputs_} and "
                     f"input_to_kwargs={input_to_kwargs} for function {self.f} "
-                    f"from module {self.f.__module__!r}."
+                    f"from module {self.f.__module__!r}, "
+                    f"len(values)={len(values)}, kwargs={kwargs!r}."
                 )
         elif self.input_to_kwargs_:
             constraints = {}

@@ -41,6 +41,7 @@ from .npx_types import (
     DType,
     ElemType,
     OptParType,
+    OptTensorType,
     ParType,
     SequenceType,
     TensorType,
@@ -284,7 +285,9 @@ class _GraphBuilder:
         """
         if self.as_function:
             return _FunctionIO(name)
-        if tensor_type is not None and not issubclass(tensor_type, TensorType):
+        if tensor_type is not None and not issubclass(
+            tensor_type, (TensorType, OptTensorType)
+        ):
             raise TypeError(
                 f"Unexpected type {tensor_type.type_name()} for tensor_type. "
                 f"This may happen if you specialised the function based on "
@@ -494,7 +497,15 @@ class _GraphBuilder:
             anno = par.annotation
             if not issubclass(
                 anno,
-                (ElemType, OptParType, ParType, SequenceType, TensorType, TupleType),
+                (
+                    ElemType,
+                    OptParType,
+                    ParType,
+                    SequenceType,
+                    TensorType,
+                    OptTensorType,
+                    TupleType,
+                ),
             ):
                 raise TypeError(
                     f"Annotation must of a known not {type(anno)} for "

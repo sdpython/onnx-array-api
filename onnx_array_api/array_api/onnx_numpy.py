@@ -20,7 +20,15 @@ from ..npx.npx_functions import full as generic_full
 from ..npx.npx_functions import ones as generic_ones
 from ..npx.npx_functions import zeros as generic_zeros
 from ..npx.npx_numpy_tensors import EagerNumpyTensor
-from ..npx.npx_types import DType, ElemType, TensorType, OptParType, ParType, Scalar
+from ..npx.npx_types import (
+    DType,
+    ElemType,
+    TensorType,
+    OptParType,
+    OptTensorType,
+    ParType,
+    Scalar,
+)
 from ._onnx_common import template_asarray
 from . import _finalize_array_api
 
@@ -61,8 +69,8 @@ def asarray(
 
 def arange(
     start_or_stop: TensorType[ElemType.int64, "I", (1,)],
-    stop_or_step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
-    step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
+    stop_or_step: OptTensorType[ElemType.int64, "I", (1,)] = None,
+    step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     print("####", start_or_stop, stop_or_step, step, dtype)

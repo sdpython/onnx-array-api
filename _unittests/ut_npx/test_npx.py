@@ -103,6 +103,7 @@ from onnx_array_api.npx.npx_types import (
     Int64,
     OptParType,
     TensorType,
+    OptTensorType,
 )
 from onnx_array_api.npx.npx_var import Input, Var
 
@@ -146,6 +147,33 @@ class TestNpx(ExtTestCase):
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
         self.assertEqual(dt.type_name(), "TensorType[strings]")
+        self.assertEmpty(dt.shape)
+
+        self.assertRaise(lambda: TensorType[None], TypeError)
+        self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
+
+    def test_opt_tensor(self):
+        dt = OptTensorType["float32"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEmpty(dt.shape)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32']")
+
+        dt = OptTensorType["float32"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32']")
+
+        dt = OptTensorType[np.float32]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32']")
+        self.assertEmpty(dt.shape)
+
+        dt = OptTensorType[np.str_]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
+        self.assertEqual(dt.type_name(), "OptTensorType[strings]")
         self.assertEmpty(dt.shape)
 
         self.assertRaise(lambda: TensorType[None], TypeError)
@@ -2544,5 +2572,5 @@ class TestNpx(ExtTestCase):
 
 
 if __name__ == "__main__":
-    # TestNpx().test_get_item()
+    TestNpx().test_opt_tensor()
     unittest.main(verbosity=2)

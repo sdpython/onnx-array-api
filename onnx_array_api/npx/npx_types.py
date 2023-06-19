@@ -93,12 +93,12 @@ class DType(WrapperType):
 
 
 class _DType2(DType):
-    "Wraps an into a different type."
+    "Wraps a type into a different type."
     pass
 
 
 class _DTypes(DType):
-    "Wraps an into a different type."
+    "Wraps a type into a different type."
     pass
 
 
@@ -422,6 +422,8 @@ class TensorType(WrapperType):
     :param name: name of the type
     """
 
+    main_name = "TensorType"
+
     @classmethod
     def __class_getitem__(cls, *args):
         if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
@@ -515,13 +517,13 @@ class TensorType(WrapperType):
             set_name = repr(st)
         if cls.shape:
             if cls.name:
-                newt = f"TensorType[{set_name}, {cls.shape!r}, {cls.name!r}]"
+                newt = f"{cls.main_name}[{set_name}, {cls.shape!r}, {cls.name!r}]"
             else:
-                newt = f"TensorType[{set_name}, {cls.shape!r}]"
+                newt = f"{cls.main_name}[{set_name}, {cls.shape!r}]"
         elif cls.name:
-            newt = f"TensorType[{set_name}, {cls.name!r}]"
+            newt = f"{cls.main_name}[{set_name}, {cls.name!r}]"
         else:
-            newt = f"TensorType[{set_name}]"
+            newt = f"{cls.main_name}[{set_name}]"
         if "<" in newt or "{" in newt:
             raise NameError(f"Name is wrong {newt!r}.")
         return newt
@@ -558,6 +560,16 @@ class TensorType(WrapperType):
                 if a != b:
                     return False
         return True
+
+
+class OptTensorType(TensorType):
+    """
+    Defines an optional tensor type.
+
+    :param dtype: element type
+    """
+
+    main_name = "OptTensorType"
 
 
 class SequenceType(WrapperType):
