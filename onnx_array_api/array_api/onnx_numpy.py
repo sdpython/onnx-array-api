@@ -73,7 +73,6 @@ def arange(
     step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    print("####", start_or_stop, stop_or_step, step, dtype)
     if isinstance(start_or_stop, int):
         start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.int64))
     if isinstance(stop_or_step, int):

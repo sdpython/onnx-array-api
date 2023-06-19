@@ -149,7 +149,7 @@ class JitEager:
                         raise TypeError(f"Input {iv} cannot have such tuple: {v}.")
                 res.append(tuple(subkey))
             elif v is None:
-                res.append(v)
+                res.append(None)
             else:
                 raise TypeError(
                     f"Unable to build a key, input {iv} has type {type(v)}."
@@ -174,8 +174,7 @@ class JitEager:
                     res.append(tuple(newv))
                 elif v is None:
                     # optional parameter or inputs
-                    res.append(k)
-                    res.append(v)
+                    pass
                 else:
                     raise TypeError(
                         f"Type {type(v)} is not yet supported, "
@@ -269,7 +268,9 @@ class JitEager:
             else:
                 kwargs = kwargs.copy()
                 kwargs.update(new_kwargs)
-
+        print("***", inputs)
+        print(kwargs)
+        print(self.f)
         var = self.f(*inputs, **kwargs)
 
         onx = var.to_onnx(
