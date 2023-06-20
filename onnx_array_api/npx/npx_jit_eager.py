@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from .npx_tensors import EagerTensor, JitTensor
-from .npx_types import DType, TensorType
+from .npx_types import DType, OptTensorType, TensorType
 from .npx_var import Cst, Input, Var
 
 logger = getLogger("onnx-array-api")
@@ -47,6 +47,7 @@ class JitEager:
         # onnx to remember an input in fact a mandatory parameter.
         self.n_inputs_ = 0
         self.input_to_kwargs_ = None
+        self.kwargs_to_input_ = None
         self.method_name_ = None
 
     def info(self, prefix: Optional[str] = None, method_name: Optional[str] = None):
@@ -57,13 +58,14 @@ class JitEager:
             logger.info("")
             return
         logger.info(
-            "%s [%s.%s] nx=%d ni=%d kw=%d f=%s.%s cl=%s me=%s",
+            "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s cl=%s me=%s",
             prefix,
             self.__class__.__name__,
             method_name[:6],
             len(self.onxs),
             self.n_inputs_,
             0 if self.input_to_kwargs_ is None else 1,
+            0 if self.kwargs_to_input_ is None else 1,
             self.f.__module__,
             self.f.__name__,
             self.tensor_class.__name__,
@@ -78,7 +80,8 @@ class JitEager:
             f"[{self.__class__.__name__}.{me[:6]}]"
             f"nx={len(self.onxs)} "
             f"ni={self.n_inputs_} "
-            f"kw={0 if self.input_to_kwargs_ is None else 1} "
+            f"ikw={0 if self.input_to_kwargs_ is None else 1} "
+            f"kwi={0 if self.kwargs_to_input_ is None else 1} "
             f"f={self.f.__module__}.{self.f.__name__} "
             f"cl={self.tensor_class.__name__} "
             f"me={self.method_name_ or ''}"
@@ -133,11 +136,23 @@ class JitEager:
         res = []
         for iv, v in enumerate(values):
             if isinstance(v, (Var, EagerTensor, JitTensor)):
+                if iv in self.kwargs_to_input_:
+                    raise RuntimeError(
+                        f"Input {iv} should be a constant to be moved "
+                        f"to the attribute list, v={v}."
+                    )
                 res.append(v.key)
             elif isinstance(v, (int, float, bool, DType)):
+                if iv in self.kwargs_to_input_:
+                    res.append(self.kwargs_to_input_[iv])
                 res.append(type(v))
                 res.append(v)
             elif isinstance(v, slice):
+                if iv in self.kwargs_to_input_:
+                    raise NotImplementedError(
+                        f"Input {iv} should be a constant to be moved "
+                        f"to the attribute list, v={v}."
+                    )
                 res.append(("slice", v.start, v.stop, v.step))
             elif isinstance(v, type):
                 res.append(("type", v.__name__))
@@ -152,6 +167,8 @@ class JitEager:
                         raise TypeError(f"Input {iv} cannot have such tuple: {v}.")
                 res.append(tuple(subkey))
             elif v is None:
+                if iv in self.kwargs_to_input_:
+                    res.append(self.kwargs_to_input_[iv])
                 res.append(None)
             else:
                 raise TypeError(
@@ -159,7 +176,10 @@ class JitEager:
                 )
         if kwargs:
             for k, v in sorted(kwargs.items()):
-                if isinstance(v, (int, float, str, type, bool, DType)):
+                if k in self.kwargs_to_input_:
+                    res.append(type(v))
+                    res.append(v)
+                elif isinstance(v, (int, float, str, type, bool, DType)):
                     res.append(k)
                     res.append(type(v))
                     res.append(v)
@@ -198,6 +218,7 @@ class JitEager:
         annotations = self.f.__annotations__
         if len(annotations) > 0:
             input_to_kwargs = {}
+            kwargs_to_input = {}
             names = list(annotations.keys())
             annot_values = list(annotations.values())
             constraints = {}
@@ -215,12 +236,22 @@ class JitEager:
                     i >= len(annot_values) or issubclass(annot_values[i], TensorType)
                 ):
                     constraints[iname] = v.tensor_type_dims
+                elif (
+                    v is None
+                    and i < len(annot_values)
+                    and issubclass(annot_values[i], OptTensorType)
+                ):
+                    constraints[iname] = annot_values[i]
+                    kwargs_to_input[iname] = i, annot_values[i]
                 else:
                     new_kwargs[iname] = v
                     input_to_kwargs[i] = iname
             if self.input_to_kwargs_ is None:
-                self.n_inputs_ = len(values) - len(input_to_kwargs)
+                self.n_inputs_ = (
+                    len(values) - len(input_to_kwargs) + len(kwargs_to_input)
+                )
                 self.input_to_kwargs_ = input_to_kwargs
+                self.kwargs_to_input_ = kwargs_to_input
             elif self.input_to_kwargs_ != input_to_kwargs:
                 raise RuntimeError(
                     f"Unexpected input and argument. Previous call produced "
@@ -230,7 +261,16 @@ class JitEager:
                     f"from module {self.f.__module__!r}, "
                     f"len(values)={len(values)}, kwargs={kwargs!r}."
                 )
-        elif self.input_to_kwargs_:
+            elif self.input_to_kwargs_ != input_to_kwargs:
+                raise RuntimeError(
+                    f"Unexpected input and argument. Previous call produced "
+                    f"self.kwargs_to_input_={self.kwargs_to_input_}, "
+                    f"self.n_inputs_={self.n_inputs_} and "
+                    f"kwargs_to_input={kwargs_to_input} for function {self.f} "
+                    f"from module {self.f.__module__!r}, "
+                    f"len(values)={len(values)}, kwargs={kwargs!r}."
+                )
+        elif self.input_to_kwargs_ or self.kwargs_to_input_:
             constraints = {}
             new_kwargs = {}
             for i, (v, iname) in enumerate(zip(values, names)):
@@ -275,7 +315,8 @@ class JitEager:
             var = self.f(*inputs, **kwargs)
         except TypeError as e:
             raise TypeError(
-                f"Unexpected error, inputs={inputs}, kwargs={kwargs}."
+                f"Unexpected error, inputs={inputs}, kwargs={kwargs}, "
+                f"self.input_to_kwargs_={self.input_to_kwargs_}."
             ) from e
 
         onx = var.to_onnx(

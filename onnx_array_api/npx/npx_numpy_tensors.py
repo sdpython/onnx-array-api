@@ -42,7 +42,7 @@ class NumpyTensor:
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
-                feeds[name] = inp.value
+                feeds[name] = None if inp is None else inp.value
             res = self.ref.run(None, feeds)
             return list(map(self.tensor_class, res))
 
