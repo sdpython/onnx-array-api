@@ -120,12 +120,15 @@ class JitEager:
             )
         return self.onxs[key]
 
-    @staticmethod
-    def make_key(*values, **kwargs):
+    def make_key(self, *values: List[Any], **kwargs: Dict[str, Any]) -> Tuple[Any, ...]:
         """
         Builds a key based on the input types and parameters.
         Every set of inputs or parameters producing the same
         key (or signature) must use the same compiled ONNX.
+
+        :param values: values given to the function
+        :param kwargs: parameters
+        :return: tuple of mutable keys
         """
         res = []
         for iv, v in enumerate(values):
@@ -268,10 +271,12 @@ class JitEager:
             else:
                 kwargs = kwargs.copy()
                 kwargs.update(new_kwargs)
-        print("***", inputs)
-        print(kwargs)
-        print(self.f)
-        var = self.f(*inputs, **kwargs)
+        try:
+            var = self.f(*inputs, **kwargs)
+        except TypeError as e:
+            raise TypeError(
+                f"Unexpected error, inputs={inputs}, kwargs={kwargs}."
+            ) from e
 
         onx = var.to_onnx(
             constraints=constraints,
@@ -369,9 +374,14 @@ class JitEager:
             # No jitting was ever called.
             try:
                 onx, fct = self.to_jit(*values, **kwargs)
+            except TypeError as e:
+                raise TypeError(
+                    f"ERROR with self.f={self.f}, "
+                    f"values={values!r}, kwargs={kwargs!r}"
+                ) from e
             except Exception as e:
                 raise RuntimeError(
-                    f"ERROR with self.f={self.f}, "
+                    f"Undefined ERROR with self.f={self.f}, "
                     f"values={values!r}, kwargs={kwargs!r}"
                 ) from e
             if self.input_to_kwargs_ is None:
