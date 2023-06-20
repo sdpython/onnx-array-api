@@ -252,20 +252,16 @@ class JitEager:
                 )
                 self.input_to_kwargs_ = input_to_kwargs
                 self.kwargs_to_input_ = kwargs_to_input
-            elif self.input_to_kwargs_ != input_to_kwargs:
+            elif (
+                self.input_to_kwargs_ != input_to_kwargs
+                or self.input_to_kwargs_ != input_to_kwargs
+            ):
                 raise RuntimeError(
                     f"Unexpected input and argument. Previous call produced "
                     f"self.input_to_kwargs_={self.input_to_kwargs_}, "
-                    f"self.n_inputs_={self.n_inputs_} and "
-                    f"input_to_kwargs={input_to_kwargs} for function {self.f} "
-                    f"from module {self.f.__module__!r}, "
-                    f"len(values)={len(values)}, kwargs={kwargs!r}."
-                )
-            elif self.input_to_kwargs_ != input_to_kwargs:
-                raise RuntimeError(
-                    f"Unexpected input and argument. Previous call produced "
                     f"self.kwargs_to_input_={self.kwargs_to_input_}, "
                     f"self.n_inputs_={self.n_inputs_} and "
+                    f"input_to_kwargs={input_to_kwargs}, "
                     f"kwargs_to_input={kwargs_to_input} for function {self.f} "
                     f"from module {self.f.__module__!r}, "
                     f"len(values)={len(values)}, kwargs={kwargs!r}."
@@ -295,6 +291,7 @@ class JitEager:
             }
             self.n_inputs_ = len(values)
             self.input_to_kwargs_ = {}
+            self.kwargs_to_input_ = {}
 
         if self.output_types is not None:
             constraints.update(self.output_types)
@@ -316,7 +313,8 @@ class JitEager:
         except TypeError as e:
             raise TypeError(
                 f"Unexpected error, inputs={inputs}, kwargs={kwargs}, "
-                f"self.input_to_kwargs_={self.input_to_kwargs_}."
+                f"self.input_to_kwargs_={self.input_to_kwargs_}, "
+                f"self.kwargs_to_input_={self.kwargs_to_input_}."
             ) from e
 
         onx = var.to_onnx(
@@ -428,6 +426,11 @@ class JitEager:
             if self.input_to_kwargs_ is None:
                 raise RuntimeError(
                     f"Attribute 'input_to_kwargs_' should be set for "
+                    f"function {self.f} form module {self.f.__module__!r}."
+                )
+            if self.kwargs_to_input_ is None:
+                raise RuntimeError(
+                    f"Attribute 'kwargs_to_input_' should be set for "
                     f"function {self.f} form module {self.f.__module__!r}."
                 )
         else:
