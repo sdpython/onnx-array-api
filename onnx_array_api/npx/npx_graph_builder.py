@@ -332,13 +332,14 @@ class _GraphBuilder:
             if is_input:
                 raise RuntimeError(
                     f"tensor_type cannot be None for name={name!r} and "
-                    f"input or output {index}."
+                    f"input or output {index!r}."
                 )
             tensor_type = TensorType["undefined"]
         if len(tensor_type.dtypes) != 1:
             raise RuntimeError(
                 f"tensor_type is not specific enough ({str(tensor_type)} "
-                f"or its full representation {tensor_type!r})."
+                f"or its full representation {tensor_type!r}, "
+                f"is_input={is_input}, index={index})."
             )
         if tensor_type.shape is None:
             type_proto = TypeProto()

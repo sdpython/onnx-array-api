@@ -100,12 +100,50 @@ def amin(
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
 
+    numerics = {
+        ElemType.int16,
+        ElemType.int32,
+        ElemType.int64,
+        ElemType.float32,
+        ElemType.float64,
+    }
+
 
 @npxapi_inline
 def arange(
-    start_or_stop: TensorType[ElemType.int64, "I", (1,)],
-    stop_or_step: OptTensorType[ElemType.int64, "I", (1,)] = None,
-    step: OptTensorType[ElemType.int64, "I", (1,)] = None,
+    start_or_stop: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ],
+    stop_or_step: OptTensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ] = None,
+    step: OptTensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."

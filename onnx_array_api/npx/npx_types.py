@@ -543,7 +543,7 @@ class TensorType(WrapperType):
             newt = f"{cls.main_name}[{set_name}, {cls.name!r}]"
         else:
             newt = f"{cls.main_name}[{set_name}]"
-        if "<" in newt or "{" in newt:
+        if "<" in newt:
             raise NameError(f"Name is wrong {newt!r}.")
         return newt
 

@@ -75,10 +75,19 @@ def arange(
 ) -> TensorType[ElemType.numerics, "T"]:
     if isinstance(start_or_stop, int):
         start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.int64))
+    if isinstance(start_or_stop, float):
+        start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.float64))
+
     if isinstance(stop_or_step, int):
         stop_or_step = EagerNumpyTensor(np.array([stop_or_step], dtype=np.int64))
+    if isinstance(stop_or_step, float):
+        stop_or_step = EagerNumpyTensor(np.array([stop_or_step], dtype=np.float64))
+
     if isinstance(step, int):
         step = EagerNumpyTensor(np.array([step], dtype=np.int64))
+    if isinstance(step, float):
+        step = EagerNumpyTensor(np.array([step], dtype=np.float64))
+
     return generic_arange(start_or_stop, stop_or_step, step, dtype=dtype)
 
 

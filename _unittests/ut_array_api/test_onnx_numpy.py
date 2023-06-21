@@ -68,7 +68,21 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertNotEmpty(matnp[0, 0])
         self.assertEqualArray(matnp, np.full((4, 5), False))
 
+    def test_arange_int00a(self):
+        a = EagerTensor(np.array([0], dtype=np.int64))
+        b = EagerTensor(np.array([0], dtype=np.int64))
+        mat = xp.arange(a, b)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.arange(0, 0))
+
+    def test_arange_int00(self):
+        mat = xp.arange(0, 0)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.arange(0, 0))
+
 
 if __name__ == "__main__":
-    TestOnnxNumpy().test_arange_step()
+    # TestOnnxNumpy().test_arange_int00()
     unittest.main(verbosity=2)
