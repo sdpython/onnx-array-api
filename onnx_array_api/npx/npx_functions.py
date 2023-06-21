@@ -100,14 +100,6 @@ def amin(
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
 
-    numerics = {
-        ElemType.int16,
-        ElemType.int32,
-        ElemType.int64,
-        ElemType.float32,
-        ElemType.float64,
-    }
-
 
 @npxapi_inline
 def arange(
