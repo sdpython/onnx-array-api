@@ -985,7 +985,9 @@ class Var(BaseArrayApi):
             if index.annotation is None:
                 dtype_bool = True
             elif issubclass(index.annotation, TensorType):
-                if index.annotation.supports_dtype(DType(TensorProto.INT64)):
+                if index.annotation.supports_dtype(
+                    DType(TensorProto.INT64)
+                ) or index.annotation.supports_dtype(DType(TensorProto.INT32)):
                     dtype_bool = False
                 elif index.annotation.supports_dtype(DType(TensorProto.BOOL)):
                     dtype_bool = True
@@ -1144,7 +1146,10 @@ class Input(Var):
     def __repr__(self):
         if self.annotation is None:
             return f"{self.__class__.__name__}({self.name!r})"
-        return f"{self.__class__.__name__}({self.name!r}, {self._annotation})"
+        return (
+            f"{self.__class__.__name__}({self.name!r}, "
+            f"{self._annotation.__name__!r})"
+        )
 
     @property
     def annotation(self):

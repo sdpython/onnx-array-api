@@ -19,7 +19,7 @@ class TestOnnxNumpy(ExtTestCase):
         a = xp.absolute(mat)
         self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
 
-    def test_arange(self):
+    def test_arange_default(self):
         a = EagerTensor(np.array([0], dtype=np.int64))
         b = EagerTensor(np.array([2], dtype=np.int64))
         mat = xp.arange(a, b)
