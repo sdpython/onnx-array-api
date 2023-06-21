@@ -2564,13 +2564,19 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data})
         self.assertEqualArray(y, got[0])
 
-    @unittest.skipIf(True, reason="Fails to follow Array API")
-    def test_get_item(self):
+    # @unittest.skipIf(True, reason="Fails to follow Array API")
+    def test_get_item_b(self):
         a = EagerNumpyTensor(np.array([True], dtype=np.bool_))
+        i = a[0]
+        self.assertEqualArray(i.numpy(), a.numpy()[0])
+
+    # @unittest.skipIf(True, reason="Fails to follow Array API")
+    def test_get_item_i8(self):
+        a = EagerNumpyTensor(np.array([5, 6], dtype=np.int8))
         i = a[0]
         self.assertEqualArray(i.numpy(), a.numpy()[0])
 
 
 if __name__ == "__main__":
-    TestNpx().test_opt_tensor()
+    TestNpx().test_filter()
     unittest.main(verbosity=2)

@@ -55,6 +55,8 @@ class DType(WrapperType):
 
     def __eq__(self, dt: "DType") -> bool:
         "Compares two types."
+        if dt is None:
+            return False
         if dt.__class__ is DType:
             return self.code_ == dt.code_
         if isinstance(dt, (int, bool, str)):
@@ -68,6 +70,8 @@ class DType(WrapperType):
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_
+        if issubclass(dt, ElemType):
+            return self.code_ == dt.dtype.code_
         try:
             dti = np_dtype_to_tensor_dtype(dt)
         except KeyError:
@@ -250,6 +254,9 @@ class ElemType(ElemTypeCst):
 
     @classmethod
     def __class_getitem__(cls, dtype: Union[str, DType]):
+        """
+        Returns a subclass of this one with attribute `dtype`.
+        """
         if isinstance(dtype, str):
             dtype = ElemType.names_int[dtype]
         elif dtype in ElemType.numpy_map:
@@ -426,6 +433,10 @@ class TensorType(WrapperType):
 
     @classmethod
     def __class_getitem__(cls, *args):
+        """
+        Returns a subclass of this one with two attributes `dtypes`
+        and `shape`.
+        """
         if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
             args = args[0]
         name = None
@@ -503,6 +514,14 @@ class TensorType(WrapperType):
         if "<" in newt.__name__:
             raise NameError(f"Name is wrong {newt.__name__!r}.")
         return newt
+
+    @classmethod
+    def supports_dtype(cls, dtype: DType) -> bool:
+        """
+        Determines if the element type `dtype`
+        is within `dtypes`.
+        """
+        return dtype in cls.dtypes
 
     @classmethod
     def type_name(cls) -> str:

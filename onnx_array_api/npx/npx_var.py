@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
-from onnx import FunctionProto, ModelProto, NodeProto
+from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from .._helpers import np_dtype_to_tensor_dtype
 from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
@@ -288,18 +288,19 @@ class Var(BaseArrayApi):
     def __init__(
         self,
         *inputs: List[Any],
-        op: Union[
-            Callable, str, Tuple[str, str], FunctionProto, ModelProto, NodeProto
+        op: Optional[
+            Union[Callable, str, Tuple[str, str], FunctionProto, ModelProto, NodeProto]
         ] = None,
-        dtype: Union[type, DType] = None,
+        dtype: Optional[Union[type, DType]] = None,
         inline: bool = False,
-        n_var_outputs: Optional[int] = 1,
+        n_var_outputs: int = 1,
         input_indices: Optional[List[int]] = None,
         **kwargs,
     ):
         self.inputs = list(inputs)
         self.n_var_outputs = n_var_outputs
         self.inline = inline
+        self._annotation = None
         if op is None:
             self.onnx_op = None  # a constant
         elif isinstance(op, tuple):
@@ -361,6 +362,16 @@ class Var(BaseArrayApi):
                 raise RuntimeError(f"This case is not allowed: {self!r}.")
         self.set = Var._setter(self)
         self.current_var_ = None
+
+    @property
+    def annotation(self):
+        """Returns a type if known for the Var itself."""
+        if self._annotation is None:
+            if "dtype" in self.onnx_op_kwargs:
+                dtype = self.onnx_op_kwargs["dtype"]
+                if isinstance(dtype, DType):
+                    return TensorType[dtype]
+        return self._annotation
 
     @property
     def self_var(self):
@@ -970,11 +981,35 @@ class Var(BaseArrayApi):
 
         if isinstance(index, Var):
             # scenario 2
-            # TODO: fix this when index is an integer
-            new_shape = cst(np.array([-1], dtype=np.int64))
-            new_self = self.reshape(new_shape)
-            new_index = index.reshape(new_shape)
-            return var(new_self, new_index, op="Compress")
+            # we rely on the annotation if it exists
+            if index.annotation is None:
+                dtype_bool = True
+            elif issubclass(index.annotation, TensorType):
+                if index.annotation.supports_dtype(DType(TensorProto.INT64)):
+                    dtype_bool = False
+                elif index.annotation.supports_dtype(DType(TensorProto.BOOL)):
+                    dtype_bool = True
+                else:
+                    raise TypeError(
+                        f"Unexpected dtype for annotation={index.annotation!r} "
+                        f"for index={index!r}."
+                    )
+            else:
+                raise TypeError(
+                    f"Unexpected annotation={index.annotation!r} "
+                    f"for index={index!r}."
+                )
+
+            if dtype_bool:
+                # TODO: fix this when index is an integer and the annotation unknown
+                # it needs to support subgraph and tests
+                new_shape = cst(np.array([-1], dtype=np.int64))
+                new_self = self.reshape(new_shape)
+                new_index = index.reshape(new_shape)
+                return var(new_self, new_index, op="Compress")
+
+            # dtype is int
+            return var(self, index, axis=0, op="Gather")
 
         if isinstance(index, int):
             # Use Gather instead.
@@ -1097,15 +1132,23 @@ class Input(Var):
     Defines an input, a placeholder.
 
     :param name: input name or None if undefined
+    :param annotation: annotation if any is available
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None, annotation: Optional[type] = None):
         Var.__init__(self)
         self.name = name
         self._prefix = name or "I"
+        self._annotation = annotation
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.name!r})"
+        if self.annotation is None:
+            return f"{self.__class__.__name__}({self.name!r})"
+        return f"{self.__class__.__name__}({self.name!r}, {self._annotation})"
+
+    @property
+    def annotation(self):
+        return self._annotation
 
 
 class Cst(Var):

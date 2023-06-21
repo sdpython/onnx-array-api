@@ -297,7 +297,9 @@ class JitEager:
             constraints.update(self.output_types)
 
         inputs = [
-            Input(iname) for iname, v in zip(names, values) if iname in constraints
+            Input(iname, annotation=constraints[iname])
+            for iname, v in zip(names, values)
+            if iname in constraints
         ]
         names = [i.name for i in inputs]
         if len(new_kwargs) > 0:
