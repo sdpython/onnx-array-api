@@ -70,7 +70,7 @@ class DType(WrapperType):
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_
-        if issubclass(dt, ElemType):
+        if isinstance(dt, type) and issubclass(dt, ElemType):
             return self.code_ == dt.dtype.code_
         try:
             dti = np_dtype_to_tensor_dtype(dt)
