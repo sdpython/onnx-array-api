@@ -10,8 +10,11 @@ build/*
 .eggs/*
 .hypothesis/*
 *egg-info/*
+onnxruntime_profile*
+prof
 _doc/auto_examples/*
 _doc/examples/_cache/*
+_doc/examples/onnxruntime_profile*
 _doc/examples/plot_*.png
 _doc/examples/plot_*.xlsx
 _doc/examples/data/*.optimized.onnx
