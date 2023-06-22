@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
@@ -11,11 +11,12 @@ from .npx_types import (
     DType,
     ElemType,
     OptParType,
+    OptTensorType,
     ParType,
+    Scalar,
     SequenceType,
     TensorType,
     TupleType,
-    Scalar,
 )
 from .npx_var import Var
 
@@ -45,7 +46,7 @@ def absolute(
 @npxapi_inline
 def all(
     x: TensorType[ElemType.bool_, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
     keepdims: ParType[int] = 0,
 ) -> TensorType[ElemType.bool_, "T"]:
     """
@@ -77,20 +78,6 @@ def all(
 
 
 @npxapi_inline
-def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccos`."
-    return var(x, op="Acos")
-
-
-@npxapi_inline
-def arccosh(
-    x: TensorType[ElemType.numerics, "T"]
-) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccosh`."
-    return var(x, op="Acosh")
-
-
-@npxapi_inline
 def amax(
     x: TensorType[ElemType.numerics, "T"],
     axis: OptParType[int] = 0,
@@ -116,10 +103,40 @@ def amin(
 
 @npxapi_inline
 def arange(
-    start_or_stop: TensorType[ElemType.int64, "I", (1,)],
-    stop_or_step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
-    step: Optional[TensorType[ElemType.int64, "I", (1,)]] = None,
-    dtype=None,
+    start_or_stop: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ],
+    stop_or_step: OptTensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ] = None,
+    step: OptTensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "I",
+        (1,),
+    ] = None,
+    dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."
     if stop_or_step is None:
@@ -138,6 +155,20 @@ def arange(
     if dtype is not None:
         return var(v, op="Cast", to=dtype)
     return v
+
+
+@npxapi_inline
+def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.arccos`."
+    return var(x, op="Acos")
+
+
+@npxapi_inline
+def arccosh(
+    x: TensorType[ElemType.numerics, "T"]
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.arccosh`."
+    return var(x, op="Acosh")
 
 
 @npxapi_inline
@@ -298,7 +329,7 @@ def cosh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def cumsum(
     x: TensorType[ElemType.numerics, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.cumsum`."
     if axis is None:
@@ -522,8 +553,8 @@ def ones(
 def pad(
     x: TensorType[ElemType.numerics, "T"],
     pads: TensorType[ElemType.int64, "I"],
-    constant_value: Optional[TensorType[ElemType.numerics, "T"]] = None,
-    axes: Optional[TensorType[ElemType.int64, "I"]] = None,
+    constant_value: OptTensorType[ElemType.numerics, "T"] = None,
+    axes: OptTensorType[ElemType.int64, "I"] = None,
     mode: ParType[str] = "constant",
 ):
     """
@@ -618,7 +649,7 @@ def sqrt(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def squeeze(
     x: TensorType[ElemType.numerics, "T"],
-    axis: Optional[TensorType[ElemType.int64, "I"]] = None,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.squeeze`."
     if axis is None:

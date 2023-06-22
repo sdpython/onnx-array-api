@@ -55,6 +55,8 @@ class DType(WrapperType):
 
     def __eq__(self, dt: "DType") -> bool:
         "Compares two types."
+        if dt is None:
+            return False
         if dt.__class__ is DType:
             return self.code_ == dt.code_
         if isinstance(dt, (int, bool, str)):
@@ -68,6 +70,8 @@ class DType(WrapperType):
         if dt in ElemType.numpy_map:
             dti = ElemType.numpy_map[dt]
             return self.code_ == dti.code_
+        if isinstance(dt, type) and issubclass(dt, ElemType):
+            return self.code_ == dt.dtype.code_
         try:
             dti = np_dtype_to_tensor_dtype(dt)
         except KeyError:
@@ -93,12 +97,12 @@ class DType(WrapperType):
 
 
 class _DType2(DType):
-    "Wraps an into a different type."
+    "Wraps a type into a different type."
     pass
 
 
 class _DTypes(DType):
-    "Wraps an into a different type."
+    "Wraps a type into a different type."
     pass
 
 
@@ -109,23 +113,23 @@ class ElemTypeCstInner(WrapperType):
 
     __slots__ = []
 
-    undefined = DType(0)
-    bool_ = DType(9)
-    int8 = DType(3)
-    int16 = DType(5)
-    int32 = DType(6)
-    int64 = DType(7)
-    uint8 = DType(2)
-    uint16 = DType(4)
-    uint32 = DType(12)
-    uint64 = DType(13)
-    float16 = DType(10)
-    float32 = DType(1)
-    float64 = DType(11)
-    bfloat16 = DType(16)
-    complex64 = DType(14)
-    complex128 = DType(15)
-    str_ = DType(8)
+    undefined = DType(TensorProto.UNDEFINED)  # 0
+    bool_ = DType(TensorProto.BOOL)  # 9
+    int8 = DType(TensorProto.INT8)  # 3
+    int16 = DType(TensorProto.INT16)  # 5
+    int32 = DType(TensorProto.INT32)  # 6
+    int64 = DType(TensorProto.INT64)  # 7
+    uint8 = DType(TensorProto.UINT8)  # 2
+    uint16 = DType(TensorProto.UINT16)  # 4
+    uint32 = DType(TensorProto.UINT32)  # 12
+    uint64 = DType(TensorProto.UINT64)  # 13
+    float16 = DType(TensorProto.FLOAT16)  # 10
+    float32 = DType(TensorProto.FLOAT)  # 1
+    float64 = DType(TensorProto.DOUBLE)  # 11
+    bfloat16 = DType(TensorProto.BFLOAT16)  # 16
+    complex64 = DType(TensorProto.COMPLEX64)  # 14
+    complex128 = DType(TensorProto.COMPLEX128)  # 15
+    str_ = DType(TensorProto.STRING)  # 8
 
 
 class ElemTypeCstSet(ElemTypeCstInner):
@@ -250,6 +254,9 @@ class ElemType(ElemTypeCst):
 
     @classmethod
     def __class_getitem__(cls, dtype: Union[str, DType]):
+        """
+        Returns a subclass of this one with attribute `dtype`.
+        """
         if isinstance(dtype, str):
             dtype = ElemType.names_int[dtype]
         elif dtype in ElemType.numpy_map:
@@ -422,8 +429,14 @@ class TensorType(WrapperType):
     :param name: name of the type
     """
 
+    main_name = "TensorType"
+
     @classmethod
     def __class_getitem__(cls, *args):
+        """
+        Returns a subclass of this one with two attributes `dtypes`
+        and `shape`.
+        """
         if isinstance(args, tuple) and len(args) == 1 and isinstance(args[0], tuple):
             args = args[0]
         name = None
@@ -500,7 +513,19 @@ class TensorType(WrapperType):
         )
         if "<" in newt.__name__:
             raise NameError(f"Name is wrong {newt.__name__!r}.")
+        if newt.name is None:
+            raise RuntimeError(
+                f"A constraint needs a name but none is given: args={args}."
+            )
         return newt
+
+    @classmethod
+    def supports_dtype(cls, dtype: DType) -> bool:
+        """
+        Determines if the element type `dtype`
+        is within `dtypes`.
+        """
+        return dtype in cls.dtypes
 
     @classmethod
     def type_name(cls) -> str:
@@ -515,14 +540,14 @@ class TensorType(WrapperType):
             set_name = repr(st)
         if cls.shape:
             if cls.name:
-                newt = f"TensorType[{set_name}, {cls.shape!r}, {cls.name!r}]"
+                newt = f"{cls.main_name}[{set_name}, {cls.shape!r}, {cls.name!r}]"
             else:
-                newt = f"TensorType[{set_name}, {cls.shape!r}]"
+                newt = f"{cls.main_name}[{set_name}, {cls.shape!r}]"
         elif cls.name:
-            newt = f"TensorType[{set_name}, {cls.name!r}]"
+            newt = f"{cls.main_name}[{set_name}, {cls.name!r}]"
         else:
-            newt = f"TensorType[{set_name}]"
-        if "<" in newt or "{" in newt:
+            newt = f"{cls.main_name}[{set_name}]"
+        if "<" in newt:
             raise NameError(f"Name is wrong {newt!r}.")
         return newt
 
@@ -558,6 +583,16 @@ class TensorType(WrapperType):
                 if a != b:
                     return False
         return True
+
+
+class OptTensorType(TensorType):
+    """
+    Defines an optional tensor type.
+
+    :param dtype: element type
+    """
+
+    main_name = "OptTensorType"
 
 
 class SequenceType(WrapperType):
@@ -661,7 +696,7 @@ def _make_type(name: str, elem_type: int):
     def class_getitem(cls, shape: Union[int, ShapeType]) -> TensorType:
         if isinstance(shape, int):
             shape = (shape,)
-        return TensorType[elem_type, shape]
+        return TensorType[elem_type, shape, f"mtx{elem_type}"]
 
     new_type = type(name, tuple(), {})
     new_type.__class_getitem__ = classmethod(class_getitem)

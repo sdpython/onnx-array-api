@@ -1,26 +1,16 @@
-=============
 npx.npx_types
 =============
 
 DType
-=====
++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.DType
     :members:
-
-Annotations
-===========
 
 ElemType
 ++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.ElemType
-    :members:
-
-ParType
-+++++++
-
-.. autoclass:: onnx_array_api.npx.npx_types.ParType
     :members:
 
 OptParType
@@ -29,16 +19,40 @@ OptParType
 .. autoclass:: onnx_array_api.npx.npx_types.OptParType
     :members:
 
-TensorType
-++++++++++
+OptTensorType
++++++++++++++
 
-.. autoclass:: onnx_array_api.npx.npx_types.TensorType
+.. autoclass:: onnx_array_api.npx.npx_types.OptTensorType
+    :members:
+
+ParType
++++++++
+
+.. autoclass:: onnx_array_api.npx.npx_types.ParType
+    :members:
+
+Scalar
+++++++
+
+.. autoclass:: onnx_array_api.npx.npx_types.Scalar
     :members:
 
 SequenceType
 ++++++++++++
 
 .. autoclass:: onnx_array_api.npx.npx_types.SequenceType
+    :members:
+
+ShapeType
++++++++++
+
+.. autoclass:: onnx_array_api.npx.npx_types.ShapeType
+    :members:
+
+TensorType
+++++++++++
+
+.. autoclass:: onnx_array_api.npx.npx_types.TensorType
     :members:
 
 TupleType

@@ -103,6 +103,7 @@ from onnx_array_api.npx.npx_types import (
     Int64,
     OptParType,
     TensorType,
+    OptTensorType,
 )
 from onnx_array_api.npx.npx_var import Input, Var
 
@@ -125,35 +126,62 @@ class TestNpx(ExtTestCase):
         self.assertEqual(output.type.tensor_type.elem_type, TensorProto.FLOAT)
 
     def test_tensor(self):
-        dt = TensorType["float32"]
+        dt = TensorType["float32", "F32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
         self.assertEmpty(dt.shape)
-        self.assertEqual(dt.type_name(), "TensorType['float32']")
+        self.assertEqual(dt.type_name(), "TensorType['float32', 'F32']")
 
-        dt = TensorType["float32"]
+        dt = TensorType["float32", "F32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
-        self.assertEqual(dt.type_name(), "TensorType['float32']")
+        self.assertEqual(dt.type_name(), "TensorType['float32', 'F32']")
 
-        dt = TensorType[np.float32]
+        dt = TensorType[np.float32, "F32"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
-        self.assertEqual(dt.type_name(), "TensorType['float32']")
+        self.assertEqual(dt.type_name(), "TensorType['float32', 'F32']")
         self.assertEmpty(dt.shape)
 
-        dt = TensorType[np.str_]
+        dt = TensorType[np.str_, "TEXT"]
         self.assertEqual(len(dt.dtypes), 1)
         self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
-        self.assertEqual(dt.type_name(), "TensorType[strings]")
+        self.assertEqual(dt.type_name(), "TensorType[strings, 'TEXT']")
+        self.assertEmpty(dt.shape)
+
+        self.assertRaise(lambda: TensorType[None], TypeError)
+        self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
+
+    def test_opt_tensor(self):
+        dt = OptTensorType["float32", "F32"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEmpty(dt.shape)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32', 'F32']")
+
+        dt = OptTensorType["float32", "F32"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32', 'F32']")
+
+        dt = OptTensorType[np.float32, "F32"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.float32)
+        self.assertEqual(dt.type_name(), "OptTensorType['float32', 'F32']")
+        self.assertEmpty(dt.shape)
+
+        dt = OptTensorType[np.str_, "TEXT"]
+        self.assertEqual(len(dt.dtypes), 1)
+        self.assertEqual(dt.dtypes[0].dtype, ElemType.str_)
+        self.assertEqual(dt.type_name(), "OptTensorType[strings, 'TEXT']")
         self.assertEmpty(dt.shape)
 
         self.assertRaise(lambda: TensorType[None], TypeError)
         self.assertRaise(lambda: TensorType[{np.float32, np.str_}], TypeError)
 
     def test_superset(self):
-        t1 = TensorType[ElemType.numerics]
-        t2 = TensorType[ElemType.float64]
+        t1 = TensorType[ElemType.numerics, "T"]
+        t2 = TensorType[ElemType.float64, "F64"]
         self.assertTrue(t1.issuperset(t2))
         t1 = Float32[None]
         t2 = Float32[None]
@@ -167,14 +195,14 @@ class TestNpx(ExtTestCase):
         t1 = Float32["N"]
         t2 = Float32[5]
         self.assertTrue(t1.issuperset(t2))
-        t1 = TensorType[ElemType.int64]
+        t1 = TensorType[ElemType.int64, "I"]
         t2 = Int64[1]
         self.assertTrue(t1.issuperset(t2))
 
     def test_sig(self):
         def local1(
-            x: TensorType[ElemType.floats],
-        ) -> TensorType[ElemType.floats]:
+            x: TensorType[ElemType.floats, "T"],
+        ) -> TensorType[ElemType.floats, "T"]:
             return x
 
         def local2(
@@ -2536,13 +2564,17 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": data})
         self.assertEqualArray(y, got[0])
 
-    @unittest.skipIf(True, reason="Fails to follow Array API")
-    def test_get_item(self):
+    def test_get_item_b(self):
         a = EagerNumpyTensor(np.array([True], dtype=np.bool_))
+        i = a[0]
+        self.assertEqualArray(i.numpy(), a.numpy()[0])
+
+    def test_get_item_i8(self):
+        a = EagerNumpyTensor(np.array([5, 6], dtype=np.int8))
         i = a[0]
         self.assertEqualArray(i.numpy(), a.numpy()[0])
 
 
 if __name__ == "__main__":
-    # TestNpx().test_get_item()
+    TestNpx().test_filter()
     unittest.main(verbosity=2)

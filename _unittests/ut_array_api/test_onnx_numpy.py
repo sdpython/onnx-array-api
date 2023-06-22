@@ -1,3 +1,4 @@
+import sys
 import unittest
 import numpy as np
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -18,6 +19,22 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertNotEmpty(matnp[0, 0])
         a = xp.absolute(mat)
         self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
+
+    def test_arange_default(self):
+        a = EagerTensor(np.array([0], dtype=np.int64))
+        b = EagerTensor(np.array([2], dtype=np.int64))
+        mat = xp.arange(a, b)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.arange(0, 2).astype(np.int64))
+
+    def test_arange_step(self):
+        a = EagerTensor(np.array([4], dtype=np.int64))
+        s = EagerTensor(np.array([2], dtype=np.int64))
+        mat = xp.arange(a, step=s)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.arange(4, step=2).astype(np.int64))
 
     def test_zeros_none(self):
         c = EagerTensor(np.array([4, 5], dtype=np.int64))
@@ -52,7 +69,27 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertNotEmpty(matnp[0, 0])
         self.assertEqualArray(matnp, np.full((4, 5), False))
 
+    def test_arange_int00a(self):
+        a = EagerTensor(np.array([0], dtype=np.int64))
+        b = EagerTensor(np.array([0], dtype=np.int64))
+        mat = xp.arange(a, b)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (0,))
+        expected = np.arange(0, 0)
+        if sys.platform == "win32":
+            expected = expected.astype(np.int64)
+        self.assertEqualArray(matnp, expected)
+
+    def test_arange_int00(self):
+        mat = xp.arange(0, 0)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (0,))
+        expected = np.arange(0, 0)
+        if sys.platform == "win32":
+            expected = expected.astype(np.int64)
+        self.assertEqualArray(matnp, expected)
+
 
 if __name__ == "__main__":
-    TestOnnxNumpy().test_zeros_none()
+    TestOnnxNumpy().test_arange_int00()
     unittest.main(verbosity=2)
