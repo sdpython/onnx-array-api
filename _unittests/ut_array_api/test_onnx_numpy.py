@@ -84,5 +84,5 @@ class TestOnnxNumpy(ExtTestCase):
 
 
 if __name__ == "__main__":
-    # TestOnnxNumpy().test_arange_int00()
+    TestOnnxNumpy().test_arange_int00()
     unittest.main(verbosity=2)

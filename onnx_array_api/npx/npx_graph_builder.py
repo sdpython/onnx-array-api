@@ -271,7 +271,7 @@ class _GraphBuilder:
         self.nodes_.append(node)
 
     def _io(
-        self, index: int, name: str, tensor_type: Optional[type], is_input: bool
+        self, index: int, name: str, tensor_type: type, is_input: bool
     ) -> ValueInfoProto:
         """
         Converts an input or output into :class:`onnx.ValueInfoProto`.
@@ -335,16 +335,42 @@ class _GraphBuilder:
                     f"input or output {index!r}."
                 )
             tensor_type = TensorType["undefined"]
-        if len(tensor_type.dtypes) != 1:
+
+        dtype_code = None
+        if len(tensor_type.dtypes) == 1:
+            dtype_code = tensor_type.dtypes[0].dtype
+        else:
+            # Case when the constraints is too broad.
+            # We use the input type if available.
+            if index < len(self.inputs_):
+                use = self.inputs_[index]
+            else:
+                use = None
+                c_name = tensor_type.name
+                # const = self.constraints[c_name]
+                for i in range(len(self.inputs_)):
+                    name = self.inputs_[i].name
+                    if (
+                        name in self.constraints
+                        and self.constraints[name].name == c_name
+                    ):
+                        use = self.inputs_[i]
+            if use is not None:
+                dtype_code = DType(use.type.tensor_type.elem_type)
+
+        if dtype_code is None:
             raise RuntimeError(
                 f"tensor_type is not specific enough ({str(tensor_type)} "
                 f"or its full representation {tensor_type!r}, "
-                f"is_input={is_input}, index={index})."
+                f"is_input={is_input}, index={index}/{len(self.inputs_)}, "
+                f"self.constraints={self.constraints!r}, "
+                f"self.inputs_={self.inputs_})."
             )
+
         if tensor_type.shape is None:
             type_proto = TypeProto()
             tensor_type_proto = type_proto.tensor_type
-            tensor_type_proto.elem_type = tensor_type.dtypes[0].dtype.code
+            tensor_type_proto.elem_type = dtype_code.code
             value_info_proto = ValueInfoProto()
             value_info_proto.name = name
             # tensor_type_proto.shape.dim.extend([])
@@ -355,7 +381,7 @@ class _GraphBuilder:
             # with fixed rank. This can be changed here and in methods
             # `make_key`.
             shape = [None for _ in tensor_type.shape]
-            info = make_tensor_value_info(name, tensor_type.dtypes[0].dtype.code, shape)
+            info = make_tensor_value_info(name, dtype_code.code, shape)
             # check_value_info fails if the shape is left undefined
             check_value_info(info, self.check_context)
         return info

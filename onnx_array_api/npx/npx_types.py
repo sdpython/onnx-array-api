@@ -113,23 +113,23 @@ class ElemTypeCstInner(WrapperType):
 
     __slots__ = []
 
-    undefined = DType(0)
-    bool_ = DType(9)
-    int8 = DType(3)
-    int16 = DType(5)
-    int32 = DType(6)
-    int64 = DType(7)
-    uint8 = DType(2)
-    uint16 = DType(4)
-    uint32 = DType(12)
-    uint64 = DType(13)
-    float16 = DType(10)
-    float32 = DType(1)
-    float64 = DType(11)
-    bfloat16 = DType(16)
-    complex64 = DType(14)
-    complex128 = DType(15)
-    str_ = DType(8)
+    undefined = DType(TensorProto.UNDEFINED)  # 0
+    bool_ = DType(TensorProto.BOOL)  # 9
+    int8 = DType(TensorProto.INT8)  # 3
+    int16 = DType(TensorProto.INT16)  # 5
+    int32 = DType(TensorProto.INT32)  # 6
+    int64 = DType(TensorProto.INT64)  # 7
+    uint8 = DType(TensorProto.UINT8)  # 2
+    uint16 = DType(TensorProto.UINT16)  # 4
+    uint32 = DType(TensorProto.UINT32)  # 12
+    uint64 = DType(TensorProto.UINT64)  # 13
+    float16 = DType(TensorProto.FLOAT16)  # 10
+    float32 = DType(TensorProto.FLOAT)  # 1
+    float64 = DType(TensorProto.DOUBLE)  # 11
+    bfloat16 = DType(TensorProto.BFLOAT16)  # 16
+    complex64 = DType(TensorProto.COMPLEX64)  # 14
+    complex128 = DType(TensorProto.COMPLEX128)  # 15
+    str_ = DType(TensorProto.STRING)  # 8
 
 
 class ElemTypeCstSet(ElemTypeCstInner):
@@ -513,6 +513,10 @@ class TensorType(WrapperType):
         )
         if "<" in newt.__name__:
             raise NameError(f"Name is wrong {newt.__name__!r}.")
+        if newt.name is None:
+            raise RuntimeError(
+                f"A constraint needs a name but none is given: args={args}."
+            )
         return newt
 
     @classmethod
