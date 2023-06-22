@@ -132,7 +132,7 @@ class NumpyTensor:
         input shapes.
         """
         dt = self.dtype
-        return TensorType[dt, self.dims, f"xi{dt.code}"]
+        return TensorType[dt, self.dims, f"xnp{dt.code}"]
 
     @classmethod
     def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:

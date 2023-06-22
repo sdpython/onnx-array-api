@@ -191,7 +191,8 @@ class OrtTensor:
         Different keys usually means same ONNX graph but different
         input shapes.
         """
-        return TensorType[self.dtype, self.dims]
+        dt = self.dtype
+        return TensorType[dt, self.dims, f"xort{dt.code}"]
 
     @classmethod
     def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:
