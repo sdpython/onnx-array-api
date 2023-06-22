@@ -3,6 +3,7 @@ Array API valid for an :class:`EagerNumpyTensor`.
 """
 from typing import Any, Optional
 import numpy as np
+from onnx import TensorProto
 from ..npx.npx_functions import (
     all,
     abs,
@@ -73,21 +74,35 @@ def arange(
     step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
+    use_float = any(
+        map(lambda x: isinstance(x, float), [start_or_stop, stop_or_step, step])
+    )
     if isinstance(start_or_stop, int):
-        start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.int64))
-    if isinstance(start_or_stop, float):
+        start_or_stop = EagerNumpyTensor(
+            np.array([start_or_stop], dtype=np.float64 if use_float else np.int64)
+        )
+    elif isinstance(start_or_stop, float):
         start_or_stop = EagerNumpyTensor(np.array([start_or_stop], dtype=np.float64))
+        assert use_float
 
     if isinstance(stop_or_step, int):
-        stop_or_step = EagerNumpyTensor(np.array([stop_or_step], dtype=np.int64))
-    if isinstance(stop_or_step, float):
+        stop_or_step = EagerNumpyTensor(
+            np.array([stop_or_step], dtype=np.float64 if use_float else np.int64)
+        )
+    elif isinstance(stop_or_step, float):
         stop_or_step = EagerNumpyTensor(np.array([stop_or_step], dtype=np.float64))
+        assert use_float
 
     if isinstance(step, int):
-        step = EagerNumpyTensor(np.array([step], dtype=np.int64))
-    if isinstance(step, float):
+        step = EagerNumpyTensor(
+            np.array([step], dtype=np.float64 if use_float else np.int64)
+        )
+    elif isinstance(step, float):
         step = EagerNumpyTensor(np.array([step], dtype=np.float64))
+        assert use_float
 
+    if dtype is None and use_float:
+        dtype = DType(TensorProto.DOUBLE)
     return generic_arange(start_or_stop, stop_or_step, step, dtype=dtype)
 
 
