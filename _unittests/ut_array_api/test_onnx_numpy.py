@@ -1,3 +1,4 @@
+import sys
 import unittest
 import numpy as np
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -74,13 +75,19 @@ class TestOnnxNumpy(ExtTestCase):
         mat = xp.arange(a, b)
         matnp = mat.numpy()
         self.assertEqual(matnp.shape, (0,))
-        self.assertEqualArray(matnp, np.arange(0, 0))
+        expected = np.arange(0, 0)
+        if sys.platform == "win32":
+            expected = expected.astype(np.int64)
+        self.assertEqualArray(matnp, expected)
 
     def test_arange_int00(self):
         mat = xp.arange(0, 0)
         matnp = mat.numpy()
         self.assertEqual(matnp.shape, (0,))
-        self.assertEqualArray(matnp, np.arange(0, 0))
+        expected = np.arange(0, 0)
+        if sys.platform == "win32":
+            expected = expected.astype(np.int64)
+        self.assertEqualArray(matnp, expected)
 
 
 if __name__ == "__main__":
