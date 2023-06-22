@@ -122,17 +122,18 @@ class NumpyTensor:
         "Returns the shape of the tensor."
         return self._tensor.shape
 
-    @property
-    def tensor_type_dims(self) -> TensorType:
+    def tensor_type_dims(self, name: str) -> TensorType:
         """
         Returns the tensor type of this tensor.
         This property is used to define a key used to cache a jitted function.
         Same keys keys means same ONNX graph.
         Different keys usually means same ONNX graph but different
         input shapes.
+
+        :param name: name of the constraint
         """
         dt = self.dtype
-        return TensorType[dt, self.dims, f"xnp{dt.code}"]
+        return TensorType[dt, self.dims, name]
 
     @classmethod
     def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:

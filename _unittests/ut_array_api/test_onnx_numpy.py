@@ -73,13 +73,13 @@ class TestOnnxNumpy(ExtTestCase):
         b = EagerTensor(np.array([0], dtype=np.int64))
         mat = xp.arange(a, b)
         matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
+        self.assertEqual(matnp.shape, (0,))
         self.assertEqualArray(matnp, np.arange(0, 0))
 
     def test_arange_int00(self):
         mat = xp.arange(0, 0)
         matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
+        self.assertEqual(matnp.shape, (0,))
         self.assertEqualArray(matnp, np.arange(0, 0))
 
 

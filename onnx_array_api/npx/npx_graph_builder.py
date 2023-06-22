@@ -347,7 +347,6 @@ class _GraphBuilder:
             else:
                 use = None
                 c_name = tensor_type.name
-                # const = self.constraints[c_name]
                 for i in range(len(self.inputs_)):
                     name = self.inputs_[i].name
                     if (

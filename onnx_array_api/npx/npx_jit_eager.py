@@ -235,7 +235,7 @@ class JitEager:
                 if isinstance(v, (EagerTensor, JitTensor)) and (
                     i >= len(annot_values) or issubclass(annot_values[i], TensorType)
                 ):
-                    constraints[iname] = v.tensor_type_dims
+                    constraints[iname] = v.tensor_type_dims(annot_values[i].name)
                 elif (
                     v is None
                     and i < len(annot_values)
@@ -278,14 +278,14 @@ class JitEager:
                     )
                     and i not in self.input_to_kwargs_
                 ):
-                    constraints[iname] = v.tensor_type_dims
+                    constraints[iname] = v.tensor_type_dims(iname)
                 else:
                     new_kwargs[iname] = v
         else:
             names = [f"x{i}" for i in range(len(values))]
             new_kwargs = {}
             constraints = {
-                iname: v.tensor_type_dims
+                iname: v.tensor_type_dims(iname)
                 for i, (v, iname) in enumerate(zip(values, names))
                 if isinstance(v, (EagerTensor, JitTensor))
             }
