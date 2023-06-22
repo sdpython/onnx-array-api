@@ -36,6 +36,40 @@ class TestOrtProfile(ExtTestCase):
         prof = ort_profile(optimized, feeds, as_df=False)
         self.assertIsInstance(prof, list)
 
+    def test_ort_profile_first_it_out(self):
+        def l1_loss(x, y):
+            return absolute(x - y).sum()
+
+        def l2_loss(x, y):
+            return ((x - y) ** 2).sum()
+
+        def myloss(x, y):
+            return l1_loss(x[:, 0], y[:, 0]) + l2_loss(x[:, 1], y[:, 1])
+
+        jitted_myloss = jit_onnx(myloss)
+        x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+        y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
+        jitted_myloss(x, y)
+        onx = jitted_myloss.get_onnx()
+        feeds = {"x0": x, "x1": y}
+        self.assertRaise(lambda: ort_optimized_model(onx, "NO"), ValueError)
+        optimized = ort_optimized_model(onx)
+        prof = ort_profile(optimized, feeds)
+        events = {
+            "kernel_time",
+            "fence_before",
+            "fence_after",
+            "SequentialExecutor::Execute",
+            "model_run",
+            "model_loading_array",
+            "session_initialization",
+        }
+        self.assertEqual(set(prof["event_name"]), events)
+        agg = ort_profile(optimized, feeds, first_it_out=True, agg=True)
+        self.assertIsInstance(agg, DataFrame)
+        self.assertLess(agg.shape[0], prof.shape[0])
+        self.assertEqual(set(agg.reset_index(drop=False)["event_name"]), events)
+
     def test_ort_profile_ort_value(self):
         def to_ort_value(m):
             device = C_OrtDevice(C_OrtDevice.cpu(), C_OrtDevice.default_memory(), 0)

@@ -6,6 +6,56 @@ from onnx import ModelProto
 from pandas import DataFrame
 
 
+def post_process_df_profile(
+    df: DataFrame,
+    first_it_out: bool = False,
+    agg: bool = False,
+    agg_op_name: bool = False,
+) -> DataFrame:
+    """
+    Post-processed a dataframe obtained after profiling onnxruntime.
+    It adds a column for a more explicit event name and adds
+    a column for the iteration number
+
+    :param agg: aggregate the result
+    :param first_it_out: leave the first iteration
+        out of the aggregation
+    :param agg_op_name: aggregate on operator name or operator index
+    :return: DataFrame
+    """
+    events = {"kernel_time", "fence_after", "fence_before"}
+
+    def sep_event(s):
+        for e in events:
+            if s.endswith(e):
+                return e
+        return s
+
+    df = df.copy()
+    df["event_name"] = df["name"].apply(sep_event)
+    df["iteration"] = -1
+    current = -1
+    for i in range(df.shape[0]):
+        if df.loc[i, "name"] == "SequentialExecutor::Execute":
+            current += 1
+        df.loc[i, "iteration"] = current
+
+    if not agg:
+        return df
+
+    agg_cols = ["cat", "args_op_name", "args_node_index", "args_provider", "event_name"]
+    if first_it_out:
+        df["it==0"] = (df["iteration"] <= 0).astype(int)
+        agg_cols.insert(0, "it==0")
+    if not agg_op_name:
+        del agg_cols[agg_cols.index("args_node_index")]
+    for c in agg_cols:
+        df[c] = df[c].fillna("")
+    df["dur"] = df["dur"].fillna(0)
+    agg = df[agg_cols + ["dur"]].groupby(agg_cols).sum()
+    return agg
+
+
 def ort_profile(
     filename_or_bytes: Union[str, bytes, ModelProto],
     feeds: Dict[str, numpy.ndarray],
@@ -14,6 +64,9 @@ def ort_profile(
     repeat: int = 10,
     as_df: bool = True,
     providers: Optional[List[str]] = None,
+    first_it_out: bool = False,
+    agg: bool = False,
+    agg_op_name: bool = False,
     **kwargs,
 ) -> Union[List, DataFrame]:
     """
@@ -27,6 +80,9 @@ def ort_profile(
     :param as_df: returns the
     :param providers: list of providers to use when initializing the inference session,
         if None, the default value is `["CPUExecutionProvider"]`
+    :param first_it_out: if aggregated, leaves the first iteration out
+    :param agg: aggregate by event
+    :param agg_op_name: aggregate on operator name or operator index
     :param kwargs: additional parameters when initializing the inference session
     :return: DataFrame or dictionary
     """
@@ -76,7 +132,9 @@ def ort_profile(
                 break
         rows.append(row)
     if as_df:
-        return DataFrame(rows)
+        return post_process_df_profile(
+            DataFrame(rows), first_it_out=first_it_out, agg=agg, agg_op_name=agg_op_name
+        )
     return rows
 
 
