@@ -45,8 +45,16 @@ def ort_profile(
     if providers is None:
         providers = ["CPUExecutionProvider"]
     sess = InferenceSession(obj, sess_options, providers=providers, **kwargs)
-    for i in range(repeat):
-        sess.run(None, feeds)
+    first = list(feeds.values())[0]
+
+    if isinstance(first, numpy.ndarray):
+        for i in range(repeat):
+            sess.run(None, feeds)
+    else:
+        out_names = [o.name for o in sess.get_outputs()]
+        for i in range(repeat):
+            sess._sess.run_with_ort_values(feeds, out_names, None)
+
     prof = sess.end_profiling()
     with open(prof, "r") as f:
         content = f.read()
