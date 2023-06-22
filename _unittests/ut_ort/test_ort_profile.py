@@ -69,6 +69,12 @@ class TestOrtProfile(ExtTestCase):
         self.assertIsInstance(agg, DataFrame)
         self.assertLess(agg.shape[0], prof.shape[0])
         self.assertEqual(set(agg.reset_index(drop=False)["event_name"]), events)
+        agg = ort_profile(
+            optimized, feeds, first_it_out=True, agg=True, agg_op_name=False
+        )
+        self.assertIsInstance(agg, DataFrame)
+        self.assertLess(agg.shape[0], prof.shape[0])
+        self.assertEqual(set(agg.reset_index(drop=False)["event_name"]), events)
 
     def test_ort_profile_ort_value(self):
         def to_ort_value(m):

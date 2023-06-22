@@ -10,7 +10,7 @@ def post_process_df_profile(
     df: DataFrame,
     first_it_out: bool = False,
     agg: bool = False,
-    agg_op_name: bool = False,
+    agg_op_name: bool = True,
 ) -> DataFrame:
     """
     Post-processed a dataframe obtained after profiling onnxruntime.
@@ -43,11 +43,11 @@ def post_process_df_profile(
     if not agg:
         return df
 
-    agg_cols = ["cat", "args_op_name", "args_node_index", "args_provider", "event_name"]
+    agg_cols = ["cat", "args_node_index", "args_op_name", "args_provider", "event_name"]
     if first_it_out:
         df["it==0"] = (df["iteration"] <= 0).astype(int)
         agg_cols.insert(0, "it==0")
-    if not agg_op_name:
+    if agg_op_name:
         del agg_cols[agg_cols.index("args_node_index")]
     for c in agg_cols:
         df[c] = df[c].fillna("")
