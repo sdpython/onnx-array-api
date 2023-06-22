@@ -334,7 +334,7 @@ class _GraphBuilder:
                     f"tensor_type cannot be None for name={name!r} and "
                     f"input or output {index!r}."
                 )
-            tensor_type = TensorType["undefined"]
+            tensor_type = TensorType["undefined", "xxu"]
 
         dtype_code = None
         if len(tensor_type.dtypes) == 1:

@@ -696,7 +696,7 @@ def _make_type(name: str, elem_type: int):
     def class_getitem(cls, shape: Union[int, ShapeType]) -> TensorType:
         if isinstance(shape, int):
             shape = (shape,)
-        return TensorType[elem_type, shape]
+        return TensorType[elem_type, shape, f"mtx{elem_type}"]
 
     new_type = type(name, tuple(), {})
     new_type.__class_getitem__ = classmethod(class_getitem)
