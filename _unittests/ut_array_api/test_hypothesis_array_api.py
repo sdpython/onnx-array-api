@@ -2,7 +2,6 @@ import unittest
 from os import getenv
 from functools import reduce
 from operator import mul
-import numpy as np
 from numpy import array_api as xp
 from hypothesis import given
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -80,8 +79,9 @@ class TestHypothesisArraysApis(ExtTestCase):
         for k, vnp in dtypes.items():
             vonxp = dtypes_onnx[k]
             anp = self.xps.arrays(dtype=vnp, shape=shapes(self.xps))
-            aonxp = self.onxps.arrays(dtype=vnp, shape=shapes(self.onxps))
+            aonxp = self.onxps.arrays(dtype=vonxp, shape=shapes(self.onxps))
             self.assertNotEmpty(anp)
+            self.assertNotEmpty(aonxp)
 
         args_np = []
 
