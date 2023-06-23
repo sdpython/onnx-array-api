@@ -54,6 +54,8 @@ def template_asarray(
     else:
         raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
     if dtype is not None:
+        if not isinstance(dtype, DType):
+            raise TypeError(f"dtype must be a DType not {type(dtype)}.")
         vt = v.astype(dtype)
     else:
         vt = v

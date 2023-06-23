@@ -4,7 +4,6 @@ import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import make_tensor, tensor_dtype_to_np_dtype
 from onnx.numpy_helper import from_array
-from .._helpers import np_dtype_to_tensor_dtype
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
 from .npx_types import (
@@ -225,7 +224,7 @@ def arctanh(
 
 @npxapi_inline
 def astype(
-    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[DType] = 1
+    a: TensorType[ElemType.numerics, "T1"], dtype: ParType[DType] = 1
 ) -> TensorType[ElemType.numerics, "T2"]:
     """
     Cast an array.
@@ -234,8 +233,9 @@ def astype(
         raise TypeError(
             f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
         )
-    to = np_dtype_to_tensor_dtype(dtype)
-    return var(a, op="Cast", to=to)
+    if not isinstance(dtype, DType):
+        raise TypeError(f"dtype must of type DType, not {type(DType)}.")
+    return var(a, op="Cast", to=to.code)
 
 
 @npxapi_inline
@@ -547,6 +547,26 @@ def ones(
         value=make_tensor(name="one", data_type=dtype.code, dims=[1], vals=[1]),
         op="ConstantOfShape",
     )
+
+
+@npxapi_inline
+def ones_like(
+    x: TensorType[ElemType.allowed, "T"],
+    dtype: OptParType[DType] = None,
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    o = make_tensor(
+        name="one",
+        data_type=TensorProto.INT64 if dtype is None else dtype.code,
+        dims=[1],
+        vals=[1],
+    )
+    v = var(x.shape, value=o, op="ConstantOfShape")
+    if dtype is None:
+        return var(v, x, op="CastLike")
+    return v
 
 
 @npxapi_inline

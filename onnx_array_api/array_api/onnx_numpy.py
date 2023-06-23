@@ -13,6 +13,7 @@ from ..npx.npx_functions import (
     isdtype,
     isfinite,
     isnan,
+    ones_like,
     reshape,
     take,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "isfinite",
     "isnan",
     "ones",
+    "ones_like",
     "reshape",
     "take",
     "zeros",
