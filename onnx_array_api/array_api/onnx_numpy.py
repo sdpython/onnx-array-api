@@ -57,6 +57,8 @@ __all__ = [
 
 def asarray(
     a: Any,
+    /,
+    *,
     dtype: Optional[DType] = None,
     order: Optional[str] = None,
     like: Any = None,
@@ -72,8 +74,10 @@ def asarray(
 
 def arange(
     start_or_stop: TensorType[ElemType.int64, "I", (1,)],
+    /,
     stop_or_step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     step: OptTensorType[ElemType.int64, "I", (1,)] = None,
+    *,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     use_float = any(
@@ -110,6 +114,7 @@ def arange(
 
 def ones(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -128,6 +133,7 @@ def ones(
 
 def empty(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -139,6 +145,7 @@ def empty(
 
 def zeros(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -158,6 +165,7 @@ def zeros(
 def full(
     shape: TensorType[ElemType.int64, "I", (None,)],
     fill_value: ParType[Scalar] = None,
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:

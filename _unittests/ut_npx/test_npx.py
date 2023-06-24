@@ -1509,7 +1509,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_identity(self):
-        f = identity_inline(2, dtype=np.float64)
+        f = identity_inline(n=2, dtype=np.float64)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
         self.assertIn('name: "dtype"', str(onx))
         z = np.identity(2).astype(np.float64)
@@ -1518,7 +1518,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_identity_uint8(self):
-        f = identity_inline(2, dtype=np.uint8)
+        f = identity_inline(n=2, dtype=np.uint8)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
         self.assertIn('name: "dtype"', str(onx))
         z = np.identity(2).astype(np.uint8)

@@ -1,8 +1,8 @@
 import unittest
+import warnings
 from os import getenv
 from functools import reduce
 from operator import mul
-from numpy import array_api as xp
 from hypothesis import given
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.array_api import onnx_numpy as onxp
@@ -42,6 +42,10 @@ class TestHypothesisArraysApis(ExtTestCase):
 
     @classmethod
     def setUpClass(cls):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            from numpy import array_api as xp
+
         api_version = getenv(
             "ARRAY_API_TESTS_VERSION",
             getattr(xp, "__array_api_version__", TestHypothesisArraysApis.VERSION),
@@ -97,12 +101,11 @@ class TestHypothesisArraysApis(ExtTestCase):
 
         args_onxp = []
 
-        @given(
-            x=self.onxps.arrays(
-                dtype=dtypes_onnx["integer_dtypes"], shape=shapes(self.onxps)
-            ),
-            kw=array_api_kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes()),
-        )
+        xshape = shapes(self.onxps)
+        xx = self.onxps.arrays(dtype=dtypes_onnx["integer_dtypes"], shape=xshape)
+        kw = array_api_kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes())
+
+        @given(x=xx, kw=kw)
         def fctonx(x, kw):
             args_onxp.append((x, kw))
 

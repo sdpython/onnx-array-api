@@ -2,6 +2,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 import numpy as np
+from onnx import TensorProto
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
@@ -193,7 +194,7 @@ class TestOrtTensor(ExtTestCase):
             raise AssertionError(f"Function is not using argument:\n{onx}")
 
     def test_astype(self):
-        f = absolute_inline(copy_inline(Input("A")).astype(np.float32))
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array([[-5, 6]], dtype=np.float64)
         z = np.abs(x.astype(np.float32))
@@ -204,7 +205,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_astype0(self):
-        f = absolute_inline(copy_inline(Input("A")).astype(np.float32))
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array(-5, dtype=np.float64)
         z = np.abs(x.astype(np.float32))
