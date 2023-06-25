@@ -76,6 +76,10 @@ class NumpyTensor:
         "usual"
         return f"{self.__class__.__name__}({self._tensor!r})"
 
+    def __len__(self):
+        "usual"
+        return len(self._tensor)
+
     def numpy(self):
         "Returns the array converted into a numpy array."
         return self._tensor

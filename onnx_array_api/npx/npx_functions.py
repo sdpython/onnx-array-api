@@ -119,7 +119,6 @@ def arange(
         "I",
         (1,),
     ],
-    /,
     stop_or_step: OptTensorType[
         {
             ElemType.int16,
@@ -142,7 +141,6 @@ def arange(
         "I",
         (1,),
     ] = None,
-    *,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."
@@ -683,6 +681,10 @@ def reshape(
     """
     if isinstance(shape, int):
         shape = cst(np.array([shape], dtype=np.int64))
+        return var(x, shape, op="Reshape")
+    if isinstance(shape, tuple) and len(shape) == 0:
+        shape = cst(np.array([-1], dtype=np.int64))
+        return var(x, shape, op="Reshape")
     shape_reshaped = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
     return var(x, shape_reshaped, op="Reshape")
 

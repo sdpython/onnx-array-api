@@ -74,10 +74,8 @@ def asarray(
 
 def arange(
     start_or_stop: TensorType[ElemType.int64, "I", (1,)],
-    /,
     stop_or_step: OptTensorType[ElemType.int64, "I", (1,)] = None,
     step: OptTensorType[ElemType.int64, "I", (1,)] = None,
-    *,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     use_float = any(

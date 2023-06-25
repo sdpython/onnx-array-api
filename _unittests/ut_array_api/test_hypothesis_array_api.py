@@ -114,4 +114,7 @@ class TestHypothesisArraysApis(ExtTestCase):
 
 
 if __name__ == "__main__":
+    cl = TestHypothesisArraysApis()
+    cl.setUpClass()
+    cl.test_scalar_strategies()
     unittest.main(verbosity=2)

@@ -243,9 +243,22 @@ class JitEager:
                 ):
                     constraints[iname] = annot_values[i]
                     kwargs_to_input[iname] = i, annot_values[i]
+                elif (
+                    v is not None
+                    and i < len(annot_values)
+                    and issubclass(annot_values[i], TensorType)
+                ):
+                    constraints[iname] = annot_values[i]
+                    kwargs_to_input[iname] = i, annot_values[i]
                 else:
                     new_kwargs[iname] = v
                     input_to_kwargs[i] = iname
+                    if iname == "shape":
+                        raise RuntimeError(
+                            f"Inconsistency for function {self.f}, iname={iname!r}, "
+                            f"i={i}, v={v!r}, annot_values={annot_values}."
+                        )
+
             if self.input_to_kwargs_ is None:
                 self.n_inputs_ = (
                     len(values) - len(input_to_kwargs) + len(kwargs_to_input)
@@ -399,6 +412,13 @@ class JitEager:
                 new_kwargs[self.input_to_kwargs_[i]] = v
             else:
                 new_values.append(v)
+        if "shape" in new_kwargs:
+            raise RuntimeError(
+                f"Inconsistency for function {self.f}, "
+                f"values={values}, kwargs={kwargs}, ",
+                f"new_values={new_values}, new_kwargs={new_kwargs}, "
+                f"self.input_to_kwargs_={self.input_to_kwargs_}",
+            )
         return tuple(new_values), new_kwargs
 
     def jit_call(self, *values, **kwargs):
@@ -466,8 +486,8 @@ class JitEager:
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
-                f"dtypes={[x.dtype for x in values]}, "
-                f"shapes={[x.shape for x in values]}, "
+                f"dtypes={[getattr(x, 'dtype', type(x)) for x in values]}, "
+                f"shapes={[getattr(x, 'shape', len(x)) for x in values]}, "
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
                 f"f={self.f} from module {self.f.__module__!r} "
@@ -658,7 +678,7 @@ class EagerOnnx(JitEager):
                             tuple,
                             slice,
                             type,
-                            np.ndarray,
+                            # np.ndarray,
                             DType,
                         ),
                     ),
