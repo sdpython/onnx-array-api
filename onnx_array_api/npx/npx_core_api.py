@@ -8,6 +8,15 @@ from .npx_tensors import EagerTensor
 from .npx_types import DType, ElemType, OptParType, ParType, TupleType
 from .npx_var import Cst, Input, ManyIdentity, Par, Var
 
+# list of function arguments the API can receive as tuple.
+_arg_name_as_tuple = {"perm"}
+
+
+class args_tuple(tuple):
+    """Overwrites a tuple to make the distinction later in the code."""
+
+    pass
+
 
 def cst(*args, **kwargs):
     """
@@ -82,6 +91,17 @@ def _process_parameter(fn, sig, k, v, new_pars, inline):
                 k,
                 dtype=ParType[type(v)],
                 value=v,
+                parent_op=(fn.__module__, fn.__name__, 0),
+            )
+        return
+    if isinstance(v, tuple) and k in _arg_name_as_tuple:
+        if inline:
+            new_pars[k] = args_tuple(v)
+        else:
+            new_pars[k] = Par(
+                k,
+                dtype=ParType[type(v)],
+                value=args_tuple,
                 parent_op=(fn.__module__, fn.__name__, 0),
             )
         return

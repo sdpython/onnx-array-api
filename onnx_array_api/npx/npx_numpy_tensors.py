@@ -21,12 +21,24 @@ class NumpyTensor:
         """
         Wraps class :class:`onnx.reference.ReferenceEvaluator`
         to have a signature closer to python function.
+
+        :param tensor_class: class tensor such as :class:`NumpyTensor`
+        :param input_names: input names
+        :param onx: onnx model
+        :param f: unused except in error messages
         """
 
-        def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
+        def __init__(
+            self,
+            tensor_class: type,
+            input_names: List[str],
+            onx: ModelProto,
+            f: Callable,
+        ):
             self.ref = ReferenceEvaluator(onx, new_ops=[ConstantOfShape])
             self.input_names = input_names
             self.tensor_class = tensor_class
+            self._f = f
 
         def run(self, *inputs: List["NumpyTensor"]) -> List["NumpyTensor"]:
             """
@@ -38,15 +50,19 @@ class NumpyTensor:
             if len(inputs) != len(self.input_names):
                 raise ValueError(
                     f"Expected {len(self.input_names)} inputs but got {len(inputs)}, "
-                    f"self.input_names={self.input_names}, inputs={inputs}."
+                    f"self.input_names={self.input_names}, "
+                    f"inputs={inputs}, f={self._f}."
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
                 if inp is None:
                     feeds[name] = None
                     continue
-                if not isinstance(inp, EagerTensor):
-                    raise TypeError(f"Unexpected type {type(inp)} for input {name!r}.")
+                if not isinstance(inp, (EagerTensor, JitTensor)):
+                    raise TypeError(
+                        f"Unexpected type {type(inp)} for input {name!r}, "
+                        f"inp={inp!r}, f={self._f}."
+                    )
                 feeds[name] = inp.value
             res = self.ref.run(None, feeds)
             return list(map(self.tensor_class, res))
@@ -145,7 +161,9 @@ class NumpyTensor:
         return TensorType[dt, self.dims, name]
 
     @classmethod
-    def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:
+    def create_function(
+        cls: Any, input_names: List[str], onx: ModelProto, f: Callable
+    ) -> Callable:
         """
         Creates a python function calling the onnx backend
         used by this class.
@@ -153,7 +171,7 @@ class NumpyTensor:
         :param onx: onnx model
         :return: python function
         """
-        return cls.Evaluator(cls, input_names, onx)
+        return cls.Evaluator(cls, input_names, onx, f=f)
 
     @classmethod
     def get_opsets(cls, opsets):

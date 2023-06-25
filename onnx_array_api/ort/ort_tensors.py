@@ -196,7 +196,9 @@ class OrtTensor:
         return TensorType[dt, self.dims, name]
 
     @classmethod
-    def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:
+    def create_function(
+        cls: Any, input_names: List[str], onx: ModelProto, f: Callable
+    ) -> Callable:
         """
         Creates a python function calling the onnx backend
         used by this class.
@@ -204,7 +206,7 @@ class OrtTensor:
         :param onx: onnx model
         :return: python function
         """
-        return cls.Evaluator(cls, input_names, onx)
+        return cls.Evaluator(cls, input_names, onx, f=f)
 
 
 class OrtCommon:

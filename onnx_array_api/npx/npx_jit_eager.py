@@ -349,7 +349,7 @@ class JitEager:
                     f"and inputs={onx.graph.input}."
                 )
 
-        exe = self.tensor_class.create_function(names, onx)
+        exe = self.tensor_class.create_function(names, onx, f=self.f)
         self.info("-", "to_jit")
         return onx, exe
 
