@@ -74,7 +74,7 @@ def _process_parameter(fn, sig, k, v, new_pars, inline):
                 parent_op=(fn.__module__, fn.__name__, 0),
             )
         return
-    if isinstance(v, (int, float, str, tuple, DType)):
+    if isinstance(v, (int, float, str, DType)):
         if inline:
             new_pars[k] = v
         else:
@@ -85,7 +85,7 @@ def _process_parameter(fn, sig, k, v, new_pars, inline):
                 parent_op=(fn.__module__, fn.__name__, 0),
             )
         return
-    if isinstance(v, (Cst, Var)):
+    if isinstance(v, (Cst, Var, tuple)):
         raise TypeError(
             f"Parameter {k!r} is a tensor ({type(v)}), it is not "
             f"supported for a named parameter."

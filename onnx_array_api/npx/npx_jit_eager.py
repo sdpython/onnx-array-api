@@ -574,6 +574,19 @@ class EagerOnnx(JitEager):
     :param ir_version: defines the IR version to use
     """
 
+    allowed_input_types = (
+        EagerTensor,
+        Cst,
+        int,
+        bool,
+        float,
+        tuple,
+        slice,
+        type,
+        # np.ndarray,
+        DType,
+    )
+
     def __init__(
         self,
         f: Callable,
@@ -616,6 +629,7 @@ class EagerOnnx(JitEager):
                     new_args.append(
                         self.tensor_class(np.array(list(n), dtype=np.int64))
                     )
+                    modified = True
                 elif any(map(lambda t: isinstance(t, Var), n)):
                     raise TypeError(
                         f"Unexpected types in tuple "
@@ -669,18 +683,7 @@ class EagerOnnx(JitEager):
                     lambda t: t is not None
                     and not isinstance(
                         t,
-                        (
-                            EagerTensor,
-                            Cst,
-                            int,
-                            bool,
-                            float,
-                            tuple,
-                            slice,
-                            type,
-                            # np.ndarray,
-                            DType,
-                        ),
+                        EagerOnnx.allowed_input_types,
                     ),
                     args,
                 )

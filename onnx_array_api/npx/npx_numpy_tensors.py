@@ -42,7 +42,12 @@ class NumpyTensor:
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
-                feeds[name] = None if inp is None else inp.value
+                if inp is None:
+                    feeds[name] = None
+                    continue
+                if not isinstance(inp, EagerTensor):
+                    raise TypeError(f"Unexpected type {type(inp)} for input {name!r}.")
+                feeds[name] = inp.value
             res = self.ref.run(None, feeds)
             return list(map(self.tensor_class, res))
 
