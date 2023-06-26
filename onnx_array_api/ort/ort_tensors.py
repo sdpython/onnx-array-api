@@ -68,9 +68,20 @@ class OrtTensor:
         """
         Wraps class :class:`onnxruntime.InferenceSession`
         to have a signature closer to python function.
+
+        :param tensor_class: class tensor such as :class:`NumpyTensor`
+        :param input_names: input names
+        :param onx: onnx model
+        :param f: unused except in error messages
         """
 
-        def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
+        def __init__(
+            self,
+            tensor_class: type,
+            input_names: List[str],
+            onx: ModelProto,
+            f: Callable = None,
+        ):
             try:
                 self.ref = InferenceSession(
                     onx.SerializeToString(),
@@ -102,6 +113,7 @@ class OrtTensor:
             self.tensor_class = tensor_class
             self.output_names = [output.name for output in self.ref._outputs_meta]
             self.run_options = RunOptions()
+            self._f = f
 
         def run(self, *inputs: List["OrtTensor"]) -> List["OrtTensor"]:
             """
@@ -113,7 +125,7 @@ class OrtTensor:
             if len(inputs) != len(self.input_names):
                 raise ValueError(
                     f"Expected {len(self.input_names)} inputs but got "
-                    f"len(inputs)={len(inputs)}."
+                    f"len(inputs)={len(inputs)}, f={self._f}."
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
