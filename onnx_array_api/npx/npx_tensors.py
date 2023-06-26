@@ -20,6 +20,15 @@ class EagerTensor(BaseArrayApi):
     :class:`BaseArrayApi`.
     """
 
+    @classmethod
+    def __class_getitem__(cls, tensor_type: type):
+        """
+        Returns tensor_type.
+        """
+        if not issubclass(tensor_type, TensorType):
+            raise TypeError(f"Unexpected type {tensor_type!r}.")
+        return tensor_type
+
     def __iter__(self):
         """
         The :epkg:`Array API` does not define this function (2022/12).

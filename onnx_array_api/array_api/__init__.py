@@ -1,3 +1,5 @@
+from typing import Any, Callable, List, Dict
+import warnings
 import numpy as np
 from onnx import TensorProto
 from .._helpers import np_dtype_to_tensor_dtype
@@ -32,11 +34,37 @@ def _iinfo(dtype):
     return nres
 
 
-def _finalize_array_api(module):
+def array_api_wrap_function(f: Callable, TEagerTensor: type) -> Callable:
+    """
+    Converts an eager function takeing EagerTensor into a function
+    available through an Array API.
+
+    :param callable: function
+    :param TEagerTensor: EagerTensor class
+    :return: new function
+    """
+
+    def wrap(*args: List[Any], **kwargs: Dict[str, Any]) -> Any:
+        new_args = []
+        for a in args:
+            if isinstance(a, np.ndarray):
+                b = TEagerTensor(a)
+            else:
+                b = a
+            new_args.append(b)
+        return f(TEagerTensor, *new_args, **kwargs)
+
+    wrap.__doc__ = f.__doc__
+    return wrap
+
+
+def _finalize_array_api(module, function_names, TEagerTensor):
     """
     Adds common attributes to Array API defined in this modules
     such as types.
     """
+    from . import _onnx_common
+
     module.float16 = DType(TensorProto.FLOAT16)
     module.float32 = DType(TensorProto.FLOAT)
     module.float64 = DType(TensorProto.DOUBLE)
@@ -53,3 +81,10 @@ def _finalize_array_api(module):
     setattr(module, "str", DType(TensorProto.STRING))
     setattr(module, "finfo", _finfo)
     setattr(module, "iinfo", _iinfo)
+
+    for name in function_names:
+        f = getattr(_onnx_common, name, None)
+        if f is None:
+            warnings.warn(f"Function {name} is not available in {module}!r")
+            continue
+        setattr(module, name, array_api_wrap_function(f, TEagerTensor))
