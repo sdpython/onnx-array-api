@@ -26,6 +26,7 @@ def _finalize():
             "isnan",
             "reshape",
             "take",
+            "zeros",
         ],
         EagerOrtTensor,
     )
