@@ -238,7 +238,8 @@ def arctanh(
 
 @npxapi_inline
 def astype(
-    a: TensorType[ElemType.numerics, "T1"], dtype: ParType[DType] = 1, /
+    a: TensorType[ElemType.numerics, "T1"],
+    dtype: ParType[DType] = 1,
 ) -> TensorType[ElemType.numerics, "T2"]:
     """
     Cast an array.
