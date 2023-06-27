@@ -12,24 +12,7 @@ def _finalize():
     """
     from . import onnx_ort
 
-    _finalize_array_api(
-        onnx_ort,
-        [
-            "all",
-            "abs",
-            "absolute",
-            "asarray",
-            "astype",
-            "equal",
-            "isdtype",
-            "isfinite",
-            "isnan",
-            "reshape",
-            "take",
-            "zeros",
-        ],
-        EagerOrtTensor,
-    )
+    _finalize_array_api(onnx_ort, None, EagerOrtTensor)
 
 
 _finalize()

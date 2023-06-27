@@ -18,8 +18,10 @@ class TestSklearnArrayAPI(ExtTestCase):
     )
     @ignore_warnings(DeprecationWarning)
     def test_sklearn_array_api_linear_discriminant(self):
-        X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-        y = np.array([1, 1, 1, 2, 2, 2])
+        X = np.array(
+            [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float64
+        )
+        y = np.array([1, 1, 1, 2, 2, 2], dtype=np.int64)
         ana = LinearDiscriminantAnalysis()
         ana.fit(X, y)
         expected = ana.predict(X)

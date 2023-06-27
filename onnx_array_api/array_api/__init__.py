@@ -6,6 +6,30 @@ from .._helpers import np_dtype_to_tensor_dtype
 from ..npx.npx_types import DType
 
 
+supported_functions = [
+    "abs",
+    "absolute",
+    "all",
+    "any",
+    "arange",
+    "asarray",
+    "astype",
+    "empty",
+    "equal",
+    "full",
+    "isdtype",
+    "isfinite",
+    "isinf",
+    "isnan",
+    "ones",
+    "ones_like",
+    "reshape",
+    "sum",
+    "take",
+    "zeros",
+]
+
+
 def _finfo(dtype):
     """
     Similar to :class:`numpy.finfo`.
@@ -81,6 +105,9 @@ def _finalize_array_api(module, function_names, TEagerTensor):
     setattr(module, "str", DType(TensorProto.STRING))
     setattr(module, "finfo", _finfo)
     setattr(module, "iinfo", _iinfo)
+
+    if function_names is None:
+        function_names = supported_functions
 
     for name in function_names:
         f = getattr(_onnx_common, name, None)

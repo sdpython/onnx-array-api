@@ -54,12 +54,6 @@ def all(
     See :func:`numpy.all`.
     If input x is empty, the answer is True.
     """
-    # size = var(x, op="Size")
-    # empty = var(size, cst(np.array(0, dtype=np.int64)), op="Equal")
-
-    # z = make_tensor_value_info("Z", TensorProto.BOOL, [1])
-    # g1 = make_graph([make_node("Constant", [], ["Z"], value_bool=[True])], [], [z])
-
     xi = var(x, op="Cast", to=TensorProto.INT64)
 
     if axis is None:
@@ -104,6 +98,35 @@ def amin(
     See :func:`numpy.amin`.
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
+
+
+@npxapi_inline
+def any(
+    x: TensorType[ElemType.bool_, "T"],
+    /,
+    *,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
+    keepdims: ParType[int] = 0,
+) -> TensorType[ElemType.bool_, "T"]:
+    """
+    See :func:`numpy.any`.
+    """
+    xi = var(x, op="Cast", to=TensorProto.INT64)
+
+    if axis is None:
+        new_shape = cst(np.array([-1], dtype=np.int64))
+        xifl = var(xi, new_shape, op="Reshape")
+        # in case xifl is empty, we need to add one element
+        one = cst(np.array([0], dtype=np.int64))
+        xifl1 = var(xifl, one, op="Concat", axis=0)
+        red = xifl1.max(keepdims=keepdims)
+    else:
+        if isinstance(axis, int):
+            axis = [axis]
+        if isinstance(axis, (tuple, list)):
+            axis = cst(np.array(axis, dtype=np.int64))
+        red = xi.max(axis, keepdims=keepdims)
+    return var(red, cst(1), op="Equal")
 
 
 @npxapi_inline
@@ -551,6 +574,12 @@ def isfinite(
 
 
 @npxapi_inline
+def isinf(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
+    "See :func:`numpy.isnan`."
+    return var(x, op="IsInf")
+
+
+@npxapi_inline
 def isnan(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
@@ -754,6 +783,32 @@ def squeeze(
     if isinstance(axis, (tuple, list)):
         axis = cst(np.array(axis, dtype=np.int64))
     return var(x, axis, op="Squeeze")
+
+
+@npxapi_inline
+def sum(
+    x: TensorType[ElemType.numerics, "T"],
+    /,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
+    *,
+    dtype: OptParType[DType] = None,
+    keepdims: ParType[int] = 0,
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.sum`."
+    if axis is None:
+        m1 = cst(np.array([-1], dtype=np.int64))
+        flat = var(x, m1, op="Reshape")
+        axis = cst(np.array([0], dtype=np.int64))
+        res = var(flat, axis, op="ReduceSum", keepdims=keepdims)
+    else:
+        if isinstance(axis, int):
+            axis = [axis]
+        elif isinstance(axis, (tuple, list)):
+            axis = cst(np.array(axis, dtype=np.int64))
+        res = var(x, axis, op="Sum", keepdims=keepdims)
+    if dtype is None:
+        return res
+    return var(res, op="Cast", to=dtype.code)
 
 
 @npxapi_inline

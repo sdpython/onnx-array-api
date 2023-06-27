@@ -12,29 +12,7 @@ def _finalize():
     """
     from . import onnx_numpy
 
-    _finalize_array_api(
-        onnx_numpy,
-        [
-            "abs",
-            "absolute",
-            "all",
-            "arange",
-            "asarray",
-            "astype",
-            "empty",
-            "equal",
-            "full",
-            "isdtype",
-            "isfinite",
-            "isnan",
-            "ones",
-            "ones_like",
-            "reshape",
-            "take",
-            "zeros",
-        ],
-        EagerNumpyTensor,
-    )
+    _finalize_array_api(onnx_numpy, None, EagerNumpyTensor)
 
 
 _finalize()
