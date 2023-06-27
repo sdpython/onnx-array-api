@@ -13,41 +13,19 @@ from ..npx.npx_tensors import EagerTensor
 from ..npx.npx_array_api import BaseArrayApi
 from ..npx.npx_functions import (
     abs as generic_abs,
-    absolute as generic_absolute,
-    all as generic_all,
-    any as generic_any,
     arange as generic_arange,
-    astype as generic_astype,
-    copy as generic_copy,
-    equal as generic_equal,
     full as generic_full,
-    isdtype as generic_isdtype,
-    isfinite as generic_isfinite,
-    isinf as generic_isinf,
-    isnan as generic_isnan,
     ones as generic_ones,
-    ones_like as generic_ones_like,
-    reshape as generic_reshape,
-    sum as generic_sum,
-    take as generic_take,
     zeros as generic_zeros,
 )
 
 
+# These functions with no specific code do not have to be
+# implemented. They are automatically added in
+# :mod:`onnx_array_api.array_api`. It needs
+# to be added to `onnx_array_api.array_api.supported_functions`.
 def abs(TEagerTensor: type, *args, **kwargs):
     return generic_abs(*args, **kwargs)
-
-
-def absolute(TEagerTensor: type, *args, **kwargs):
-    return generic_absolute(*args, **kwargs)
-
-
-def all(TEagerTensor: type, *args, **kwargs):
-    return generic_all(*args, **kwargs)
-
-
-def any(TEagerTensor: type, *args, **kwargs):
-    return generic_any(*args, **kwargs)
 
 
 def asarray(
@@ -149,14 +127,6 @@ def arange(
     return generic_arange(start_or_stop, stop_or_step, step, dtype=dtype)
 
 
-def astype(TEagerTensor: type, *args, **kwargs):
-    return generic_astype(*args, **kwargs)
-
-
-def copy(TEagerTensor: type, *args, **kwargs):
-    return generic_copy(*args, **kwargs)
-
-
 def empty(
     TEagerTensor: type,
     shape: EagerTensor[TensorType[ElemType.int64, "I", (None,)]],
@@ -168,10 +138,6 @@ def empty(
         "ONNX assumes there is no inplace implementation. "
         "empty function is only used in that case."
     )
-
-
-def equal(TEagerTensor: type, *args, **kwargs):
-    return generic_equal(*args, **kwargs)
 
 
 def full(
@@ -202,22 +168,6 @@ def full(
     return generic_full(shape, fill_value=value, dtype=dtype, order=order)
 
 
-def isdtype(TEagerTensor: type, *args, **kwargs):
-    return generic_isdtype(*args, **kwargs)
-
-
-def isfinite(TEagerTensor: type, *args, **kwargs):
-    return generic_isfinite(*args, **kwargs)
-
-
-def isinf(TEagerTensor: type, *args, **kwargs):
-    return generic_isinf(*args, **kwargs)
-
-
-def isnan(TEagerTensor: type, *args, **kwargs):
-    return generic_isnan(*args, **kwargs)
-
-
 def ones(
     TEagerTensor: type,
     shape: EagerTensor[TensorType[ElemType.int64, "I", (None,)]],
@@ -236,22 +186,6 @@ def ones(
             order=order,
         )
     return generic_ones(shape, dtype=dtype, order=order)
-
-
-def ones_like(TEagerTensor: type, *args, **kwargs):
-    return generic_ones_like(*args, **kwargs)
-
-
-def reshape(TEagerTensor: type, *args, **kwargs):
-    return generic_reshape(*args, **kwargs)
-
-
-def sum(TEagerTensor: type, *args, **kwargs):
-    return generic_sum(*args, **kwargs)
-
-
-def take(TEagerTensor: type, *args, **kwargs):
-    return generic_take(*args, **kwargs)
 
 
 def zeros(

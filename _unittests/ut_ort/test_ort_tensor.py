@@ -238,5 +238,4 @@ class TestOrtTensor(ExtTestCase):
 
 
 if __name__ == "__main__":
-    # TestNpx().test_eager_numpy()
     unittest.main(verbosity=2)

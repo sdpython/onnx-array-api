@@ -4,6 +4,7 @@ import numpy as np
 from onnx import TensorProto
 from .._helpers import np_dtype_to_tensor_dtype
 from ..npx.npx_types import DType
+from ..npx import npx_functions
 
 
 supported_functions = [
@@ -112,6 +113,11 @@ def _finalize_array_api(module, function_names, TEagerTensor):
     for name in function_names:
         f = getattr(_onnx_common, name, None)
         if f is None:
-            warnings.warn(f"Function {name} is not available in {module}!r")
-            continue
+            f2 = getattr(npx_functions, name, None)
+            if f2 is None:
+                warnings.warn(f"Function {name!r} is not available in {module!r}.")
+                continue
+            f = lambda TEagerTensor, *args, _f=f2, **kwargs: _f(  # noqa: E731
+                *args, **kwargs
+            )
         setattr(module, name, array_api_wrap_function(f, TEagerTensor))
