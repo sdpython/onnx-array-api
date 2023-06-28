@@ -56,7 +56,7 @@ class OrtTensor:
         """
         if device is None:
             device = OrtTensor.CPU
-        return OrtTensor(C_OrtValue.ortvalue_from_numpy(value, device))
+        return OrtTensor(C_OrtValue.ortvalue_from_numpy(value, device), _hold=value)
 
     def numpy(self) -> np.ndarray:
         """
@@ -73,6 +73,11 @@ class OrtTensor:
         :param input_names: input names
         :param onx: onnx model
         :param f: unused except in error messages
+        :param _hold: :epkg:`onnxruntime` does not copy the data if it comes
+            from a numpy array on CPU it does not hold any reference on it.
+            *_hold* is used to stored the underlying numpy array hosting the
+            data for an OrtTensor if it comes from it. It ensures
+            the garbage collector does not remove it.
         """
 
         def __init__(
@@ -135,13 +140,24 @@ class OrtTensor:
             )
             return list(map(inputs[0].__class__, res))
 
-    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor", np.ndarray]):
+    def __init__(
+        self,
+        tensor: Union[C_OrtValue, "OrtTensor", np.ndarray],
+        _hold: Optional[np.ndarray] = None,
+    ):
         if isinstance(tensor, C_OrtValue):
             self._tensor = tensor
+            self._hold = _hold
         elif isinstance(tensor, OrtTensor):
             self._tensor = tensor._tensor
+            self._hold = _hold
         elif isinstance(tensor, np.ndarray):
+            if _hold is not None:
+                raise RuntimeError(
+                    "tensor cannot be a numpy array and _hold be not None."
+                )
             self._tensor = C_OrtValue.ortvalue_from_numpy(tensor, OrtTensor.CPU)
+            self._hold = tensor
         else:
             raise ValueError(f"An OrtValue is expected not {type(tensor)}.")
 

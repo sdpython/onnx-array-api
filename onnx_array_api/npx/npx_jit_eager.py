@@ -1,9 +1,8 @@
 from inspect import signature
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
 import numpy as np
-
+from onnx import ModelProto
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import DType, OptTensorType, TensorType
 from .npx_var import Cst, Input, Var
@@ -57,6 +56,8 @@ class JitEager:
         already_eager: Optional[bool] = None,
         args: Optional[List[Any]] = None,
         kwargs: Optional[Dict[str, Any]] = None,
+        key: Optional[Tuple[Any, ...]] = None,
+        onx: Optional[ModelProto] = None,
     ):
         """
         Logs a status.
@@ -64,23 +65,29 @@ class JitEager:
         if prefix is None:
             logger.info("")
             return
-        logger.info(
-            "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s cl=%s me=%s mekw=%s ae=%s",
-            prefix,
-            self.__class__.__name__,
-            method_name[:6],
-            len(self.onxs),
-            self.n_inputs_,
-            0 if self.input_to_kwargs_ is None else 1,
-            0 if self.kwargs_to_input_ is None else 1,
-            self.f.__module__,
-            self.f.__name__,
-            self.tensor_class.__name__,
-            self.method_name_ or "",
-            "" if kwargs is None else kwargs.get("method_name", ""),
-            "" if already_eager is None else (1 if already_eager else 0),
-        )
-        if args is not None or kwargs is not None:
+        if key is None:
+            logger.info(
+                "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s "
+                "cl=%s me=%s mekw=%s ae=%s",
+                prefix,
+                self.__class__.__name__,
+                method_name[:6],
+                len(self.onxs),
+                self.n_inputs_,
+                0 if self.input_to_kwargs_ is None else 1,
+                0 if self.kwargs_to_input_ is None else 1,
+                self.f.__module__,
+                self.f.__name__,
+                self.tensor_class.__name__,
+                self.method_name_ or "",
+                "" if kwargs is None else kwargs.get("method_name", ""),
+                "" if already_eager is None else (1 if already_eager else 0),
+            )
+        if method_name in ("jit_call", "jit_call_key") and (
+            args is not None or kwargs is not None
+        ):
+            if key is not None:
+                logger.debug("---- key=%s", key)
             logger.debug(
                 "---- [%s] [%s]",
                 "" if args is None else str(args),
@@ -476,6 +483,7 @@ class JitEager:
 
         values, kwargs = self.move_input_to_kwargs(values, kwargs)
         key = self.make_key(*values, **kwargs)
+        self.info("=", "jit_call_key", key=key, args=values, kwargs=kwargs)
         if self.method_name_ is None and "method_name" in key:
             pos = list(key).index("method_name")
             self.method_name_ = key[pos + 2]
