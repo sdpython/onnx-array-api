@@ -3,6 +3,7 @@ black
 coverage
 flake8
 furo
+hypothesis
 isort
 joblib
 lightgbm

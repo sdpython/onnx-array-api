@@ -1,9 +1,8 @@
 from inspect import signature
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
 import numpy as np
-
+from onnx import ModelProto
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import DType, OptTensorType, TensorType
 from .npx_var import Cst, Input, Var
@@ -50,27 +49,50 @@ class JitEager:
         self.kwargs_to_input_ = None
         self.method_name_ = None
 
-    def info(self, prefix: Optional[str] = None, method_name: Optional[str] = None):
+    def info(
+        self,
+        prefix: Optional[str] = None,
+        method_name: Optional[str] = None,
+        already_eager: Optional[bool] = None,
+        args: Optional[List[Any]] = None,
+        kwargs: Optional[Dict[str, Any]] = None,
+        key: Optional[Tuple[Any, ...]] = None,
+        onx: Optional[ModelProto] = None,
+    ):
         """
         Logs a status.
         """
         if prefix is None:
             logger.info("")
             return
-        logger.info(
-            "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s cl=%s me=%s",
-            prefix,
-            self.__class__.__name__,
-            method_name[:6],
-            len(self.onxs),
-            self.n_inputs_,
-            0 if self.input_to_kwargs_ is None else 1,
-            0 if self.kwargs_to_input_ is None else 1,
-            self.f.__module__,
-            self.f.__name__,
-            self.tensor_class.__name__,
-            self.method_name_ or "",
-        )
+        if key is None:
+            logger.info(
+                "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s "
+                "cl=%s me=%s mekw=%s ae=%s",
+                prefix,
+                self.__class__.__name__,
+                method_name[:6],
+                len(self.onxs),
+                self.n_inputs_,
+                0 if self.input_to_kwargs_ is None else 1,
+                0 if self.kwargs_to_input_ is None else 1,
+                self.f.__module__,
+                self.f.__name__,
+                self.tensor_class.__name__,
+                self.method_name_ or "",
+                "" if kwargs is None else kwargs.get("method_name", ""),
+                "" if already_eager is None else (1 if already_eager else 0),
+            )
+        if method_name in ("jit_call", "jit_call_key") and (
+            args is not None or kwargs is not None
+        ):
+            if key is not None:
+                logger.debug("---- key=%s", key)
+            logger.debug(
+                "---- [%s] [%s]",
+                "" if args is None else str(args),
+                "" if kwargs is None else str(kwargs),
+            )
 
     def status(self, me: str) -> str:
         """
@@ -214,7 +236,7 @@ class JitEager:
         The onnx graph built by the function defines the input
         types and the expected number of dimensions.
         """
-        self.info("+", "to_jit")
+        self.info("+", "to_jit", args=values, kwargs=kwargs)
         annotations = self.f.__annotations__
         if len(annotations) > 0:
             input_to_kwargs = {}
@@ -243,9 +265,22 @@ class JitEager:
                 ):
                     constraints[iname] = annot_values[i]
                     kwargs_to_input[iname] = i, annot_values[i]
+                elif (
+                    v is not None
+                    and i < len(annot_values)
+                    and issubclass(annot_values[i], TensorType)
+                ):
+                    constraints[iname] = annot_values[i]
+                    kwargs_to_input[iname] = i, annot_values[i]
                 else:
                     new_kwargs[iname] = v
                     input_to_kwargs[i] = iname
+                    if iname == "shape":
+                        raise RuntimeError(
+                            f"Inconsistency for function {self.f}, iname={iname!r}, "
+                            f"i={i}, v={v!r}, annot_values={annot_values}."
+                        )
+
             if self.input_to_kwargs_ is None:
                 self.n_inputs_ = (
                     len(values) - len(input_to_kwargs) + len(kwargs_to_input)
@@ -310,6 +345,7 @@ class JitEager:
             else:
                 kwargs = kwargs.copy()
                 kwargs.update(new_kwargs)
+        self.info("=", "to_jit", args=inputs, kwargs=kwargs)
         try:
             var = self.f(*inputs, **kwargs)
         except TypeError as e:
@@ -336,7 +372,7 @@ class JitEager:
                     f"and inputs={onx.graph.input}."
                 )
 
-        exe = self.tensor_class.create_function(names, onx)
+        exe = self.tensor_class.create_function(names, onx, f=self.f)
         self.info("-", "to_jit")
         return onx, exe
 
@@ -399,6 +435,13 @@ class JitEager:
                 new_kwargs[self.input_to_kwargs_[i]] = v
             else:
                 new_values.append(v)
+        if "shape" in new_kwargs:
+            raise RuntimeError(
+                f"Inconsistency for function {self.f}, "
+                f"values={values}, kwargs={kwargs}, ",
+                f"new_values={new_values}, new_kwargs={new_kwargs}, "
+                f"self.input_to_kwargs_={self.input_to_kwargs_}",
+            )
         return tuple(new_values), new_kwargs
 
     def jit_call(self, *values, **kwargs):
@@ -410,7 +453,7 @@ class JitEager:
         indexed by the previous key. Finally, it executes the onnx graph
         and returns the result or the results in a tuple if there are several.
         """
-        self.info("+", "jit_call")
+        self.info("+", "jit_call", args=values, kwargs=kwargs)
         if self.input_to_kwargs_ is None:
             # No jitting was ever called.
             try:
@@ -440,9 +483,10 @@ class JitEager:
 
         values, kwargs = self.move_input_to_kwargs(values, kwargs)
         key = self.make_key(*values, **kwargs)
+        self.info("=", "jit_call_key", key=key, args=values, kwargs=kwargs)
         if self.method_name_ is None and "method_name" in key:
             pos = list(key).index("method_name")
-            self.method_name_ = key[pos + 1]
+            self.method_name_ = key[pos + 2]
 
         if onx is not None:
             # First jitting.
@@ -466,8 +510,8 @@ class JitEager:
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
-                f"dtypes={[x.dtype for x in values]}, "
-                f"shapes={[x.shape for x in values]}, "
+                f"dtypes={[getattr(x, 'dtype', type(x)) for x in values]}, "
+                f"shapes={[getattr(x, 'shape', len(x)) for x in values]}, "
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
                 f"f={self.f} from module {self.f.__module__!r} "
@@ -526,7 +570,7 @@ class JitOnnx(JitEager):
         The method first wraps the inputs with `self.tensor_class`
         and converts them into python types just after.
         """
-        self.info("+", "__call__")
+        self.info("+", "__call__", args=args, kwargs=kwargs)
         values = self.cast_to_tensor_class(args)
         res = self.jit_call(*values, **kwargs)
         res = self.cast_from_tensor_class(res)
@@ -553,6 +597,19 @@ class EagerOnnx(JitEager):
         `xapi_function`
     :param ir_version: defines the IR version to use
     """
+
+    allowed_input_types = (
+        EagerTensor,
+        Cst,
+        int,
+        bool,
+        float,
+        tuple,
+        slice,
+        type,
+        # np.ndarray,
+        DType,
+    )
 
     def __init__(
         self,
@@ -596,6 +653,7 @@ class EagerOnnx(JitEager):
                     new_args.append(
                         self.tensor_class(np.array(list(n), dtype=np.int64))
                     )
+                    modified = True
                 elif any(map(lambda t: isinstance(t, Var), n)):
                     raise TypeError(
                         f"Unexpected types in tuple "
@@ -642,25 +700,16 @@ class EagerOnnx(JitEager):
             EagerTensor and the returned outputs must be the same
         """
         self.info()
-        self.info("+", "__call__")
+        self.info(
+            "+", "__call__", already_eager=already_eager, args=args, kwargs=kwargs
+        )
         if already_eager:
             if any(
                 map(
                     lambda t: t is not None
                     and not isinstance(
                         t,
-                        (
-                            EagerTensor,
-                            Cst,
-                            int,
-                            bool,
-                            float,
-                            tuple,
-                            slice,
-                            type,
-                            np.ndarray,
-                            DType,
-                        ),
+                        EagerOnnx.allowed_input_types,
                     ),
                     args,
                 )
@@ -680,7 +729,9 @@ class EagerOnnx(JitEager):
             # The function was already converted into onnx
             # reuse it or create a new one for different types.
             res = self.jit_call(*values, **kwargs)
-            self.info("-", "1__call__")
+            self.info(
+                "-", "1__call__", already_eager=already_eager, args=args, kwargs=kwargs
+            )
         else:
             # tries to call the version
             try:
@@ -709,7 +760,9 @@ class EagerOnnx(JitEager):
                 # to be converted into onnx.
                 res = self.jit_call(*values, **kwargs)
                 self._eager_cache = True
-            self.info("-", "2__call__")
+            self.info(
+                "-", "2__call__", already_eager=already_eager, args=args, kwargs=kwargs
+            )
         if already_eager:
             return tuple(res)
         return self.cast_from_tensor_class(res)

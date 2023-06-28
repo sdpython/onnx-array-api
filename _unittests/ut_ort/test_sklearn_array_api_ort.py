@@ -17,8 +17,32 @@ class TestSklearnArrayAPIOrt(ExtTestCase):
         reason="reshape ArrayAPI not followed",
     )
     def test_sklearn_array_api_linear_discriminant(self):
-        X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-        y = np.array([1, 1, 1, 2, 2, 2])
+        X = np.array(
+            [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float64
+        )
+        y = np.array([1, 1, 1, 2, 2, 2], dtype=np.int64)
+        ana = LinearDiscriminantAnalysis()
+        ana.fit(X, y)
+        expected = ana.predict(X)
+
+        new_x = EagerOrtTensor(OrtTensor.from_array(X))
+        self.assertEqual(new_x.device_name, "Cpu")
+        self.assertStartsWith(
+            "EagerOrtTensor(OrtTensor.from_array(array([[", repr(new_x)
+        )
+        with config_context(array_api_dispatch=True):
+            got = ana.predict(new_x)
+        self.assertEqualArray(expected, got.numpy())
+
+    @unittest.skipIf(
+        Version(sklearn_version) <= Version("1.2.2"),
+        reason="reshape ArrayAPI not followed",
+    )
+    def test_sklearn_array_api_linear_discriminant_float32(self):
+        X = np.array(
+            [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float32
+        )
+        y = np.array([1, 1, 1, 2, 2, 2], dtype=np.int64)
         ana = LinearDiscriminantAnalysis()
         ana.fit(X, y)
         expected = ana.predict(X)
@@ -35,5 +59,6 @@ class TestSklearnArrayAPIOrt(ExtTestCase):
 
 if __name__ == "__main__":
     # import logging
+
     # logging.basicConfig(level=logging.DEBUG)
     unittest.main(verbosity=2)

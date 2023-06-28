@@ -18,8 +18,32 @@ class TestSklearnArrayAPI(ExtTestCase):
     )
     @ignore_warnings(DeprecationWarning)
     def test_sklearn_array_api_linear_discriminant(self):
-        X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-        y = np.array([1, 1, 1, 2, 2, 2])
+        X = np.array(
+            [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float64
+        )
+        y = np.array([1, 1, 1, 2, 2, 2], dtype=np.int64)
+        ana = LinearDiscriminantAnalysis()
+        ana.fit(X, y)
+        expected = ana.predict(X)
+
+        new_x = EagerNumpyTensor(X)
+        self.assertStartsWith("EagerNumpyTensor(array([[", repr(new_x))
+        with config_context(array_api_dispatch=True):
+            # It fails if scikit-learn <= 1.2.2 because the ArrayAPI
+            # is not strictly applied.
+            got = ana.predict(new_x)
+        self.assertEqualArray(expected, got.numpy())
+
+    @unittest.skipIf(
+        Version(sklearn_version) <= Version("1.2.2"),
+        reason="reshape ArrayAPI not followed",
+    )
+    @ignore_warnings(DeprecationWarning)
+    def test_sklearn_array_api_linear_discriminant_float32(self):
+        X = np.array(
+            [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float32
+        )
+        y = np.array([1, 1, 1, 2, 2, 2], dtype=np.int64)
         ana = LinearDiscriminantAnalysis()
         ana.fit(X, y)
         expected = ana.predict(X)
@@ -35,5 +59,6 @@ class TestSklearnArrayAPI(ExtTestCase):
 
 if __name__ == "__main__":
     # import logging
+
     # logging.basicConfig(level=logging.DEBUG)
     unittest.main(verbosity=2)

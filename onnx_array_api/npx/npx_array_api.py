@@ -61,7 +61,9 @@ class BaseArrayApi:
         return self.generic_method("__rmul__", ov)
 
     def __matmul__(self, ov: "BaseArrayApi") -> "BaseArrayApi":
-        return self.generic_method("__matmul__", ov)
+        res = self.generic_method("__matmul__", ov)
+        # TODO: It works with float32 but not float64.
+        return res
 
     def __truediv__(self, ov: "BaseArrayApi") -> "BaseArrayApi":
         return self.generic_method("__truediv__", ov)

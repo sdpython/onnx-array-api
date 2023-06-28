@@ -1,7 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
-from .._helpers import np_dtype_to_tensor_dtype
 from .npx_array_api import BaseArrayApi, ArrayApiError
 from .npx_constants import DEFAULT_OPSETS, ONNX_DOMAIN
 from .npx_types import (
@@ -847,8 +846,8 @@ class Var(BaseArrayApi):
 
         if isinstance(dtype, Var):
             return var(self.self_var, dtype, op="CastLike")
-        if not isinstance(dtype, int):
-            dtype = np_dtype_to_tensor_dtype(dtype)
+        if not isinstance(dtype, DType):
+            raise TypeError(f"dtype cannot be {type(dtype)}.")
         return var(self.self_var, op="Cast", to=dtype)
 
     @property

@@ -4,7 +4,6 @@ import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import make_tensor, tensor_dtype_to_np_dtype
 from onnx.numpy_helper import from_array
-from .._helpers import np_dtype_to_tensor_dtype
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
 from .npx_types import (
@@ -30,14 +29,14 @@ def _cstv(x):
 
 
 @npxapi_inline
-def abs(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def abs(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.abs`."
     return var(x, op="Abs")
 
 
 @npxapi_inline
 def absolute(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.abs`."
     return var(x, op="Abs")
@@ -46,6 +45,8 @@ def absolute(
 @npxapi_inline
 def all(
     x: TensorType[ElemType.bool_, "T"],
+    /,
+    *,
     axis: OptTensorType[ElemType.int64, "I"] = None,
     keepdims: ParType[int] = 0,
 ) -> TensorType[ElemType.bool_, "T"]:
@@ -53,12 +54,6 @@ def all(
     See :func:`numpy.all`.
     If input x is empty, the answer is True.
     """
-    # size = var(x, op="Size")
-    # empty = var(size, cst(np.array(0, dtype=np.int64)), op="Equal")
-
-    # z = make_tensor_value_info("Z", TensorProto.BOOL, [1])
-    # g1 = make_graph([make_node("Constant", [], ["Z"], value_bool=[True])], [], [z])
-
     xi = var(x, op="Cast", to=TensorProto.INT64)
 
     if axis is None:
@@ -80,6 +75,8 @@ def all(
 @npxapi_inline
 def amax(
     x: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     axis: OptParType[int] = 0,
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -92,6 +89,8 @@ def amax(
 @npxapi_inline
 def amin(
     x: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     axis: OptParType[int] = 0,
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -99,6 +98,35 @@ def amin(
     See :func:`numpy.amin`.
     """
     return var(x, op="ArgMin", axis=axis, keepdims=keepdims)
+
+
+@npxapi_inline
+def any(
+    x: TensorType[ElemType.bool_, "T"],
+    /,
+    *,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
+    keepdims: ParType[int] = 0,
+) -> TensorType[ElemType.bool_, "T"]:
+    """
+    See :func:`numpy.any`.
+    """
+    xi = var(x, op="Cast", to=TensorProto.INT64)
+
+    if axis is None:
+        new_shape = cst(np.array([-1], dtype=np.int64))
+        xifl = var(xi, new_shape, op="Reshape")
+        # in case xifl is empty, we need to add one element
+        one = cst(np.array([0], dtype=np.int64))
+        xifl1 = var(xifl, one, op="Concat", axis=0)
+        red = xifl1.max(keepdims=keepdims)
+    else:
+        if isinstance(axis, int):
+            axis = [axis]
+        if isinstance(axis, (tuple, list)):
+            axis = cst(np.array(axis, dtype=np.int64))
+        red = xi.max(axis, keepdims=keepdims)
+    return var(red, cst(1), op="Equal")
 
 
 @npxapi_inline
@@ -158,14 +186,16 @@ def arange(
 
 
 @npxapi_inline
-def arccos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def arccos(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccos`."
     return var(x, op="Acos")
 
 
 @npxapi_inline
 def arccosh(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arccosh`."
     return var(x, op="Acosh")
@@ -174,6 +204,8 @@ def arccosh(
 @npxapi_inline
 def argmax(
     x: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     axis: OptParType[int] = 0,
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -186,6 +218,8 @@ def argmax(
 @npxapi_inline
 def argmin(
     x: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     axis: OptParType[int] = 0,
     keepdims: OptParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -196,14 +230,16 @@ def argmin(
 
 
 @npxapi_inline
-def arcsin(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def arcsin(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arcsin`."
     return var(x, op="Asin")
 
 
 @npxapi_inline
 def arcsinh(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arcsinh`."
     return var(x, op="Asinh")
@@ -217,7 +253,7 @@ def arctan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numeric
 
 @npxapi_inline
 def arctanh(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.arctanh`."
     return var(x, op="Atanh")
@@ -225,7 +261,8 @@ def arctanh(
 
 @npxapi_inline
 def astype(
-    a: TensorType[ElemType.numerics, "T1"], dtype: OptParType[DType] = 1
+    a: TensorType[ElemType.numerics, "T1"],
+    dtype: ParType[DType] = 1,
 ) -> TensorType[ElemType.numerics, "T2"]:
     """
     Cast an array.
@@ -234,14 +271,26 @@ def astype(
         raise TypeError(
             f"dtype is an attribute, it cannot be a Variable of type {type(dtype)}."
         )
-    to = np_dtype_to_tensor_dtype(dtype)
-    return var(a, op="Cast", to=to)
+    if not isinstance(dtype, DType):
+        if dtype is int:
+            to = DType(TensorProto.INT64)
+        elif dtype is float:
+            to = DType(TensorProto.FLOAT64)
+        elif dtype is bool:
+            to = DType(TensorProto.FLOAT64)
+        elif dtype is str:
+            to = DType(TensorProto.STRING)
+        else:
+            raise TypeError(f"dtype must of type DType, not {type(dtype)}-{dtype}.")
+    return var(a, op="Cast", to=to.code)
 
 
 @npxapi_inline
 def cdist(
     xa: TensorType[ElemType.numerics, "T"],
     xb: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     metric: OptParType[str] = "euclidean",
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -251,7 +300,9 @@ def cdist(
 
 
 @npxapi_inline
-def ceil(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def ceil(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.ceil`."
     return var(x, op="Ceil")
 
@@ -259,6 +310,7 @@ def ceil(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def clip(
     x: TensorType[ElemType.numerics, "T"],
+    /,
     a_min: TensorType[ElemType.numerics, "T"] = None,
     a_max: TensorType[ElemType.numerics, "T"] = None,
 ):
@@ -277,6 +329,8 @@ def clip(
 def compress(
     condition: TensorType[ElemType.bool_, "B"],
     x: TensorType[ElemType.numerics, "T"],
+    /,
+    *,
     axis: OptParType[int] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
@@ -295,8 +349,12 @@ def compute(
     name: ParType[str] = None,
 ) -> TupleType[TensorType[ElemType.numerics, "T"]]:
     """
-    Operator concat, handle :func:`numpy.vstack` and
-    :func:`numpy.hstack`.
+    Executes an onnx proto.
+
+    :param x: inputs
+    :param proto: proto to execute
+    :param name: model name
+    :return: outputs
     """
     return var(*x, op=proto, name=name)
 
@@ -315,13 +373,15 @@ def concat(
 
 
 @npxapi_inline
-def cos(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def cos(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.cos`."
     return var(x, op="Cos")
 
 
 @npxapi_inline
-def cosh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def cosh(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.cosh`."
     return var(x, op="Cosh")
 
@@ -329,6 +389,7 @@ def cosh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def cumsum(
     x: TensorType[ElemType.numerics, "T"],
+    /,
     axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.cumsum`."
@@ -345,14 +406,14 @@ def cumsum(
 
 
 @npxapi_inline
-def det(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def det(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.linalg:det`."
     return var(x, op="Det")
 
 
 @npxapi_inline
 def dot(
-    a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"]
+    a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     """
     See :func:`numpy.dot`
@@ -372,29 +433,31 @@ def einsum(
 
 @npxapi_inline
 def equal(
-    x: TensorType[ElemType.allowed, "T"], y: TensorType[ElemType.allowed, "T"]
+    x: TensorType[ElemType.allowed, "T"], y: TensorType[ElemType.allowed, "T"], /
 ) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.equal`."
     return var(x, y, op="Equal")
 
 
 @npxapi_inline
-def erf(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def erf(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`scipy.special.erf`."
     return var(x, op="Erf")
 
 
 @npxapi_inline
-def exp(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def exp(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.exp`."
     return var(x, op="Exp")
 
 
 @npxapi_inline
 def expand_dims(
-    x: TensorType[ElemType.numerics, "T"], axis: TensorType[ElemType.int64, "I"]
+    x: TensorType[ElemType.numerics, "T"], /, axis: TensorType[ElemType.int64, "I"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.expand_dims`."
+    """
+    See :func:`numpy.expand_dims`.
+    """
     if isinstance(axis, int):
         axis = (axis,)
     if isinstance(axis, tuple):
@@ -403,7 +466,9 @@ def expand_dims(
 
 
 @npxapi_inline
-def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def expit(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`scipy.special.expit`."
     return var(x, op="Sigmoid")
 
@@ -411,6 +476,8 @@ def expit(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 @npxapi_inline
 def full(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    /,
+    *,
     dtype: OptParType[DType] = None,
     fill_value: ParType[Scalar] = None,
     order: OptParType[str] = "C",
@@ -445,7 +512,9 @@ def full(
 
 
 @npxapi_inline
-def floor(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def floor(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.floor`."
     return var(x, op="Floor")
 
@@ -461,14 +530,14 @@ def hstack(
 
 
 @npxapi_inline
-def copy(x: TensorType[ElemType.allowed, "T"]) -> TensorType[ElemType.allowed, "T"]:
+def copy(x: TensorType[ElemType.allowed, "T"], /) -> TensorType[ElemType.allowed, "T"]:
     "Makes a copy."
     return var(x, op="Identity")
 
 
 @npxapi_inline
 def identity(
-    n: ParType[int], dtype: OptParType[DType] = None
+    *, n: ParType[int], dtype: OptParType[DType] = None
 ) -> TensorType[ElemType.numerics, "T"]:
     "Makes a copy."
     model = var(
@@ -497,25 +566,35 @@ def isdtype(
 
 
 @npxapi_inline
-def isfinite(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T1"]:
+def isfinite(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isfinite`."
     return var(x, op="IsInf")
 
 
 @npxapi_inline
-def isnan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.bool_, "T1"]:
+def isinf(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
+    "See :func:`numpy.isnan`."
+    return var(x, op="IsInf")
+
+
+@npxapi_inline
+def isnan(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
 
 
 @npxapi_inline
-def log(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def log(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.log`."
     return var(x, op="Log")
 
 
 @npxapi_inline
-def log1p(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def log1p(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.log1p`."
     x1 = var(x, var(cst(np.array([1])), x, op="CastLike"), op="Add")
     return var(x1, op="Log")
@@ -523,7 +602,7 @@ def log1p(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics
 
 @npxapi_inline
 def matmul(
-    a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"]
+    a: TensorType[ElemType.numerics, "T"], b: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.matmul`."
     return var(a, b, op="MatMul")
@@ -532,6 +611,8 @@ def matmul(
 @npxapi_inline
 def ones(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    /,
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:
@@ -550,9 +631,32 @@ def ones(
 
 
 @npxapi_inline
+def ones_like(
+    x: TensorType[ElemType.allowed, "T"],
+    /,
+    *,
+    dtype: OptParType[DType] = None,
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    o = make_tensor(
+        name="one",
+        data_type=TensorProto.INT64 if dtype is None else dtype.code,
+        dims=[1],
+        vals=[1],
+    )
+    v = var(x.shape, value=o, op="ConstantOfShape")
+    if dtype is None:
+        return var(v, x, op="CastLike")
+    return v
+
+
+@npxapi_inline
 def pad(
     x: TensorType[ElemType.numerics, "T"],
     pads: TensorType[ElemType.int64, "I"],
+    /,
     constant_value: OptTensorType[ElemType.numerics, "T"] = None,
     axes: OptTensorType[ElemType.int64, "I"] = None,
     mode: ParType[str] = "constant",
@@ -571,14 +675,16 @@ def pad(
 
 @npxapi_inline
 def reciprocal(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.reciprocal`."
     return var(x, op="Reciprocal")
 
 
 @npxapi_inline
-def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def relu(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "relu"
     return var(x, op="Relu")
 
@@ -587,6 +693,7 @@ def relu(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 def reshape(
     x: TensorType[ElemType.numerics, "T"],
     shape: TensorType[ElemType.int64, "I", (None,)],
+    /,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
     See :func:`numpy.reshape`.
@@ -604,44 +711,56 @@ def reshape(
     """
     if isinstance(shape, int):
         shape = cst(np.array([shape], dtype=np.int64))
+        return var(x, shape, op="Reshape")
+    if isinstance(shape, tuple) and len(shape) == 0:
+        shape = cst(np.array([-1], dtype=np.int64))
+        return var(x, shape, op="Reshape")
     shape_reshaped = var(shape, cst(np.array([-1], dtype=np.int64)), op="Reshape")
     return var(x, shape_reshaped, op="Reshape")
 
 
 @npxapi_inline
-def round(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def round(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.round`."
     return var(x, op="Round")
 
 
 @npxapi_inline
 def sigmoid(
-    x: TensorType[ElemType.numerics, "T"]
+    x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`scipy.special.expit`."
     return var(x, op="Sigmoid")
 
 
 @npxapi_inline
-def sign(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def sign(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.sign`."
     return var(x, op="Sign")
 
 
 @npxapi_inline
-def sin(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def sin(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.sin`."
     return var(x, op="Sin")
 
 
 @npxapi_inline
-def sinh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def sinh(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.sinh`."
     return var(x, op="Sinh")
 
 
 @npxapi_inline
-def sqrt(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def sqrt(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.sqrt`."
     return var(x, op="Sqrt")
 
@@ -649,6 +768,7 @@ def sqrt(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 @npxapi_inline
 def squeeze(
     x: TensorType[ElemType.numerics, "T"],
+    /,
     axis: OptTensorType[ElemType.int64, "I"] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.squeeze`."
@@ -666,9 +786,37 @@ def squeeze(
 
 
 @npxapi_inline
+def sum(
+    x: TensorType[ElemType.numerics, "T"],
+    /,
+    axis: OptTensorType[ElemType.int64, "I"] = None,
+    *,
+    dtype: OptParType[DType] = None,
+    keepdims: ParType[int] = 0,
+) -> TensorType[ElemType.numerics, "T"]:
+    "See :func:`numpy.sum`."
+    if axis is None:
+        m1 = cst(np.array([-1], dtype=np.int64))
+        flat = var(x, m1, op="Reshape")
+        axis = cst(np.array([0], dtype=np.int64))
+        res = var(flat, axis, op="ReduceSum", keepdims=keepdims)
+    else:
+        if isinstance(axis, int):
+            axis = [axis]
+        elif isinstance(axis, (tuple, list)):
+            axis = cst(np.array(axis, dtype=np.int64))
+        res = var(x, axis, op="Sum", keepdims=keepdims)
+    if dtype is None:
+        return res
+    return var(res, op="Cast", to=dtype.code)
+
+
+@npxapi_inline
 def take(
     data: TensorType[ElemType.numerics, "T"],
     indices: TensorType[ElemType.int64, "I"],
+    /,
+    *,
     axis: ParType[int] = 0,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.take`."
@@ -676,13 +824,15 @@ def take(
 
 
 @npxapi_inline
-def tan(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def tan(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.tan`."
     return var(x, op="Tan")
 
 
 @npxapi_inline
-def tanh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics, "T"]:
+def tanh(
+    x: TensorType[ElemType.numerics, "T"], /
+) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.tanh`."
     return var(x, op="Tanh")
 
@@ -691,6 +841,8 @@ def tanh(x: TensorType[ElemType.numerics, "T"]) -> TensorType[ElemType.numerics,
 def topk(
     x: TensorType[ElemType.numerics, "T"],
     k: TensorType[ElemType.int64, "I", (1,)],
+    /,
+    *,
     axis: OptParType[int] = -1,
     largest: OptParType[int] = 1,
     sorted: OptParType[int] = 1,
@@ -701,7 +853,7 @@ def topk(
 
 @npxapi_inline
 def transpose(
-    x: TensorType[ElemType.numerics, "T"], perm: ParType[Tuple[int, ...]] = (1, 0)
+    x: TensorType[ElemType.numerics, "T"], /, *, perm: ParType[Tuple[int, ...]] = (1, 0)
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.transpose`."
     return var(x, op="Transpose", perm=list(perm))
@@ -734,6 +886,7 @@ def where(
     cond: TensorType[ElemType.bool_, "B"],
     x: TensorType[ElemType.numerics, "T"],
     y: TensorType[ElemType.numerics, "T"],
+    /,
 ) -> TensorType[ElemType.numerics, "T"]:
     "See :func:`numpy.where`."
     return var(cond, x, y, op="Where")
@@ -742,6 +895,8 @@ def where(
 @npxapi_inline
 def zeros(
     shape: TensorType[ElemType.int64, "I", (None,)],
+    /,
+    *,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:

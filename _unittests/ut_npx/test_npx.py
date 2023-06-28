@@ -1184,7 +1184,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_astype(self):
-        f = absolute_inline(copy_inline(Input("A")).astype(np.float32))
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         self.assertIsInstance(f, Var)
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array([[-5, 6]], dtype=np.float64)
@@ -1204,7 +1204,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_astype_int(self):
-        f = absolute_inline(copy_inline(Input("A")).astype(1))
+        f = absolute_inline(copy_inline(Input("A")).astype(DType(1)))
         self.assertIsInstance(f, Var)
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array([[-5, 6]], dtype=np.float64)
@@ -1509,7 +1509,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_identity(self):
-        f = identity_inline(2, dtype=np.float64)
+        f = identity_inline(n=2, dtype=np.float64)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
         self.assertIn('name: "dtype"', str(onx))
         z = np.identity(2).astype(np.float64)
@@ -1518,7 +1518,7 @@ class TestNpx(ExtTestCase):
         self.assertEqualArray(z, got[0])
 
     def test_identity_uint8(self):
-        f = identity_inline(2, dtype=np.uint8)
+        f = identity_inline(n=2, dtype=np.uint8)
         onx = f.to_onnx(constraints={(0, False): Float64[None]})
         self.assertIn('name: "dtype"', str(onx))
         z = np.identity(2).astype(np.uint8)
@@ -2576,5 +2576,4 @@ class TestNpx(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestNpx().test_filter()
     unittest.main(verbosity=2)

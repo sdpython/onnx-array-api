@@ -20,6 +20,15 @@ class EagerTensor(BaseArrayApi):
     :class:`BaseArrayApi`.
     """
 
+    @classmethod
+    def __class_getitem__(cls, tensor_type: type):
+        """
+        Returns tensor_type.
+        """
+        if not issubclass(tensor_type, TensorType):
+            raise TypeError(f"Unexpected type {tensor_type!r}.")
+        return tensor_type
+
     def __iter__(self):
         """
         The :epkg:`Array API` does not define this function (2022/12).
@@ -132,7 +141,8 @@ class EagerTensor(BaseArrayApi):
         new_args = []
         for a in args:
             if isinstance(a, np.ndarray):
-                new_args.append(self.__class__(a.astype(self.dtype.np_dtype)))
+                t = self.__class__(a.astype(self.dtype.np_dtype))
+                new_args.append(t)
             elif isinstance(a, (int, float, bool)):
                 new_args.append(
                     self.__class__(np.array([a]).astype(self.dtype.np_dtype))

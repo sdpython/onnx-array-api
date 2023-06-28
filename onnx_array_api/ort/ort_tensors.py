@@ -56,7 +56,7 @@ class OrtTensor:
         """
         if device is None:
             device = OrtTensor.CPU
-        return OrtTensor(C_OrtValue.ortvalue_from_numpy(value, device))
+        return OrtTensor(C_OrtValue.ortvalue_from_numpy(value, device), _hold=value)
 
     def numpy(self) -> np.ndarray:
         """
@@ -68,9 +68,25 @@ class OrtTensor:
         """
         Wraps class :class:`onnxruntime.InferenceSession`
         to have a signature closer to python function.
+
+        :param tensor_class: class tensor such as :class:`NumpyTensor`
+        :param input_names: input names
+        :param onx: onnx model
+        :param f: unused except in error messages
+        :param _hold: :epkg:`onnxruntime` does not copy the data if it comes
+            from a numpy array on CPU it does not hold any reference on it.
+            *_hold* is used to stored the underlying numpy array hosting the
+            data for an OrtTensor if it comes from it. It ensures
+            the garbage collector does not remove it.
         """
 
-        def __init__(self, tensor_class: type, input_names: List[str], onx: ModelProto):
+        def __init__(
+            self,
+            tensor_class: type,
+            input_names: List[str],
+            onx: ModelProto,
+            f: Callable = None,
+        ):
             try:
                 self.ref = InferenceSession(
                     onx.SerializeToString(),
@@ -102,6 +118,7 @@ class OrtTensor:
             self.tensor_class = tensor_class
             self.output_names = [output.name for output in self.ref._outputs_meta]
             self.run_options = RunOptions()
+            self._f = f
 
         def run(self, *inputs: List["OrtTensor"]) -> List["OrtTensor"]:
             """
@@ -113,7 +130,7 @@ class OrtTensor:
             if len(inputs) != len(self.input_names):
                 raise ValueError(
                     f"Expected {len(self.input_names)} inputs but got "
-                    f"len(inputs)={len(inputs)}."
+                    f"len(inputs)={len(inputs)}, f={self._f}."
                 )
             feeds = {}
             for name, inp in zip(self.input_names, inputs):
@@ -123,13 +140,24 @@ class OrtTensor:
             )
             return list(map(inputs[0].__class__, res))
 
-    def __init__(self, tensor: Union[C_OrtValue, "OrtTensor", np.ndarray]):
+    def __init__(
+        self,
+        tensor: Union[C_OrtValue, "OrtTensor", np.ndarray],
+        _hold: Optional[np.ndarray] = None,
+    ):
         if isinstance(tensor, C_OrtValue):
             self._tensor = tensor
+            self._hold = _hold
         elif isinstance(tensor, OrtTensor):
             self._tensor = tensor._tensor
+            self._hold = _hold
         elif isinstance(tensor, np.ndarray):
+            if _hold is not None:
+                raise RuntimeError(
+                    "tensor cannot be a numpy array and _hold be not None."
+                )
             self._tensor = C_OrtValue.ortvalue_from_numpy(tensor, OrtTensor.CPU)
+            self._hold = tensor
         else:
             raise ValueError(f"An OrtValue is expected not {type(tensor)}.")
 
@@ -196,7 +224,9 @@ class OrtTensor:
         return TensorType[dt, self.dims, name]
 
     @classmethod
-    def create_function(cls: Any, input_names: List[str], onx: ModelProto) -> Callable:
+    def create_function(
+        cls: Any, input_names: List[str], onx: ModelProto, f: Callable
+    ) -> Callable:
         """
         Creates a python function calling the onnx backend
         used by this class.
@@ -204,7 +234,7 @@ class OrtTensor:
         :param onx: onnx model
         :return: python function
         """
-        return cls.Evaluator(cls, input_names, onx)
+        return cls.Evaluator(cls, input_names, onx, f=f)
 
 
 class OrtCommon:
