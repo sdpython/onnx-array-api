@@ -105,3 +105,9 @@ However, it is highly used when two results are
 compared in unit tests. The ONNX implementation is
 not efficient due to that reason but it only impacts
 the unit tests.
+
+Types
++++++
+
+:epkg:`onnx` supports more types than :epkg:`numpy` does.
+It is not always easy to deal with bfloat16 or float8 types.

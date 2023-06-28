@@ -1,8 +1,10 @@
 import sys
 import unittest
 import numpy as np
+from onnx import TensorProto
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.array_api import onnx_numpy as xp
+from onnx_array_api.npx.npx_types import DType
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor as EagerTensor
 
 
@@ -96,7 +98,21 @@ class TestOnnxNumpy(ExtTestCase):
             expected = expected.astype(np.int64)
         self.assertEqualArray(matnp, expected)
 
+    def test_ones_like_uint16(self):
+        x = EagerTensor(np.array(0, dtype=np.uint16))
+        y = np.ones_like(x.numpy())
+        z = xp.ones_like(x)
+        self.assertEqual(y.dtype, x.numpy().dtype)
+        self.assertEqual(x.dtype, z.dtype)
+        self.assertEqual(x.dtype, DType(TensorProto.UINT16))
+        self.assertEqual(z.dtype, DType(TensorProto.UINT16))
+        self.assertEqual(x.numpy().dtype, np.uint16)
+        self.assertEqual(z.numpy().dtype, np.uint16)
+        self.assertNotIn("bfloat16", str(z.numpy().dtype))
+        expected = np.array(1, dtype=np.uint16)
+        self.assertEqualArray(expected, z.numpy())
+
 
 if __name__ == "__main__":
-    # TestOnnxNumpy().test_arange_int00()
+    # TestOnnxNumpy().test_ones_like()
     unittest.main(verbosity=2)
