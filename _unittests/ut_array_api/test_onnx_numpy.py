@@ -99,8 +99,10 @@ class TestOnnxNumpy(ExtTestCase):
             expected = expected.astype(np.int64)
         self.assertEqualArray(matnp, expected)
 
-    @unittest.skipIf(Version(onnx_ver) >= Version("1.15.0"),
-                     reason="Reference implementation of CastLike is bugged.")
+    @unittest.skipIf(
+        Version(onnx_ver) >= Version("1.15.0"),
+        reason="Reference implementation of CastLike is bugged.",
+    )
     def test_ones_like_uint16(self):
         x = EagerTensor(np.array(0, dtype=np.uint16))
         y = np.ones_like(x.numpy())
