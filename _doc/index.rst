@@ -33,7 +33,7 @@ well as to execute it.
 
     tutorial/index
     api/index
-    techdetails
+    tech/index
     auto_examples/index
     ../CHANGELOGS
 

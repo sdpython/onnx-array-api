@@ -65,7 +65,7 @@ class JitEager:
             logger.info("")
             return
         logger.info(
-            "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s cl=%s me=%s ae=%s",
+            "%s [%s.%s] nx=%d ni=%d ikw=%d kwi=%d f=%s.%s cl=%s me=%s mekw=%s ae=%s",
             prefix,
             self.__class__.__name__,
             method_name[:6],
@@ -77,6 +77,7 @@ class JitEager:
             self.f.__name__,
             self.tensor_class.__name__,
             self.method_name_ or "",
+            "" if kwargs is None else kwargs.get("method_name", ""),
             "" if already_eager is None else (1 if already_eager else 0),
         )
         if args is not None or kwargs is not None:

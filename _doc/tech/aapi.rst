@@ -1,6 +1,6 @@
 
-Technical details
-=================
+Difficulty to implement an an Array API for ONNX
+================================================
 
 Implementing the full array API is not always easy with :epkg:`onnx`.
 Python is not strongly typed and many different types can be used
@@ -76,3 +76,32 @@ A function such as `empty
 <https://data-apis.org/array-api/2022.12/API_specification/
 generated/array_api.astype.html>`_ should be avoided as it
 has to be followed by calls to `__setitem__`.
+
+Eager or compilation
+++++++++++++++++++++
+
+Eager mode is what the Array API implies.
+Every function is converted into an ONNX graph based
+on its inputs without any knownledge of how these inputs
+were obtained. This graph is then executed before going
+to the next call of a function from the API.
+The conversion of a machine learned model
+into ONNX implies the gathering of all these operations
+into a graph. It means using a mode that records all the function
+calls to compile every tiny onnx graph into a unique graph.
+
+Iterators and Reduction
++++++++++++++++++++++++
+
+An efficient implementation of function
+:func:`numpy.any` or :func:`numpy.all` returns
+as soon as the result is known. :func:`numpy.all` is
+false whenever the first false condition is met.
+Same goes for :func:`numpy.any` which is true 
+whenever the first true condition is met.
+There is no such operator in ONNX (<= 20) because
+it is unlikely to appear in a machine learned model.
+However, it is highly used when two results are
+compared in unit tests. The ONNX implementation is
+not efficient due to that reason but it only impacts
+the unit tests.
