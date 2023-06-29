@@ -1,6 +1,10 @@
 from typing import Any, Optional
+import warnings
 import numpy as np
-from numpy.array_api._array_object import Array
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from numpy.array_api._array_object import Array
 from ..npx.npx_types import (
     DType,
     ElemType,

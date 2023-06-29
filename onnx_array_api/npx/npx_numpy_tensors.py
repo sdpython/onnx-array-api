@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Callable, List, Optional, Tuple
 import numpy as np
 from onnx import ModelProto, TensorProto
@@ -221,13 +222,18 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         if self.shape == (0,):
             return False
         if len(self.shape) != 0:
-            raise ValueError(
-                f"Conversion to bool only works for scalar, not for {self!r}."
+            warnings.warn(
+                f"Conversion to bool only works for scalar, not for {self!r}, "
+                f"bool(...)={bool(self._tensor)}."
             )
+            try:
+                return bool(self._tensor)
+            except ValueError as e:
+                raise ValueError(f"Unable to convert {self} to bool.") from e
         return bool(self._tensor)
 
     def __int__(self):
-        "Implicit conversion to bool."
+        "Implicit conversion to int."
         if len(self.shape) != 0:
             raise ValueError(
                 f"Conversion to bool only works for scalar, not for {self!r}."
@@ -249,7 +255,7 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         return int(self._tensor)
 
     def __float__(self):
-        "Implicit conversion to bool."
+        "Implicit conversion to float."
         if len(self.shape) != 0:
             raise ValueError(
                 f"Conversion to bool only works for scalar, not for {self!r}."
@@ -261,10 +267,23 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
             DType(TensorProto.BFLOAT16),
         }:
             raise TypeError(
-                f"Conversion to int only works for float scalar, "
+                f"Conversion to float only works for float scalar, "
                 f"not for dtype={self.dtype}."
             )
         return float(self._tensor)
+
+    def __iter__(self):
+        """
+        The :epkg:`Array API` does not define this function (2022/12).
+        This method raises an exception with a better error message.
+        """
+        warnings.warn(
+            f"Iterators are not implemented in the generic case. "
+            f"Every function using them cannot be converted into ONNX "
+            f"(tensors - {type(self)})."
+        )
+        for row in self._tensor:
+            yield self.__class__(row)
 
 
 class JitNumpyTensor(NumpyTensor, JitTensor):
