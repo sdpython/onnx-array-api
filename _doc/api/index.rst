@@ -15,4 +15,5 @@ API
     onnx_tools
     ort
     plotting
+    reference
     tools
