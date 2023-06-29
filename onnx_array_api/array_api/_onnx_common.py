@@ -1,5 +1,6 @@
 from typing import Any, Optional
 import numpy as np
+from numpy.array_api._array_object import Array
 from ..npx.npx_types import (
     DType,
     ElemType,
@@ -77,6 +78,10 @@ def asarray(
         v = TEagerTensor(np.array(a, dtype=np.str_))
     elif isinstance(a, list):
         v = TEagerTensor(np.array(a))
+    elif isinstance(a, np.ndarray):
+        v = TEagerTensor(a)
+    elif isinstance(a, Array):
+        v = TEagerTensor(np.asarray(a))
     else:
         raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
     if dtype is not None:

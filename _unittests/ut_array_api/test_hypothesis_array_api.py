@@ -2,6 +2,7 @@ import unittest
 import warnings
 from os import getenv
 from functools import reduce
+import numpy as np
 from operator import mul
 from hypothesis import given
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -94,6 +95,25 @@ class TestHypothesisArraysApis(ExtTestCase):
             kw=array_api_kwargs(dtype=strategies.none() | self.xps.scalar_dtypes()),
         )
         def fct(x, kw):
+            asa = np.asarray(x)
+            try:
+                asp = onxp.asarray(x)
+            except Exception as e:
+                raise AssertionError(f"asarray fails with x={x!r}, asp={asa!r}.") from e
+            self.assertEqualArray(asa, asp.numpy())
+            try:
+                asa = np.asarray(x, **kw)
+            except Exception as e:
+                raise AssertionError(
+                    f"numpy asarray fails with x={x!r}, kw={kw!r}, asp={asa!r}."
+                ) from e
+            try:
+                asp = onxp.asarray(x, **kw)
+            except Exception as e:
+                raise AssertionError(
+                    f"asarray fails with x={x!r}, kw={kw!r}, asp={asa!r}."
+                ) from e
+            self.assertEqualArray(asa, asp.numpy())
             args_np.append((x, kw))
 
         fct()
