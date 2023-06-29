@@ -1,7 +1,7 @@
 from typing import Any, Callable, List, Optional, Tuple
 import numpy as np
 from onnx import ModelProto, TensorProto
-from onnx.reference import ReferenceEvaluator
+from ..reference import ExtendedReferenceEvaluator
 from .._helpers import np_dtype_to_tensor_dtype
 from .npx_numpy_tensors_ops import ConstantOfShape
 from .npx_tensors import EagerTensor, JitTensor
@@ -11,7 +11,7 @@ from .npx_types import DType, TensorType
 class NumpyTensor:
     """
     Default backend based on
-    :func:`onnx.reference.ReferenceEvaluator`.
+    :func:`onnx_array_api.reference.ExtendedReferenceEvaluator`.
 
     :param input_names: input names
     :param onx: onnx model
@@ -19,7 +19,7 @@ class NumpyTensor:
 
     class Evaluator:
         """
-        Wraps class :class:`onnx.reference.ReferenceEvaluator`
+        Wraps class :class:`onnx_array_api.reference.ExtendedReferenceEvaluator`
         to have a signature closer to python function.
 
         :param tensor_class: class tensor such as :class:`NumpyTensor`
@@ -35,7 +35,7 @@ class NumpyTensor:
             onx: ModelProto,
             f: Callable,
         ):
-            self.ref = ReferenceEvaluator(onx, new_ops=[ConstantOfShape])
+            self.ref = ExtendedReferenceEvaluator(onx, new_ops=[ConstantOfShape])
             self.input_names = input_names
             self.tensor_class = tensor_class
             self._f = f

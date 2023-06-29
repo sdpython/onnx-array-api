@@ -37,5 +37,6 @@ max-complexity = 10
 "onnx_array_api/npx/npx_tensors.py" = ["F821"]
 "onnx_array_api/npx/npx_var.py" = ["F821"]
 "onnx_array_api/profiling.py" = ["E731"]
+"onnx_array_api/reference/__init__.py" = ["F401"]
 "_unittests/ut_npx/test_npx.py" = ["F821"]
 
