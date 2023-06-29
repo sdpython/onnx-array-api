@@ -1,8 +1,7 @@
 import sys
 import unittest
-from packaging.version import Version
 import numpy as np
-from onnx import TensorProto, __version__ as onnx_ver
+from onnx import TensorProto
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.array_api import onnx_numpy as xp
 from onnx_array_api.npx.npx_types import DType
