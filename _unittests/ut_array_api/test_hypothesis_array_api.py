@@ -2,6 +2,7 @@ import unittest
 import warnings
 from os import getenv
 from functools import reduce
+import numpy as np
 from operator import mul
 from hypothesis import given
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -89,24 +90,49 @@ class TestHypothesisArraysApis(ExtTestCase):
 
         args_np = []
 
+        xx = self.xps.arrays(dtype=dtypes["integer_dtypes"], shape=shapes(self.xps))
+        kws = array_api_kwargs(dtype=strategies.none() | self.xps.scalar_dtypes())
+
         @given(
-            x=self.xps.arrays(dtype=dtypes["integer_dtypes"], shape=shapes(self.xps)),
-            kw=array_api_kwargs(dtype=strategies.none() | self.xps.scalar_dtypes()),
+            x=xx,
+            kw=kws,
         )
-        def fct(x, kw):
+        def fctnp(x, kw):
+            asa1 = np.asarray(x)
+            asa2 = np.asarray(x, **kw)
+            self.assertEqual(asa1.shape, asa2.shape)
             args_np.append((x, kw))
 
-        fct()
+        fctnp()
         self.assertEqual(len(args_np), 100)
 
         args_onxp = []
 
         xshape = shapes(self.onxps)
         xx = self.onxps.arrays(dtype=dtypes_onnx["integer_dtypes"], shape=xshape)
-        kw = array_api_kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes())
+        kws = array_api_kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes())
 
-        @given(x=xx, kw=kw)
+        @given(x=xx, kw=kws)
         def fctonx(x, kw):
+            asa = np.asarray(x.numpy())
+            try:
+                asp = onxp.asarray(x)
+            except Exception as e:
+                raise AssertionError(f"asarray fails with x={x!r}, asp={asa!r}.") from e
+            try:
+                self.assertEqualArray(asa, asp.numpy())
+            except AssertionError as e:
+                raise AssertionError(
+                    f"x={x!r} kw={kw!r} asa={asa!r}, asp={asp!r}"
+                ) from e
+            if kw:
+                try:
+                    asp2 = onxp.asarray(x, **kw)
+                except Exception as e:
+                    raise AssertionError(
+                        f"asarray fails with x={x!r}, kw={kw!r}, asp={asa!r}."
+                    ) from e
+                self.assertEqual(asp.shape, asp2.shape)
             args_onxp.append((x, kw))
 
         fctonx()

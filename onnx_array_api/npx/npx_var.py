@@ -607,8 +607,9 @@ class Var(BaseArrayApi):
         This method raises an exception with a better error message.
         """
         raise ArrayApiError(
-            "Iterators are not implemented in the generic case. "
-            "Every function using them cannot be converted into ONNX."
+            f"Iterators are not implemented in the generic case. "
+            f"Every function using them cannot be converted into ONNX "
+            f"(Var - {type(self)})."
         )
 
     def _binary_op(self, ov: "Var", op_name: str, **kwargs) -> "Var":
