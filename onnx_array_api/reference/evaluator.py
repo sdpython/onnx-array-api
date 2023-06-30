@@ -1,9 +1,18 @@
+from logging import getLogger
 from typing import Any, Dict, List, Optional, Union
 from onnx import FunctionProto, ModelProto
 from onnx.defs import get_schema
 from onnx.reference import ReferenceEvaluator
 from onnx.reference.op_run import OpRun
 from .ops.op_cast_like import CastLike_15, CastLike_19
+from .ops.op_constant_of_shape import ConstantOfShape
+
+import onnx
+
+print(onnx.__file__)
+
+
+logger = getLogger("onnx-array-api-eval")
 
 
 class ExtendedReferenceEvaluator(ReferenceEvaluator):
@@ -24,6 +33,7 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
     default_ops = [
         CastLike_15,
         CastLike_19,
+        ConstantOfShape,
     ]
 
     @staticmethod
@@ -88,3 +98,10 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
             new_ops=new_ops,
             **kwargs,
         )
+
+    def _log(self, level: int, pattern: str, *args: List[Any]) -> None:
+        if level < self.verbose:
+            new_args = [self._log_arg(a) for a in args]
+            print(pattern % tuple(new_args))
+        else:
+            logger.debug(pattern, *args)

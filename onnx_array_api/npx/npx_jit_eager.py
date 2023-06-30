@@ -58,6 +58,7 @@ class JitEager:
         kwargs: Optional[Dict[str, Any]] = None,
         key: Optional[Tuple[Any, ...]] = None,
         onx: Optional[ModelProto] = None,
+        output: Optional[Any] = None,
     ):
         """
         Logs a status.
@@ -93,6 +94,8 @@ class JitEager:
                 "" if args is None else str(args),
                 "" if kwargs is None else str(kwargs),
             )
+        if output is not None:
+            logger.debug("==== [%s]", output)
 
     def status(self, me: str) -> str:
         """
@@ -517,7 +520,7 @@ class JitEager:
                 f"f={self.f} from module {self.f.__module__!r} "
                 f"onnx=\n---\n{text}\n---\n{self.onxs[key]}"
             ) from e
-        self.info("-", "jit_call")
+        self.info("-", "jit_call", output=res)
         return res
 
 
@@ -737,11 +740,13 @@ class EagerOnnx(JitEager):
             try:
                 res = self.f(*values, **kwargs)
             except (AttributeError, TypeError) as e:
-                inp1 = ", ".join(map(str, map(type, args)))
-                inp2 = ", ".join(map(str, map(type, values)))
+                inp1 = ", ".join(map(str, map(lambda a: type(a).__name__, args)))
+                inp2 = ", ".join(map(str, map(lambda a: type(a).__name__, values)))
                 raise TypeError(
-                    f"Unexpected types, input types are {inp1} "
-                    f"and {inp2}, kwargs={kwargs}."
+                    f"Unexpected types, input types are args=[{inp1}], "
+                    f"values=[{inp2}], kwargs={kwargs}. "
+                    f"(values = self._preprocess_constants(args)) "
+                    f"args={args}, values={values}"
                 ) from e
 
             if isinstance(res, EagerTensor) or (

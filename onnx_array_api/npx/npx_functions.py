@@ -515,8 +515,8 @@ def full(
 def full_like(
     x: TensorType[ElemType.allowed, "T"],
     /,
-    fill_value: ParType[Scalar] = None,
     *,
+    fill_value: ParType[Scalar] = None,
     dtype: OptParType[DType] = None,
     order: OptParType[str] = "C",
 ) -> TensorType[ElemType.numerics, "T"]:

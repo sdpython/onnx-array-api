@@ -4,7 +4,6 @@ import numpy as np
 from onnx import ModelProto, TensorProto
 from ..reference import ExtendedReferenceEvaluator
 from .._helpers import np_dtype_to_tensor_dtype
-from .npx_numpy_tensors_ops import ConstantOfShape
 from .npx_tensors import EagerTensor, JitTensor
 from .npx_types import DType, TensorType
 
@@ -36,7 +35,7 @@ class NumpyTensor:
             onx: ModelProto,
             f: Callable,
         ):
-            self.ref = ExtendedReferenceEvaluator(onx, new_ops=[ConstantOfShape])
+            self.ref = ExtendedReferenceEvaluator(onx)
             self.input_names = input_names
             self.tensor_class = tensor_class
             self._f = f
