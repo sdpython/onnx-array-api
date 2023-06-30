@@ -112,7 +112,14 @@ class TestOnnxNumpy(ExtTestCase):
         expected = np.array(1, dtype=np.uint16)
         self.assertEqualArray(expected, z.numpy())
 
+    def test_full_like(self):
+        c = EagerTensor(np.array(False))
+        mat = xp.full(c, fill_value=False)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, tuple())
+        self.assertEqulaArray(mat, matnp.numpy())
+
 
 if __name__ == "__main__":
-    # TestOnnxNumpy().test_ones_like()
+    TestOnnxNumpy().test_full_like()
     unittest.main(verbosity=2)

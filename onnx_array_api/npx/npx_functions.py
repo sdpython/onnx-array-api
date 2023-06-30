@@ -275,9 +275,9 @@ def astype(
         if dtype is int:
             to = DType(TensorProto.INT64)
         elif dtype is float:
-            to = DType(TensorProto.FLOAT64)
+            to = DType(TensorProto.DOUBLE)
         elif dtype is bool:
-            to = DType(TensorProto.FLOAT64)
+            to = DType(TensorProto.BOOL)
         elif dtype is str:
             to = DType(TensorProto.STRING)
         else:
@@ -509,6 +509,49 @@ def full(
             f"Unexpected type ({type(fill_value)} for fill_value={fill_value!r}."
         )
     return var(shape, value=value, op="ConstantOfShape")
+
+
+@npxapi_inline
+def full_like(
+    x: TensorType[ElemType.allowed, "T"],
+    /,
+    fill_value: ParType[Scalar] = None,
+    *,
+    dtype: OptParType[DType] = None,
+    order: OptParType[str] = "C",
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros`.
+    """
+    if order != "C":
+        raise RuntimeError(f"order={order!r} != 'C' not supported.")
+    if fill_value is None:
+        raise TypeError("fill_value cannot be None.")
+    if dtype is None:
+        if isinstance(fill_value, bool):
+            dtype = DType(TensorProto.BOOL)
+        elif isinstance(fill_value, int):
+            dtype = DType(TensorProto.INT64)
+        elif isinstance(fill_value, float):
+            dtype = DType(TensorProto.DOUBLE)
+        else:
+            raise TypeError(
+                f"Unexpected type {type(fill_value)} for fill_value={fill_value!r} "
+                f"and dtype={dtype!r}."
+            )
+    if isinstance(fill_value, (float, int, bool)):
+        value = make_tensor(
+            name="cst", data_type=dtype.code, dims=[1], vals=[fill_value]
+        )
+    else:
+        raise NotImplementedError(
+            f"Unexpected type ({type(fill_value)} for fill_value={fill_value!r}."
+        )
+
+    v = var(x.shape, value=value, op="ConstantOfShape")
+    if dtype is None:
+        return var(v, x, op="CastLike")
+    return v
 
 
 @npxapi_inline
