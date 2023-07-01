@@ -16,12 +16,7 @@ from onnx.helper import (
     make_node,
     set_model_props,
 )
-from onnx.numpy_helper import from_array
-
-try:
-    from onnx.reference.op_run import to_array_extended as to_array
-except ImportError:
-    from onnx.numpy_helper import to_array
+from ..reference import from_array_extended as from_array, to_array_extended as to_array
 
 
 def randomize_proto(

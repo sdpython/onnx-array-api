@@ -3,7 +3,7 @@ import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import make_tensor, tensor_dtype_to_np_dtype
-from onnx.numpy_helper import from_array
+from ..reference import from_array_extended as from_array
 from .npx_constants import FUNCTION_DOMAIN
 from .npx_core_api import cst, make_tuple, npxapi_inline, npxapi_no_inline, var
 from .npx_types import (

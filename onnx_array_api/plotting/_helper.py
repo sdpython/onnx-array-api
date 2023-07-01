@@ -10,7 +10,7 @@ from onnx import (
     ValueInfoProto,
 )
 from onnx.helper import tensor_dtype_to_np_dtype
-from onnx.numpy_helper import to_array
+from ..reference import to_array_extended as to_array
 from ..npx.npx_types import DType
 
 

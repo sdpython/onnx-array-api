@@ -4,11 +4,7 @@ from typing import Dict, Optional, Tuple
 from onnx import GraphProto, ModelProto
 from onnx.helper import tensor_dtype_to_string
 
-try:
-    from onnx.reference.op_run import to_array_extended as to_array
-except ImportError:
-    from onnx.numpy_helper import to_array
-
+from ..reference import to_array_extended as to_array
 from ._helper import Graph, _get_shape, attributes_as_dict
 
 

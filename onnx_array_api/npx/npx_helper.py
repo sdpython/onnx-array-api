@@ -9,8 +9,8 @@ from onnx.helper import (
     make_operatorsetid,
     make_value_info,
 )
-from onnx.numpy_helper import from_array
 from onnx.version_converter import convert_version
+from ..reference import from_array_extended as from_array
 
 
 def rename_in_onnx_graph(
