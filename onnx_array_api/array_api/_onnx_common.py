@@ -71,10 +71,17 @@ def asarray(
         elif a is True:
             v = TEagerTensor(np.array(True, dtype=np.bool_))
         else:
+            va = np.asarray(a)
+            v = None
             try:
-                v = TEagerTensor(np.asarray(a, dtype=np.int64))
+                vai = np.asarray(a, dtype=np.int64)
             except OverflowError:
-                v = TEagerTensor(np.asarray(a, dtype=np.uint64))
+                v = TEagerTensor(va)
+            if v is None:
+                if int(va) == int(vai):
+                    v = TEagerTensor(vai)
+                else:
+                    v = TEagerTensor(va)
     elif isinstance(a, float):
         v = TEagerTensor(np.array(a, dtype=np.float64))
     elif isinstance(a, bool):

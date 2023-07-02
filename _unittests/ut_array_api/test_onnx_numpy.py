@@ -127,10 +127,25 @@ class TestOnnxNumpy(ExtTestCase):
         matnp = mat.numpy()
         self.assertEqualArray(expected, matnp)
 
+    def test_ones_like_mx(self):
+        c = EagerTensor(np.array([], dtype=np.uint8))
+        expected = np.ones_like(c.numpy())
+        mat = xp.ones_like(c)
+        matnp = mat.numpy()
+        self.assertEqualArray(expected, matnp)
+
+    def test_as_array(self):
+        r = xp.asarray(9223372036854775809)
+        self.assertEqual(r.dtype, DType(TensorProto.UINT64))
+        self.assertEqual(r.numpy(), 9223372036854775809)
+        r = EagerTensor(np.array(9223372036854775809, dtype=np.uint64))
+        self.assertEqual(r.dtype, DType(TensorProto.UINT64))
+        self.assertEqual(r.numpy(), 9223372036854775809)
+
 
 if __name__ == "__main__":
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)
-    # TestOnnxNumpy().test_full_like_mx()
+    # TestOnnxNumpy().test_as_array()
     unittest.main(verbosity=2)
