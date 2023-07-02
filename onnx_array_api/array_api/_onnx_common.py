@@ -1,6 +1,7 @@
 from typing import Any, Optional
 import warnings
 import numpy as np
+from onnx import TensorProto
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -19,6 +20,7 @@ from ..npx.npx_array_api import BaseArrayApi
 from ..npx.npx_functions import (
     abs as generic_abs,
     arange as generic_arange,
+    copy as copy_inline,
     full as generic_full,
     full_like as generic_full_like,
     ones as generic_ones,
