@@ -18,6 +18,7 @@ supported_functions = [
     "empty",
     "equal",
     "full",
+    "full_like",
     "isdtype",
     "isfinite",
     "isinf",

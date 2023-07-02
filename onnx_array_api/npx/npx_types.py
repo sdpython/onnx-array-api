@@ -68,7 +68,7 @@ class DType(WrapperType):
         if dt is bool:
             return self.code_ == TensorProto.BOOL
         if dt is float:
-            return self.code_ == TensorProto.FLOAT64
+            return self.code_ == TensorProto.DOUBLE
         if isinstance(dt, list):
             return False
         if dt in ElemType.numpy_map:

@@ -20,6 +20,7 @@ from ..npx.npx_functions import (
     abs as generic_abs,
     arange as generic_arange,
     full as generic_full,
+    full_like as generic_full_like,
     ones as generic_ones,
     zeros as generic_zeros,
 )
@@ -175,6 +176,23 @@ def full(
             order=order,
         )
     return generic_full(shape, fill_value=value, dtype=dtype, order=order)
+
+
+def full_like(
+    TEagerTensor: type,
+    x: TensorType[ElemType.allowed, "T"],
+    /,
+    fill_value: ParType[Scalar] = None,
+    *,
+    dtype: OptParType[DType] = None,
+    order: OptParType[str] = "C",
+) -> EagerTensor[TensorType[ElemType.allowed, "TR"]]:
+    if dtype is None:
+        if isinstance(fill_value, TEagerTensor):
+            dtype = fill_value.dtype
+        elif isinstance(x, TEagerTensor):
+            dtype = x.dtype
+    return generic_full_like(x, fill_value=fill_value, dtype=dtype, order=order)
 
 
 def ones(

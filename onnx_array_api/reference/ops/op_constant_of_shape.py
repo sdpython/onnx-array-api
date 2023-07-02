@@ -1,12 +1,18 @@
 import numpy as np
-
 from onnx.reference.op_run import OpRun
 
 
 class ConstantOfShape(OpRun):
     @staticmethod
     def _process(value):
-        cst = value[0] if isinstance(value, np.ndarray) else value
+        cst = value[0] if isinstance(value, np.ndarray) and value.size > 0 else value
+        if isinstance(value, np.ndarray):
+            if len(value.shape) == 0:
+                cst = value
+            elif value.size > 0:
+                cst = value.ravel()[0]
+            else:
+                raise ValueError(f"Unexpected fill_value={value!r}")
         if isinstance(cst, bool):
             cst = np.bool_(cst)
         elif isinstance(cst, int):
