@@ -230,6 +230,11 @@ class _GraphBuilder:
                     new_kwargs[k] = v.value
             elif isinstance(v, DType):
                 new_kwargs[k] = v.code
+            elif isinstance(v, int):
+                try:
+                    new_kwargs[k] = int(np.array(v, dtype=np.int64))
+                except OverflowError:
+                    new_kwargs[k] = int(np.iinfo(np.int64).max)
             else:
                 new_kwargs[k] = v
 
@@ -243,6 +248,11 @@ class _GraphBuilder:
             node = make_node(op, inputs, outputs, domain=domain, **new_kwargs)
         except TypeError as e:
             raise TypeError(
+                f"Unable to create node {op!r}, with inputs={inputs}, "
+                f"outputs={outputs}, domain={domain!r}, new_kwargs={new_kwargs}."
+            ) from e
+        except ValueError as e:
+            raise ValueError(
                 f"Unable to create node {op!r}, with inputs={inputs}, "
                 f"outputs={outputs}, domain={domain!r}, new_kwargs={new_kwargs}."
             ) from e

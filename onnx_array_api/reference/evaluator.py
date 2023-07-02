@@ -7,10 +7,6 @@ from onnx.reference.op_run import OpRun
 from .ops.op_cast_like import CastLike_15, CastLike_19
 from .ops.op_constant_of_shape import ConstantOfShape
 
-import onnx
-
-print(onnx.__file__)
-
 
 logger = getLogger("onnx-array-api-eval")
 
