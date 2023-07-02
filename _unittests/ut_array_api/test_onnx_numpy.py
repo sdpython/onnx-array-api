@@ -129,8 +129,8 @@ class TestOnnxNumpy(ExtTestCase):
 
 
 if __name__ == "__main__":
-    import logging
+    # import logging
 
-    logging.basicConfig(level=logging.DEBUG)
-    TestOnnxNumpy().test_full_like_mx()
+    # logging.basicConfig(level=logging.DEBUG)
+    # TestOnnxNumpy().test_full_like_mx()
     unittest.main(verbosity=2)

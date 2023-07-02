@@ -190,6 +190,8 @@ def full_like(
     if dtype is None:
         if isinstance(fill_value, TEagerTensor):
             dtype = fill_value.dtype
+        elif isinstance(x, TEagerTensor):
+            dtype = x.dtype
     return generic_full_like(x, fill_value=fill_value, dtype=dtype, order=order)
 
 
