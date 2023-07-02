@@ -1,10 +1,8 @@
 import pprint
 from collections import OrderedDict
-
 import numpy
 from onnx import AttributeProto
-from onnx.numpy_helper import to_array
-
+from ..reference import to_array_extended as to_array
 from ._helper import _get_shape, _get_type, attributes_as_dict
 
 
