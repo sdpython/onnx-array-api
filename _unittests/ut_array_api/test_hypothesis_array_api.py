@@ -39,6 +39,7 @@ def shapes(xp, **kw):
 
 class TestHypothesisArraysApis(ExtTestCase):
     MAX_ARRAY_SIZE = 10000
+    SQRT_MAX_ARRAY_SIZE = int(10000**0.5)
     VERSION = "2021.12"
 
     @classmethod
@@ -138,9 +139,80 @@ class TestHypothesisArraysApis(ExtTestCase):
         fctonx()
         self.assertEqual(len(args_onxp), len(args_np))
 
+    def test_square_sizes_strategies(self):
+        dtypes = dict(
+            integer_dtypes=self.xps.integer_dtypes(),
+            uinteger_dtypes=self.xps.unsigned_integer_dtypes(),
+            floating_dtypes=self.xps.floating_dtypes(),
+            numeric_dtypes=self.xps.numeric_dtypes(),
+            boolean_dtypes=self.xps.boolean_dtypes(),
+            scalar_dtypes=self.xps.scalar_dtypes(),
+        )
+
+        dtypes_onnx = dict(
+            integer_dtypes=self.onxps.integer_dtypes(),
+            uinteger_dtypes=self.onxps.unsigned_integer_dtypes(),
+            floating_dtypes=self.onxps.floating_dtypes(),
+            numeric_dtypes=self.onxps.numeric_dtypes(),
+            boolean_dtypes=self.onxps.boolean_dtypes(),
+            scalar_dtypes=self.onxps.scalar_dtypes(),
+        )
+
+        for k, vnp in dtypes.items():
+            vonxp = dtypes_onnx[k]
+            anp = self.xps.arrays(dtype=vnp, shape=shapes(self.xps))
+            aonxp = self.onxps.arrays(dtype=vonxp, shape=shapes(self.onxps))
+            self.assertNotEmpty(anp)
+            self.assertNotEmpty(aonxp)
+
+        args_np = []
+
+        kws = array_api_kwargs(k=strategies.integers(), dtype=self.xps.numeric_dtypes())
+        sqrt_sizes = strategies.integers(0, self.SQRT_MAX_ARRAY_SIZE)
+        ncs = strategies.none() | sqrt_sizes
+
+        @given(n_rows=sqrt_sizes, n_cols=ncs, kw=kws)
+        def fctnp(n_rows, n_cols, kw):
+            base = np.asarray(0)
+            e = np.eye(n_rows, n_cols)
+            self.assertNotEmpty(e.dtype)
+            self.assertIsInstance(e, base.__class__)
+            e = np.eye(n_rows, n_cols, **kw)
+            self.assertNotEmpty(e.dtype)
+            self.assertIsInstance(e, base.__class__)
+            args_np.append((n_rows, n_cols, kw))
+
+        fctnp()
+        self.assertEqual(len(args_np), 100)
+
+        args_onxp = []
+
+        kws = array_api_kwargs(
+            k=strategies.integers(), dtype=self.onxps.numeric_dtypes()
+        )
+        sqrt_sizes = strategies.integers(0, self.SQRT_MAX_ARRAY_SIZE)
+        ncs = strategies.none() | sqrt_sizes
+
+        @given(n_rows=sqrt_sizes, n_cols=ncs, kw=kws)
+        def fctonx(n_rows, n_cols, kw):
+            base = onxp.asarray(0)
+            e = onxp.eye(n_rows, n_cols)
+            self.assertIsInstance(e, base.__class__)
+            self.assertNotEmpty(e.dtype)
+            e = onxp.eye(n_rows, n_cols, **kw)
+            self.assertNotEmpty(e.dtype)
+            self.assertIsInstance(e, base.__class__)
+            args_onxp.append((n_rows, n_cols, kw))
+
+        fctonx()
+        self.assertEqual(len(args_onxp), len(args_np))
+
 
 if __name__ == "__main__":
     # cl = TestHypothesisArraysApis()
     # cl.setUpClass()
     # cl.test_scalar_strategies()
+    # import logging
+
+    # logging.basicConfig(level=logging.DEBUG)
     unittest.main(verbosity=2)

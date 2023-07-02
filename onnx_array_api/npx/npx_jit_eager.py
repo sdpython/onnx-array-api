@@ -510,11 +510,18 @@ class JitEager:
             from ..plotting.text_plot import onnx_simple_text_plot
 
             text = onnx_simple_text_plot(self.onxs[key])
+
+            def catch_len(x):
+                try:
+                    return len(x)
+                except TypeError:
+                    return 0
+
             raise RuntimeError(
                 f"Unable to run function for key={key!r}, "
                 f"types={[type(x) for x in values]}, "
                 f"dtypes={[getattr(x, 'dtype', type(x)) for x in values]}, "
-                f"shapes={[getattr(x, 'shape', len(x)) for x in values]}, "
+                f"shapes={[getattr(x, 'shape', catch_len(x)) for x in values]}, "
                 f"kwargs={kwargs}, "
                 f"self.input_to_kwargs_={self.input_to_kwargs_}, "
                 f"f={self.f} from module {self.f.__module__!r} "

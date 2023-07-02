@@ -476,15 +476,13 @@ def expit(
 @npxapi_inline
 def eye(
     n_rows: TensorType[ElemType.int64, "I"],
-    n_cols: OptTensorType[ElemType.int64, "I"] = None,
+    n_cols: TensorType[ElemType.int64, "I"],
     /,
     *,
     k: ParType[int] = 0,
     dtype: ParType[DType] = DType(TensorProto.DOUBLE),
 ):
     "See :func:`numpy.eye`."
-    if n_cols is None:
-        n_cols = n_rows
     shape = cst(np.array([-1], dtype=np.int64))
     shape = var(
         var(n_rows, shape, op="Reshape"),
