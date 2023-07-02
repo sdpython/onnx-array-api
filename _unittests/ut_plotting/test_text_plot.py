@@ -306,6 +306,50 @@ class TestTextPlot(ExtTestCase):
         self.assertIn("type=? shape=?", text)
         self.assertIn("LinearRegression[custom]", text)
 
+    def test_function_plot_f8(self):
+        new_domain = "custom"
+        opset_imports = [make_opsetid("", 14), make_opsetid(new_domain, 1)]
+
+        node1 = make_node("MatMul", ["X", "A"], ["XA"])
+        node2 = make_node("Add", ["XA", "B"], ["Y"])
+
+        linear_regression = make_function(
+            new_domain,  # domain name
+            "LinearRegression",  # function name
+            ["X", "A", "B"],  # input names
+            ["Y"],  # output names
+            [node1, node2],  # nodes
+            opset_imports,  # opsets
+            [],
+        )  # attribute names
+
+        X = make_tensor_value_info("X", TensorProto.FLOAT8E4M3FN, [None, None])
+        A = make_tensor_value_info("A", TensorProto.FLOAT8E5M2, [None, None])
+        B = make_tensor_value_info("B", TensorProto.FLOAT8E4M3FNUZ, [None, None])
+        Y = make_tensor_value_info("Y", TensorProto.FLOAT8E5M2FNUZ, None)
+
+        graph = make_graph(
+            [
+                make_node(
+                    "LinearRegression", ["X", "A", "B"], ["Y1"], domain=new_domain
+                ),
+                make_node("Abs", ["Y1"], ["Y"]),
+            ],
+            "example",
+            [X, A, B],
+            [Y],
+        )
+
+        onnx_model = make_model(
+            graph, opset_imports=opset_imports, functions=[linear_regression]
+        )  # functions to add)
+
+        text = onnx_simple_text_plot(onnx_model)
+        self.assertIn("function name=LinearRegression domain=custom", text)
+        self.assertIn("MatMul(X, A) -> XA", text)
+        self.assertIn("type=? shape=?", text)
+        self.assertIn("LinearRegression[custom]", text)
+
     def test_onnx_text_plot_tree_simple(self):
         iris = load_iris()
         X, y = iris.data.astype(numpy.float32), iris.target

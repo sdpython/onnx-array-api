@@ -10,7 +10,7 @@ from onnx import (
     ValueInfoProto,
 )
 from onnx.helper import tensor_dtype_to_np_dtype
-from onnx.numpy_helper import to_array
+from ..reference import to_array_extended as to_array
 from ..npx.npx_types import DType
 
 
@@ -136,12 +136,25 @@ def _get_type(obj0):
             return tensor_dtype_to_np_dtype(TensorProto.DOUBLE)
         if obj.data_type == TensorProto.INT64 and hasattr(obj, "int64_data"):
             return tensor_dtype_to_np_dtype(TensorProto.INT64)
-        if obj.data_type == TensorProto.INT32 and hasattr(obj, "int32_data"):
+        if obj.data_type in (
+            TensorProto.INT8,
+            TensorProto.UINT8,
+            TensorProto.UINT16,
+            TensorProto.INT16,
+            TensorProto.INT32,
+            TensorProto.FLOAT8E4M3FN,
+            TensorProto.FLOAT8E4M3FNUZ,
+            TensorProto.FLOAT8E5M2,
+            TensorProto.FLOAT8E5M2FNUZ,
+        ) and hasattr(obj, "int32_data"):
             return tensor_dtype_to_np_dtype(TensorProto.INT32)
         if hasattr(obj, "raw_data") and len(obj.raw_data) > 0:
             arr = to_array(obj)
             return arr.dtype
-        raise RuntimeError(f"Unable to guess type from {obj0!r}.")
+        raise RuntimeError(
+            f"Unable to guess type from obj.data_type={obj.data_type} "
+            f"and obj={obj0!r} - {TensorProto.__dict__}."
+        )
     if hasattr(obj, "type"):
         obj = obj.type
     if hasattr(obj, "tensor_type"):
