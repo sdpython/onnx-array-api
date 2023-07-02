@@ -681,7 +681,7 @@ def ones_like(
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
     """
-    Implements :func:`numpy.zeros`.
+    Implements :func:`numpy.ones_like`.
     """
     o = make_tensor(
         name="one",
@@ -955,3 +955,25 @@ def zeros(
         value=make_tensor(name="zero", data_type=dtype.code, dims=[1], vals=[0]),
         op="ConstantOfShape",
     )
+
+
+@npxapi_inline
+def zeros_like(
+    x: TensorType[ElemType.allowed, "T"],
+    /,
+    *,
+    dtype: OptParType[DType] = None,
+) -> TensorType[ElemType.numerics, "T"]:
+    """
+    Implements :func:`numpy.zeros_like`.
+    """
+    o = make_tensor(
+        name="zero",
+        data_type=TensorProto.INT64 if dtype is None else dtype.code,
+        dims=[1],
+        vals=[0],
+    )
+    v = var(x.shape, value=o, op="ConstantOfShape")
+    if dtype is None:
+        return var(v, x, op="CastLike")
+    return v
