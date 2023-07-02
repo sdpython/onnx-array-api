@@ -29,6 +29,7 @@ supported_functions = [
     "sum",
     "take",
     "zeros",
+    "zeros_like",
 ]
 
 
