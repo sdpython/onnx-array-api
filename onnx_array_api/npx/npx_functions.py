@@ -474,6 +474,30 @@ def expit(
 
 
 @npxapi_inline
+def eye(
+    n_rows: TensorType[ElemType.int64, "I"],
+    n_cols: TensorType[ElemType.int64, "I"],
+    /,
+    *,
+    k: ParType[int] = 0,
+    dtype: ParType[DType] = DType(TensorProto.DOUBLE),
+):
+    "See :func:`numpy.eye`."
+    shape = cst(np.array([-1], dtype=np.int64))
+    shape = var(
+        var(n_rows, shape, op="Reshape"),
+        var(n_cols, shape, op="Reshape"),
+        axis=0,
+        op="Concat",
+    )
+    zero = zeros(shape, dtype=dtype)
+    res = var(zero, k=k, op="EyeLike")
+    if dtype is not None:
+        return var(res, to=dtype.code, op="Cast")
+    return res
+
+
+@npxapi_inline
 def full(
     shape: TensorType[ElemType.int64, "I", (None,)],
     /,

@@ -1,6 +1,7 @@
 from typing import Any, Optional
 import warnings
 import numpy as np
+from onnx import TensorProto
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -19,6 +20,8 @@ from ..npx.npx_array_api import BaseArrayApi
 from ..npx.npx_functions import (
     abs as generic_abs,
     arange as generic_arange,
+    copy as copy_inline,
+    eye as generic_eye,
     full as generic_full,
     full_like as generic_full_like,
     ones as generic_ones,
@@ -183,6 +186,24 @@ def full(
             order=order,
         )
     return generic_full(shape, fill_value=value, dtype=dtype, order=order)
+
+
+def eye(
+    TEagerTensor: type,
+    n_rows: TensorType[ElemType.int64, "I"],
+    n_cols: OptTensorType[ElemType.int64, "I"] = None,
+    /,
+    *,
+    k: ParType[int] = 0,
+    dtype: ParType[DType] = DType(TensorProto.DOUBLE),
+):
+    if isinstance(n_rows, int):
+        n_rows = TEagerTensor(np.array(n_rows, dtype=np.int64))
+    if n_cols is None:
+        n_cols = n_rows
+    elif isinstance(n_cols, int):
+        n_cols = TEagerTensor(np.array(n_cols, dtype=np.int64))
+    return generic_eye(n_rows, n_cols, k=k, dtype=dtype)
 
 
 def full_like(

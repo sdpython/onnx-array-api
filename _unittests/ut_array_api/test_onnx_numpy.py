@@ -142,10 +142,28 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertEqual(r.dtype, DType(TensorProto.UINT64))
         self.assertEqual(r.numpy(), 9223372036854775809)
 
+    def test_eye(self):
+        nr, nc = xp.asarray(4), xp.asarray(4)
+        expected = np.eye(nr.numpy(), nc.numpy())
+        got = xp.eye(nr, nc)
+        self.assertEqualArray(expected, got.numpy())
+
+    def test_eye_nosquare(self):
+        nr, nc = xp.asarray(4), xp.asarray(5)
+        expected = np.eye(nr.numpy(), nc.numpy())
+        got = xp.eye(nr, nc)
+        self.assertEqualArray(expected, got.numpy())
+
+    def test_eye_k(self):
+        nr = xp.asarray(4)
+        expected = np.eye(nr.numpy(), k=1)
+        got = xp.eye(nr, k=1)
+        self.assertEqualArray(expected, got.numpy())
+
 
 if __name__ == "__main__":
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)
-    # TestOnnxNumpy().test_as_array()
+    TestOnnxNumpy().test_eye()
     unittest.main(verbosity=2)

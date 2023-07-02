@@ -17,6 +17,7 @@ supported_functions = [
     "astype",
     "empty",
     "equal",
+    "eye",
     "full",
     "full_like",
     "isdtype",
