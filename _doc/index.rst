@@ -39,7 +39,7 @@ well as to execute it.
 
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_,
-see also `code coverage <cov/index.html>`_.
+see also `code coverage <_static/cov_html/index.html>`_.
 
 .. runpython::
     :showcode:

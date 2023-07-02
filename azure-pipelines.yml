@@ -184,7 +184,7 @@ jobs:
       black --diff .
     displayName: 'Black'
   - script: |
-      python -m pytest
+      python -m pytest --cov
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
