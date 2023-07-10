@@ -166,7 +166,7 @@ def arange(
     ] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccos`."
+    "See :func:`numpy.arange`."
     if stop_or_step is None:
         v = var(
             cst(np.array(0, dtype=np.int64)),
@@ -650,6 +650,63 @@ def isinf(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_
 def isnan(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
+
+
+@npxapi_inline
+def linspace(
+    start: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "T",
+        (1,),
+    ],
+    stop: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "T",
+        (1,),
+    ] = None,
+    num: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+        },
+        "I",
+        (1,),
+    ] = None,
+    dtype: OptParType[DType] = None,
+    endpoint: ParType[bool] = True,
+) -> TensorType[
+    {
+        ElemType.int16,
+        ElemType.int32,
+        ElemType.int64,
+        ElemType.float32,
+        ElemType.float64,
+    },
+    "T",
+]:
+    "See :func:`numpy.linspace`."
+    step = var(var(stop, start, op="Sub"), num, op="Div")
+    if endpoint:
+        step2 = var(endpoint, cst(np.array(1, dtype=np.int64)), op="Add")
+    else:
+        step2 = step
+    v = var(start, stop, step2, op="Range")
+    if dtype is not None:
+        return var(v, op="Cast", to=dtype)
+    return v
 
 
 @npxapi_inline
