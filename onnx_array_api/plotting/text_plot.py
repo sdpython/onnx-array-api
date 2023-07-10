@@ -766,6 +766,8 @@ def onnx_simple_text_plot(
                         val = val[:10] + "..."
                 elif att.type == AttributeProto.STRING:
                     val = str(att.s)
+                    if len(val) > 50:
+                        val = val[:40] + "..." + val[-10:]
                 elif att.type == AttributeProto.STRINGS:
                     n_val = list(att.strings)
                     if len(n_val) < 5:
