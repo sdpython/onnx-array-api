@@ -60,6 +60,7 @@ from onnx_array_api.npx.npx_functions import floor as floor_inline
 from onnx_array_api.npx.npx_functions import hstack as hstack_inline
 from onnx_array_api.npx.npx_functions import identity as identity_inline
 from onnx_array_api.npx.npx_functions import isnan as isnan_inline
+from onnx_array_api.npx.npx_functions import linspace as linspace_inline
 from onnx_array_api.npx.npx_functions import log as log_inline
 from onnx_array_api.npx.npx_functions import log1p as log1p_inline
 from onnx_array_api.npx.npx_functions import matmul as matmul_inline
@@ -2573,6 +2574,27 @@ class TestNpx(ExtTestCase):
         a = EagerNumpyTensor(np.array([5, 6], dtype=np.int8))
         i = a[0]
         self.assertEqualArray(i.numpy(), a.numpy()[0])
+
+    def test_linspace_inline(self):
+        # linspace(0, 5, 1)
+        f = linspace_inline(Input("A"), Input("B"), Input("C"))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(
+            constraints={
+                0: Int64[None],
+                1: Int64[None],
+                2: Int64[None],
+                (0, False): Int64[None],
+            }
+        )
+
+        start = np.array(0, dtype=np.int64)
+        stop = np.array(5, dtype=np.int64)
+        step = np.array(1, dtype=np.int64)
+        y = np.linspace(start, stop, 1)
+        ref = ReferenceEvaluator(onx, verbose=10)
+        got = ref.run(None, {"A": start, "B": stop, "C": step})
+        self.assertEqualArray(y, got[0])
 
 
 if __name__ == "__main__":
