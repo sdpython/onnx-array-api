@@ -38,24 +38,6 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertEqual(matnp.shape, (2,))
         self.assertEqualArray(matnp, np.arange(4, step=2).astype(np.int64))
 
-    def test_linspace_int(self):
-        a = EagerTensor(np.array([0], dtype=np.int64))
-        b = EagerTensor(np.array([5], dtype=np.int64))
-        c = EagerTensor(np.array([1], dtype=np.int64))
-        mat = xp.linspace(a, b, c)
-        matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
-        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.int64))
-
-    def test_linspace_float(self):
-        a = EagerTensor(np.array([0.5], dtype=np.float64))
-        b = EagerTensor(np.array([5.5], dtype=np.float64))
-        c = EagerTensor(np.array([1.5], dtype=np.float64))
-        mat = xp.linspace(a, b, c)
-        matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
-        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.float64))
-
     def test_zeros_none(self):
         c = EagerTensor(np.array([4, 5], dtype=np.int64))
         mat = xp.zeros(c)
@@ -178,10 +160,34 @@ class TestOnnxNumpy(ExtTestCase):
         got = xp.eye(nr, k=1)
         self.assertEqualArray(expected, got.numpy())
 
+    def test_linspace_int(self):
+        a = EagerTensor(np.array([0], dtype=np.int64))
+        b = EagerTensor(np.array([5], dtype=np.int64))
+        c = EagerTensor(np.array([1], dtype=np.int64))
+        mat = xp.linspace(a, b, c)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.int64))
+
+    def test_linspace_float(self):
+        a = EagerTensor(np.array([0.5], dtype=np.float64))
+        b = EagerTensor(np.array([5.5], dtype=np.float64))
+        c = EagerTensor(np.array([2], dtype=np.int64))
+        mat = xp.linspace(a, b, c)
+        matnp = mat.numpy()
+        self.assertEqual(matnp.shape, (2,))
+        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.float64))
+
+    def test_linspace_zero(self):
+        expected = np.linspace(0.0, 0.0, 0, endpoint=False)
+        mat = xp.linspace(0.0, 0.0, 0, endpoint=False)
+        matnp = mat.numpy()
+        self.assertEqualArray(expected, matnp)
+
 
 if __name__ == "__main__":
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)
-    TestOnnxNumpy().test_eye()
+    TestOnnxNumpy().test_linspace_float()
     unittest.main(verbosity=2)

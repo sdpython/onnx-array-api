@@ -24,6 +24,7 @@ supported_functions = [
     "isfinite",
     "isinf",
     "isnan",
+    "linspace",
     "ones",
     "ones_like",
     "reshape",

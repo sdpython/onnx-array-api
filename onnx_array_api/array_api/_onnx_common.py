@@ -253,10 +253,12 @@ def linspace(
 
     if isinstance(num, int):
         num = TEagerTensor(np.array([num], dtype=np.float64))
+    elif isinstance(num, float):
+        raise TypeError(f"num must be an integer not {type(num)}.")
 
     if dtype is None and use_float:
         dtype = DType(TensorProto.DOUBLE)
-    return generic_linspace(start, stop, num, dtype=dtype, endsecond=endsecond)
+    return generic_linspace(start, stop, num, dtype=dtype, endpoint=endpoint)
 
 
 def ones(
