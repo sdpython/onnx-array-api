@@ -208,6 +208,18 @@ class JitEager:
                     res.append(k)
                     res.append(type(v))
                     res.append(v)
+                elif isinstance(v, slice):
+                    if (
+                        isinstance(v.start, Var)
+                        or isinstance(v.stop, Var)
+                        or isinstance(v.step, Var)
+                    ):
+                        raise NotImplementedError(
+                            f"Cannot support Var in argument {k!r}."
+                        )
+                    res.append(k)
+                    res.append(type(v))
+                    res.append((v.start, v.stop, v.step))
                 elif isinstance(v, tuple):
                     newv = []
                     for t in v:

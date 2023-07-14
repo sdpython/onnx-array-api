@@ -246,10 +246,16 @@ class TestOnnxNumpy(ExtTestCase):
         got = g[:-1]
         self.assertEqualArray(expected, got.numpy())
 
+    def test_linspace_bug1(self):
+        expected = np.linspace(16777217.0, 0.0, 1)
+        mat = xp.linspace(16777217.0, 0.0, 1)
+        matnp = mat.numpy()
+        self.assertEqualArray(expected, matnp)
+
 
 if __name__ == "__main__":
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)
-    TestOnnxNumpy().test_slice_minus_one()
+    TestOnnxNumpy().test_linspace_float_noendpoint()
     unittest.main(verbosity=2)

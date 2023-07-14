@@ -673,7 +673,7 @@ def linspace(
             ElemType.float32,
             ElemType.float64,
         },
-        "T",
+        "T1",
         (1,),
     ] = None,
     num: TensorType[
@@ -696,23 +696,29 @@ def linspace(
         ElemType.float32,
         ElemType.float64,
     },
-    "T",
+    "T2",
 ]:
     "See :func:`numpy.linspace`."
     zero = cst(np.array(0, dtype=np.int64))
     c1 = cst(np.array(1, dtype=np.int64))
     num_1 = var(num, c1, op="Sub") if endpoint else num
-    steps = var(var(zero, num_1, c1, op="Range"), op="Cast", to=TensorProto.FLOAT)
+    num_p1 = var(num_1, c1, op="Add")
+    steps = var(var(zero, num_p1, c1, op="Range"), op="Cast", to=TensorProto.DOUBLE)
 
-    startc = var(start, op="Cast", to=TensorProto.FLOAT)
-    stopc = var(stop, op="Cast", to=TensorProto.FLOAT)
+    startc = var(start, op="Cast", to=TensorProto.DOUBLE)
+    stopc = var(stop, op="Cast", to=TensorProto.DOUBLE)
     diff = var(stopc, startc, op="Sub")
-    div = var(diff, var(num_1, op="Cast", to=TensorProto.FLOAT), op="Div")
+    denom = var(
+        var(num_1, op="Cast", to=TensorProto.DOUBLE),
+        cst(np.array(1, dtype=np.float64)),
+        op="Max",
+    )
+    div = var(diff, denom, op="Div")
     mul = var(steps, div, op="Mul")
     final = var(mul, startc, op="Add")
 
-    if endpoint:
-        final = var(final, stopc, op="Concat", axis=0)
+    if not endpoint:
+        final = final[:-1]
 
     # shape
     shape_start = var(start, op="Shape")
