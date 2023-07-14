@@ -2,10 +2,14 @@ import sys
 import unittest
 import numpy as np
 from onnx import TensorProto
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
 from onnx_array_api.array_api import onnx_numpy as xp
 from onnx_array_api.npx.npx_types import DType
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor as EagerTensor
+from onnx_array_api.npx.npx_functions import linspace as linspace_inline
+from onnx_array_api.npx.npx_types import Float64, Int64
+from onnx_array_api.npx.npx_var import Input
+from onnx_array_api.reference import ExtendedReferenceEvaluator
 
 
 class TestOnnxNumpy(ExtTestCase):
@@ -22,6 +26,7 @@ class TestOnnxNumpy(ExtTestCase):
         a = xp.absolute(mat)
         self.assertEqualArray(np.absolute(mat.numpy()), a.numpy())
 
+    @ignore_warnings(DeprecationWarning)
     def test_arange_default(self):
         a = EagerTensor(np.array([0], dtype=np.int64))
         b = EagerTensor(np.array([2], dtype=np.int64))
@@ -30,6 +35,7 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertEqual(matnp.shape, (2,))
         self.assertEqualArray(matnp, np.arange(0, 2).astype(np.int64))
 
+    @ignore_warnings(DeprecationWarning)
     def test_arange_step(self):
         a = EagerTensor(np.array([4], dtype=np.int64))
         s = EagerTensor(np.array([2], dtype=np.int64))
@@ -78,6 +84,7 @@ class TestOnnxNumpy(ExtTestCase):
         self.assertNotEmpty(matnp[0, 0])
         self.assertEqualArray(matnp, np.full((4, 5), False))
 
+    @ignore_warnings(DeprecationWarning)
     def test_arange_int00a(self):
         a = EagerTensor(np.array([0], dtype=np.int64))
         b = EagerTensor(np.array([0], dtype=np.int64))
@@ -89,6 +96,7 @@ class TestOnnxNumpy(ExtTestCase):
             expected = expected.astype(np.int64)
         self.assertEqualArray(matnp, expected)
 
+    @ignore_warnings(DeprecationWarning)
     def test_arange_int00(self):
         mat = xp.arange(0, 0)
         matnp = mat.numpy()
@@ -162,32 +170,86 @@ class TestOnnxNumpy(ExtTestCase):
 
     def test_linspace_int(self):
         a = EagerTensor(np.array([0], dtype=np.int64))
-        b = EagerTensor(np.array([5], dtype=np.int64))
-        c = EagerTensor(np.array([1], dtype=np.int64))
+        b = EagerTensor(np.array([6], dtype=np.int64))
+        c = EagerTensor(np.array(3, dtype=np.int64))
         mat = xp.linspace(a, b, c)
         matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
-        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.int64))
+        expected = np.linspace(a.numpy(), b.numpy(), c.numpy()).astype(np.int64)
+        self.assertEqualArray(expected, matnp)
+
+    def test_linspace_int5(self):
+        a = EagerTensor(np.array([0], dtype=np.int64))
+        b = EagerTensor(np.array([5], dtype=np.int64))
+        c = EagerTensor(np.array(3, dtype=np.int64))
+        mat = xp.linspace(a, b, c)
+        matnp = mat.numpy()
+        expected = np.linspace(a.numpy(), b.numpy(), c.numpy()).astype(np.int64)
+        self.assertEqualArray(expected, matnp)
 
     def test_linspace_float(self):
         a = EagerTensor(np.array([0.5], dtype=np.float64))
         b = EagerTensor(np.array([5.5], dtype=np.float64))
-        c = EagerTensor(np.array([2], dtype=np.int64))
+        c = EagerTensor(np.array(2, dtype=np.int64))
         mat = xp.linspace(a, b, c)
         matnp = mat.numpy()
-        self.assertEqual(matnp.shape, (2,))
-        self.assertEqualArray(matnp, np.linspace(a, b, c).astype(np.float64))
+        expected = np.linspace(a.numpy(), b.numpy(), c.numpy())
+        self.assertEqualArray(expected, matnp)
 
+    def test_linspace_float_noendpoint(self):
+        a = EagerTensor(np.array([0.5], dtype=np.float64))
+        b = EagerTensor(np.array([5.5], dtype=np.float64))
+        c = EagerTensor(np.array(2, dtype=np.int64))
+        mat = xp.linspace(a, b, c, endpoint=0)
+        matnp = mat.numpy()
+        expected = np.linspace(a.numpy(), b.numpy(), c.numpy(), endpoint=0)
+        self.assertEqualArray(expected, matnp)
+
+    @ignore_warnings((RuntimeWarning, DeprecationWarning))  # division by zero
     def test_linspace_zero(self):
         expected = np.linspace(0.0, 0.0, 0, endpoint=False)
         mat = xp.linspace(0.0, 0.0, 0, endpoint=False)
         matnp = mat.numpy()
         self.assertEqualArray(expected, matnp)
 
+    @ignore_warnings((RuntimeWarning, DeprecationWarning))  # division by zero
+    def test_linspace_zero_one(self):
+        expected = np.linspace(0.0, 0.0, 1, endpoint=True)
+
+        f = linspace_inline(Input("start"), Input("stop"), Input("num"))
+        onx = f.to_onnx(
+            constraints={
+                "start": Float64[None],
+                "stop": Float64[None],
+                "num": Int64[None],
+                (0, False): Float64[None],
+            }
+        )
+        ref = ExtendedReferenceEvaluator(onx)
+        got = ref.run(
+            None,
+            {
+                "start": np.array(0, dtype=np.float64),
+                "stop": np.array(0, dtype=np.float64),
+                "num": np.array(1, dtype=np.int64),
+            },
+        )
+        self.assertEqualArray(expected, got[0])
+
+        mat = xp.linspace(0.0, 0.0, 1, endpoint=True)
+        matnp = mat.numpy()
+
+        self.assertEqualArray(expected, matnp)
+
+    def test_slice_minus_one(self):
+        g = EagerTensor(np.array([0.0]))
+        expected = g.numpy()[:-1]
+        got = g[:-1]
+        self.assertEqualArray(expected, got.numpy())
+
 
 if __name__ == "__main__":
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)
-    TestOnnxNumpy().test_linspace_float()
+    TestOnnxNumpy().test_slice_minus_one()
     unittest.main(verbosity=2)

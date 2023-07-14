@@ -232,27 +232,25 @@ def linspace(
     ] = None,
     num: EagerTensor[OptTensorType[ElemType.int64, "I", (1,)]] = None,
     dtype: OptParType[DType] = None,
-    endpoint: ParType[bool] = True,
+    endpoint: ParType[int] = 1,
 ) -> EagerTensor[TensorType[ElemType.numerics, "T"]]:
     use_float = any(map(lambda x: isinstance(x, float), [start, stop]))
     if isinstance(start, int):
         start = TEagerTensor(
-            np.array([start], dtype=np.float64 if use_float else np.int64)
+            np.array(start, dtype=np.float64 if use_float else np.int64)
         )
     elif isinstance(start, float):
-        start = TEagerTensor(np.array([start], dtype=np.float64))
+        start = TEagerTensor(np.array(start, dtype=np.float64))
         assert use_float
 
     if isinstance(stop, int):
-        stop = TEagerTensor(
-            np.array([stop], dtype=np.float64 if use_float else np.int64)
-        )
+        stop = TEagerTensor(np.array(stop, dtype=np.float64 if use_float else np.int64))
     elif isinstance(stop, float):
-        stop = TEagerTensor(np.array([stop], dtype=np.float64))
+        stop = TEagerTensor(np.array(stop, dtype=np.float64))
         assert use_float
 
     if isinstance(num, int):
-        num = TEagerTensor(np.array([num], dtype=np.float64))
+        num = TEagerTensor(np.array(num, dtype=np.int64))
     elif isinstance(num, float):
         raise TypeError(f"num must be an integer not {type(num)}.")
 

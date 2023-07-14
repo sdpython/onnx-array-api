@@ -686,7 +686,8 @@ def linspace(
         (1,),
     ] = None,
     dtype: OptParType[DType] = None,
-    endpoint: ParType[bool] = True,
+    endpoint: ParType[int] = 1,
+    # extend_shape: ParType[int] = 0,
 ) -> TensorType[
     {
         ElemType.int16,
@@ -698,15 +699,33 @@ def linspace(
     "T",
 ]:
     "See :func:`numpy.linspace`."
-    step = var(var(stop, start, op="Sub"), num, op="Div")
+    zero = cst(np.array(0, dtype=np.int64))
+    c1 = cst(np.array(1, dtype=np.int64))
+    num_1 = var(num, c1, op="Sub") if endpoint else num
+    steps = var(var(zero, num_1, c1, op="Range"), op="Cast", to=TensorProto.FLOAT)
+
+    startc = var(start, op="Cast", to=TensorProto.FLOAT)
+    stopc = var(stop, op="Cast", to=TensorProto.FLOAT)
+    diff = var(stopc, startc, op="Sub")
+    div = var(diff, var(num_1, op="Cast", to=TensorProto.FLOAT), op="Div")
+    mul = var(steps, div, op="Mul")
+    final = var(mul, startc, op="Add")
+
     if endpoint:
-        step2 = var(endpoint, cst(np.array(1, dtype=np.int64)), op="Add")
-    else:
-        step2 = step
-    v = var(start, stop, step2, op="Range")
+        final = var(final, stopc, op="Concat", axis=0)
+
+    # shape
+    shape_start = var(start, op="Shape")
+    shape_zero = var(shape_start, zero, op="Greater")
+    shape = var(shape_start, shape_zero, op="Compress")
+
+    shape_full = var(final, op="Shape")
+    new_shape = var(shape_full, shape, op="Concat", axis=0)
+    last = var(final, new_shape, op="Reshape")
+
     if dtype is not None:
-        return var(v, op="Cast", to=dtype)
-    return v
+        return var(last, op="Cast", to=dtype)
+    return var(last, start, op="CastLike")
 
 
 @npxapi_inline
