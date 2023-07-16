@@ -20,7 +20,8 @@ from onnx.helper import (
 from onnx.reference import ReferenceEvaluator
 from onnx.shape_inference import infer_shapes
 
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
+from onnx_array_api.reference import ExtendedReferenceEvaluator
 from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_core_api import (
     cst,
@@ -60,6 +61,7 @@ from onnx_array_api.npx.npx_functions import floor as floor_inline
 from onnx_array_api.npx.npx_functions import hstack as hstack_inline
 from onnx_array_api.npx.npx_functions import identity as identity_inline
 from onnx_array_api.npx.npx_functions import isnan as isnan_inline
+from onnx_array_api.npx.npx_functions import linspace as linspace_inline
 from onnx_array_api.npx.npx_functions import log as log_inline
 from onnx_array_api.npx.npx_functions import log1p as log1p_inline
 from onnx_array_api.npx.npx_functions import matmul as matmul_inline
@@ -1654,6 +1656,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @ignore_warnings(DeprecationWarning)
     def test_squeeze_noaxis(self):
         f = squeeze_inline(copy_inline(Input("A")))
         self.assertIsInstance(f, Var)
@@ -2574,6 +2577,51 @@ class TestNpx(ExtTestCase):
         i = a[0]
         self.assertEqualArray(i.numpy(), a.numpy()[0])
 
+    @ignore_warnings(RuntimeWarning)
+    def test_linspace_big_inline(self):
+        # linspace(5, 0, 1) --> [5] even with endpoint=True
+        f = linspace_inline(Input("A"), Input("B"), Input("C"))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(
+            constraints={
+                0: Int64[None],
+                1: Int64[None],
+                2: Int64[None],
+                (0, False): Int64[None],
+            }
+        )
+
+        start = np.array(16777217.0, dtype=np.float64)
+        stop = np.array(0.0, dtype=np.float64)
+        num = np.array(1, dtype=np.int64)
+        y = np.linspace(start, stop, num)
+        ref = ExtendedReferenceEvaluator(onx)
+        got = ref.run(None, {"A": start, "B": stop, "C": num})
+        self.assertEqualArray(y, got[0])
+
+    @ignore_warnings(RuntimeWarning)
+    def test_linspace_inline(self):
+        # linspace(0, 5, 1)
+        f = linspace_inline(Input("A"), Input("B"), Input("C"))
+        self.assertIsInstance(f, Var)
+        onx = f.to_onnx(
+            constraints={
+                0: Int64[None],
+                1: Int64[None],
+                2: Int64[None],
+                (0, False): Int64[None],
+            }
+        )
+
+        start = np.array(0, dtype=np.float64)
+        stop = np.array(5, dtype=np.float64)
+        num = np.array(1, dtype=np.int64)
+        y = np.linspace(start, stop, num)
+        ref = ExtendedReferenceEvaluator(onx)
+        got = ref.run(None, {"A": start, "B": stop, "C": num})
+        self.assertEqualArray(y, got[0])
+
 
 if __name__ == "__main__":
+    TestNpx().test_linspace_inline()
     unittest.main(verbosity=2)

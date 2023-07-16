@@ -166,7 +166,7 @@ def arange(
     ] = None,
     dtype: OptParType[DType] = None,
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.arccos`."
+    "See :func:`numpy.arange`."
     if stop_or_step is None:
         v = var(
             cst(np.array(0, dtype=np.int64)),
@@ -650,6 +650,88 @@ def isinf(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_
 def isnan(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.bool_, "T1"]:
     "See :func:`numpy.isnan`."
     return var(x, op="IsNaN")
+
+
+@npxapi_inline
+def linspace(
+    start: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "T",
+        (1,),
+    ],
+    stop: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+            ElemType.float32,
+            ElemType.float64,
+        },
+        "T1",
+        (1,),
+    ] = None,
+    num: TensorType[
+        {
+            ElemType.int16,
+            ElemType.int32,
+            ElemType.int64,
+        },
+        "I",
+        (1,),
+    ] = None,
+    dtype: OptParType[DType] = None,
+    endpoint: ParType[int] = 1,
+    # extend_shape: ParType[int] = 0,
+) -> TensorType[
+    {
+        ElemType.int16,
+        ElemType.int32,
+        ElemType.int64,
+        ElemType.float32,
+        ElemType.float64,
+    },
+    "T2",
+]:
+    "See :func:`numpy.linspace`."
+    zero = cst(np.array(0, dtype=np.int64))
+    c1 = cst(np.array(1, dtype=np.int64))
+    num_1 = var(num, c1, op="Sub") if endpoint else num
+    num_p1 = var(num_1, c1, op="Add")
+    steps = var(var(zero, num_p1, c1, op="Range"), op="Cast", to=TensorProto.DOUBLE)
+
+    startc = var(start, op="Cast", to=TensorProto.DOUBLE)
+    stopc = var(stop, op="Cast", to=TensorProto.DOUBLE)
+    diff = var(stopc, startc, op="Sub")
+    denom = var(
+        var(num_1, op="Cast", to=TensorProto.DOUBLE),
+        cst(np.array(1, dtype=np.float64)),
+        op="Max",
+    )
+    div = var(diff, denom, op="Div")
+    mul = var(steps, div, op="Mul")
+    final = var(mul, startc, op="Add")
+
+    if not endpoint:
+        final = final[:-1]
+
+    # shape
+    shape_start = var(start, op="Shape")
+    shape_zero = var(shape_start, zero, op="Greater")
+    shape = var(shape_start, shape_zero, op="Compress")
+
+    shape_full = var(final, op="Shape")
+    new_shape = var(shape_full, shape, op="Concat", axis=0)
+    last = var(final, new_shape, op="Reshape")
+
+    if dtype is not None:
+        return var(last, op="Cast", to=dtype)
+    return var(last, start, op="CastLike")
 
 
 @npxapi_inline

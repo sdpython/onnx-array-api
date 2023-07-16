@@ -5,7 +5,7 @@ from functools import reduce
 import numpy as np
 from operator import mul
 from hypothesis import given
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
 from onnx_array_api.array_api import onnx_numpy as onxp
 from hypothesis import strategies
 from hypothesis.extra import array_api
@@ -207,11 +207,58 @@ class TestHypothesisArraysApis(ExtTestCase):
         fctonx()
         self.assertEqual(len(args_onxp), len(args_np))
 
+    @ignore_warnings(UserWarning)
+    def test_square_shared_types(self):
+        dtypes = self.onxps.scalar_dtypes()
+        shared_dtypes = strategies.shared(dtypes, key="dtype")
+
+        def shapes(**kw):
+            kw.setdefault("min_dims", 0)
+            kw.setdefault("min_side", 0)
+            return self.onxps.array_shapes(**kw).filter(
+                lambda shape: prod(i for i in shape if i) < self.MAX_ARRAY_SIZE
+            )
+
+        @strategies.composite
+        def kwargs(draw, **kw):
+            result = {}
+            for k, strat in kw.items():
+                if draw(strategies.booleans()):
+                    result[k] = draw(strat)
+            return result
+
+        @strategies.composite
+        def full_like_fill_values(draw):
+            kw = draw(
+                strategies.shared(
+                    kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes()),
+                    key="full_like_kw",
+                )
+            )
+            dtype = kw.get("dtype", None) or draw(shared_dtypes)
+            return draw(self.onxps.from_dtype(dtype))
+
+        args = []
+        sh = shapes()
+        xa = self.onxps.arrays(dtype=shared_dtypes, shape=sh)
+        fu = full_like_fill_values()
+        kws = strategies.shared(
+            kwargs(dtype=strategies.none() | self.onxps.scalar_dtypes()),
+            key="full_like_kw",
+        )
+
+        @given(x=xa, fill_value=fu, kw=kws)
+        def fctonp(x, fill_value, kw):
+            args.append((x, fill_value, kw))
+
+        fctonp()
+        self.assertEqual(len(args), 100)
+
 
 if __name__ == "__main__":
-    # cl = TestHypothesisArraysApis()
-    # cl.setUpClass()
-    # cl.test_scalar_strategies()
+    cl = TestHypothesisArraysApis()
+    cl.setUpClass()
+    cl.test_square_shared_types()
     # import logging
 
     # logging.basicConfig(level=logging.DEBUG)

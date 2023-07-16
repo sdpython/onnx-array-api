@@ -1,8 +1,8 @@
 # API failures
 # see https://github.com/data-apis/array-api-tests/blob/master/numpy-skips.txt
 # uses __setitem__
-array_api_tests/test_creation_functions.py::test_asarray_arrays
+# array_api_tests/test_creation_functions.py::test_asarray_arrays
 array_api_tests/test_creation_functions.py::test_empty
 array_api_tests/test_creation_functions.py::test_empty_like
-array_api_tests/test_creation_functions.py::test_linspace
+# array_api_tests/test_creation_functions.py::test_linspace
 array_api_tests/test_creation_functions.py::test_meshgrid

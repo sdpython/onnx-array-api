@@ -24,6 +24,7 @@ supported_functions = [
     "isfinite",
     "isinf",
     "isnan",
+    "linspace",
     "ones",
     "ones_like",
     "reshape",
@@ -40,11 +41,18 @@ def _finfo(dtype):
     """
     dt = dtype.np_dtype if isinstance(dtype, DType) else dtype
     res = np.finfo(dt)
-    d = res.__dict__.copy()
+    d = {}
+    for k, v in res.__dict__.items():
+        if k.startswith("__"):
+            continue
+        if isinstance(v, (np.float32, np.float64, np.float16)):
+            d[k] = float(v)
+        else:
+            d[k] = v
     d["dtype"] = DType(np_dtype_to_tensor_dtype(dt))
     nres = type("finfo", (res.__class__,), d)
-    setattr(nres, "smallest_normal", res.smallest_normal)
-    setattr(nres, "tiny", res.tiny)
+    setattr(nres, "smallest_normal", float(res.smallest_normal))
+    setattr(nres, "tiny", float(res.tiny))
     return nres
 
 
@@ -54,11 +62,30 @@ def _iinfo(dtype):
     """
     dt = dtype.np_dtype if isinstance(dtype, DType) else dtype
     res = np.iinfo(dt)
-    d = res.__dict__.copy()
+    d = {}
+    for k, v in res.__dict__.items():
+        if k.startswith("__"):
+            continue
+        if isinstance(
+            v,
+            (
+                np.int16,
+                np.int32,
+                np.int64,
+                np.uint16,
+                np.uint32,
+                np.uint64,
+                np.int8,
+                np.uint8,
+            ),
+        ):
+            d[k] = int(v)
+        else:
+            d[k] = v
     d["dtype"] = DType(np_dtype_to_tensor_dtype(dt))
-    nres = type("finfo", (res.__class__,), d)
-    setattr(nres, "min", res.min)
-    setattr(nres, "max", res.max)
+    nres = type("iinfo", (res.__class__,), d)
+    setattr(nres, "min", int(res.min))
+    setattr(nres, "max", int(res.max))
     return nres
 
 

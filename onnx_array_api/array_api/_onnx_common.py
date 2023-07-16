@@ -24,6 +24,7 @@ from ..npx.npx_functions import (
     eye as generic_eye,
     full as generic_full,
     full_like as generic_full_like,
+    linspace as generic_linspace,
     ones as generic_ones,
     zeros as generic_zeros,
 )
@@ -92,7 +93,15 @@ def asarray(
     elif isinstance(a, str):
         v = TEagerTensor(np.array(a, dtype=np.str_))
     elif isinstance(a, list):
-        v = TEagerTensor(np.array(a))
+        if all(map(lambda x: isinstance(x, bool), a)):
+            v = TEagerTensor(np.array(a, dtype=np.bool_))
+        elif all(map(lambda x: isinstance(x, int), a)):
+            if all(map(lambda x: x >= 0, a)):
+                v = TEagerTensor(np.array(a, dtype=np.uint64))
+            else:
+                v = TEagerTensor(np.array(a, dtype=np.int64))
+        else:
+            v = TEagerTensor(np.array(a))
     elif isinstance(a, np.ndarray):
         v = TEagerTensor(a)
     elif isinstance(a, Array):
@@ -221,6 +230,41 @@ def full_like(
         elif isinstance(x, TEagerTensor):
             dtype = x.dtype
     return generic_full_like(x, fill_value=fill_value, dtype=dtype, order=order)
+
+
+def linspace(
+    TEagerTensor: type,
+    start: EagerTensor[TensorType[{ElemType.int64, ElemType.float64}, "I", (1,)]],
+    stop: EagerTensor[
+        OptTensorType[{ElemType.int64, ElemType.float64}, "I", (1,)]
+    ] = None,
+    num: EagerTensor[OptTensorType[ElemType.int64, "I", (1,)]] = None,
+    dtype: OptParType[DType] = None,
+    endpoint: ParType[int] = 1,
+) -> EagerTensor[TensorType[ElemType.numerics, "T"]]:
+    use_float = any(map(lambda x: isinstance(x, float), [start, stop]))
+    if isinstance(start, int):
+        start = TEagerTensor(
+            np.array(start, dtype=np.float64 if use_float else np.int64)
+        )
+    elif isinstance(start, float):
+        start = TEagerTensor(np.array(start, dtype=np.float64))
+        assert use_float
+
+    if isinstance(stop, int):
+        stop = TEagerTensor(np.array(stop, dtype=np.float64 if use_float else np.int64))
+    elif isinstance(stop, float):
+        stop = TEagerTensor(np.array(stop, dtype=np.float64))
+        assert use_float
+
+    if isinstance(num, int):
+        num = TEagerTensor(np.array(num, dtype=np.int64))
+    elif isinstance(num, float):
+        raise TypeError(f"num must be an integer not {type(num)}.")
+
+    if dtype is None and use_float:
+        dtype = DType(TensorProto.DOUBLE)
+    return generic_linspace(start, stop, num, dtype=dtype, endpoint=endpoint)
 
 
 def ones(

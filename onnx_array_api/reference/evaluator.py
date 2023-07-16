@@ -5,6 +5,7 @@ from onnx.defs import get_schema
 from onnx.reference import ReferenceEvaluator
 from onnx.reference.op_run import OpRun
 from .ops.op_cast_like import CastLike_15, CastLike_19
+from .ops.op_concat import Concat
 from .ops.op_constant_of_shape import ConstantOfShape
 
 
@@ -27,6 +28,7 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
     """
 
     default_ops = [
+        Concat,
         CastLike_15,
         CastLike_19,
         ConstantOfShape,
@@ -101,3 +103,9 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
             print(pattern % tuple(new_args))
         else:
             logger.debug(pattern, *args)
+
+    def run(self, *args, **kwargs):
+        """
+        See :meth:`onnx.reference.ReferenceEvaluator.run`.
+        """
+        return ReferenceEvaluator.run(self, *args, **kwargs)

@@ -105,6 +105,16 @@ class EagerTensor(BaseArrayApi):
         meth = getattr(Var, method_name)
         return meth(obj, index)
 
+    @staticmethod
+    def _getitem_impl_slice(obj, index=None, method_name=None):
+        # avoids circular imports.
+        from .npx_var import Var
+
+        if not isinstance(obj, Var):
+            raise TypeError(f"obj must be a Var not {type(obj)}.")
+        meth = getattr(Var, method_name)
+        return meth(obj, index)
+
     def _generic_method_getitem(self, method_name, *args: Any, **kwargs: Any) -> Any:
         # avoids circular imports.
         from .npx_jit_eager import eager_onnx
@@ -116,6 +126,11 @@ class EagerTensor(BaseArrayApi):
         if isinstance(args[0], tuple):
             eag = eager_onnx(
                 EagerTensor._getitem_impl_tuple, self.__class__, bypass_eager=True
+            )
+            res = eag(self, index=args[0], method_name=method_name, already_eager=True)
+        elif isinstance(args[0], slice):
+            eag = eager_onnx(
+                EagerTensor._getitem_impl_slice, self.__class__, bypass_eager=True
             )
             res = eag(self, index=args[0], method_name=method_name, already_eager=True)
         else:
