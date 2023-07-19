@@ -1,24 +1,9 @@
-name: Documentation
+name: Documentation and Code Coverage
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    #        ┌───────────── minute (0 - 59)
-    #        │  ┌───────────── hour (0 - 23)
-    #        │  │ ┌───────────── day of the month (1 - 31)
-    #        │  │ │ ┌───────────── month (1 - 12 or JAN-DEC)
-    #        │  │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
-    #        │  │ │ │ │
-    #        │  │ │ │ │
-    #        │  │ │ │ │
-    #        *  * * * *
-    - cron: '30 1 * * 0'
+on: [push]
 
 jobs:
-  build_wheels:
+  run:
     name: Build documentation on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -33,17 +18,65 @@ jobs:
         with:
           python-version: '3.11'
 
+      - uses: tlylt/install-graphviz@v1
+
+      - name: Install pandoc
+        run: sudo apt-get install -y pandoc
+
       - name: Install requirements
         run: python -m pip install -r requirements.txt
 
-      - name: Install requirements-dev.txt
+      - name: Install requirements dev
         run: python -m pip install -r requirements-dev.txt
 
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Generate coverage report
+        run: |
+          pip install pytest
+          pip install pytest-cov
+          export PYTHONPATH=.
+          pytest --cov=./onnx_array_api/ --cov-report=xml --durations=10 --ignore-glob=**LONG*.py --ignore-glob=**notebook*.py
+          export PYTHONPATH=
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Install
-        run: python -m pip install -e .
+        run: python setup.py install
+
+      - name: Copy license
+        run: cp LICENSE* ./_doc
+      - name: Copy changelogs
+        run: cp CHANGELOGS* ./_doc
 
       - name: Documentation
-        run: python -m sphinx ./_doc ./dist/html
+        run: python -m sphinx ./_doc ./dist/html -n -w doc.txt
+
+      - name: Summary
+        run: cat doc.txt
+
+      - name: Check for errors and warnings
+        run: |
+          if [[ $(grep ERROR doc.txt) ]]; then
+            echo "Documentation produces errors."
+            grep ERROR doc.txt
+            exit 1
+          fi
+          if [[ $(grep WARNING doc.txt) ]]; then
+            echo "Documentation produces warnings."
+            grep WARNING doc.txt
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v3
         with:
