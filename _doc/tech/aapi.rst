@@ -55,7 +55,10 @@ Tensor type
 
 An :class:`EagerTensor` must be used to represent any tensor.
 This class defines the backend to use as well.
-`EagerNumpyTensor` for :epkg:`numpy`, `EagerOrtTensor`
+:class:`EagerNumpyTensor
+<onnx_array_api.npx.npx_numpy_tensors.EagerNumpyTensor>`
+for :epkg:`numpy`, :class:`EagerOrtTensor
+<onnx_array_api.ort.ort_tensors.EagerOrtTensor>`
 for :epkg:`onnxruntime`. Since the Array API is new, 
 existing packages do not fully support the API if they support it
 (:epkg:`scikit-learn`). Some numpy array may still be used.

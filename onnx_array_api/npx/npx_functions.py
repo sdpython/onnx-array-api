@@ -30,7 +30,7 @@ def _cstv(x):
 
 @npxapi_inline
 def abs(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.abs`."
+    "See :func:`numpy.absolute`."
     return var(x, op="Abs")
 
 
@@ -38,7 +38,7 @@ def abs(x: TensorType[ElemType.numerics, "T"], /) -> TensorType[ElemType.numeric
 def absolute(
     x: TensorType[ElemType.numerics, "T"], /
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.abs`."
+    "See :func:`numpy.absolute`."
     return var(x, op="Abs")
 
 

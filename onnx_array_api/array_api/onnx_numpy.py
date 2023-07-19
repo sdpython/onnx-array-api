@@ -1,6 +1,3 @@
-"""
-Array API valid for an :class:`EagerNumpyTensor`.
-"""
 from ..npx.npx_numpy_tensors import EagerNumpyTensor
 from . import _finalize_array_api
 
