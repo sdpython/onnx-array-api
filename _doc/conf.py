@@ -1,23 +1,34 @@
 import os
 import sys
-
+from sphinx_runpython.github_link import make_linkcode_resolve
+from sphinx_runpython.conf_helper import has_dvipng, has_dvisvgm
 from onnx_array_api import __version__
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
-    "sphinx.ext.todo",
     "sphinx.ext.coverage",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.ifconfig",
-    "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.todo",
     "sphinx_gallery.gen_gallery",
+    "sphinx_issues",
     "matplotlib.sphinxext.plot_directive",
-    "pyquickhelper.sphinxext.sphinx_epkg_extension",
-    "pyquickhelper.sphinxext.sphinx_gdot_extension",
-    "pyquickhelper.sphinxext.sphinx_runpython_extension",
+    "sphinx_runpython.epkg",
+    "sphinx_runpython.gdot",
+    "sphinx_runpython.runpython",
 ]
+
+if has_dvisvgm():
+    extensions.append("sphinx.ext.imgmath")
+    imgmath_image_format = "svg"
+elif has_dvipng():
+    extensions.append("sphinx.ext.pngmath")
+    imgmath_image_format = "png"
+else:
+    extensions.append("sphinx.ext.mathjax")
 
 templates_path = ["_templates"]
 html_logo = "_static/logo.png"
@@ -37,17 +48,47 @@ html_theme = "furo"
 html_theme_path = ["_static"]
 html_theme_options = {}
 html_static_path = ["_static"]
+html_sourcelink_suffix = ""
 
+issues_github_path = "sdpython/onnx-array-api"
+
+# The following is used by sphinx.ext.linkcode to provide links to github
+linkcode_resolve = make_linkcode_resolve(
+    "mlstatpy",
+    (
+        "https://github.com/sdpython/onnx-array-api/"
+        "blob/{revision}/{package}/"
+        "{path}#L{lineno}"
+    ),
+)
+
+latex_elements = {
+    "papersize": "a4",
+    "pointsize": "10pt",
+    "title": project,
+}
 
 intersphinx_mapping = {
-    "onnx": ("https://onnx.ai/onnx/", None),
     "matplotlib": ("https://matplotlib.org/", None),
     "numpy": ("https://numpy.org/doc/stable", None),
+    "onnx": ("https://onnx.ai/onnx/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "python": (f"https://docs.python.org/{sys.version_info.major}", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+    "sklearn-onnx": ("https://onnx.ai/sklearn-onnx/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
 }
+
+# Check intersphinx reference targets exist
+nitpicky = True
+# See also scikit-learn/scikit-learn#26761
+nitpick_ignore = [
+    ("py:class", "False"),
+    ("py:class", "True"),
+    ("py:class", "pipeline.Pipeline"),
+    ("py:class", "default=sklearn.utils.metadata_routing.UNCHANGED"),
+]
 
 sphinx_gallery_conf = {
     # path to your examples scripts

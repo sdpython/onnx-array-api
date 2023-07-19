@@ -19,9 +19,11 @@ pyquickhelper
 pytest
 pytest-cov
 rstcheck[sphinx,toml]
+sphinx-issues
+git+https://github.com/sdpython/sphinx-runpython.git
 ruff
 scikit-learn
-skl2onnx
+git+https://github.com/onnx/sklearn-onnx.git
 sphinx
 sphinx-gallery
 tomli
