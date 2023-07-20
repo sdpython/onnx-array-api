@@ -91,8 +91,8 @@ nitpick_ignore = [
 ]
 
 nitpic_ignore_regex = [
-    ("py:func", "numpy[.].*"),
-    ("py:class", "onnxruntime[.].*"),
+    ("py:func", ".*numpy[.].*"),
+    ("py:class", ".*onnxruntime[.].*"),
 ]
 
 sphinx_gallery_conf = {

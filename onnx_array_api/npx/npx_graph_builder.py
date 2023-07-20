@@ -728,7 +728,9 @@ class _GraphBuilder:
         """
         Conversion to onnx.
 
-        :param output_vars: list of :class:`Var` holding the final outputs
+        :param output_vars: list of
+            :class:`Var <onnx_array_api.npx.npx_var.Var>`
+            holding the final outputs
         :return: onnx graph
         """
         # _GraphBuilder.to_onnx

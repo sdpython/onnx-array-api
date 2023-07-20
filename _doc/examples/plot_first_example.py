@@ -87,9 +87,12 @@ from onnx_array_api.npx import absolute, eager_onnx
 
 
 def l1_loss(x, y):
+    """
+    err is a type inheriting from
+    :class:`EagerTensor <onnx_array_api.npx.npx_tensors.EagerTensor>`.
+    It needs to be converted to numpy first before any display.
+    """
     err = absolute(x - y).sum()
-    # err is a type inheriting from :class:`EagerTensor`.
-    # It needs to be converted to numpy first before any display.
     print(f"l1_loss={err.numpy()}")
     return err
 

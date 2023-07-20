@@ -53,7 +53,8 @@ Beside, from onnx point of view, argument dtype should be named.
 Tensor type
 +++++++++++
 
-An :class:`EagerTensor` must be used to represent any tensor.
+An :class:`EagerTensor <onnx_array_api.npx.npx_tensors.EagerTensor>`
+must be used to represent any tensor.
 This class defines the backend to use as well.
 :class:`EagerNumpyTensor
 <onnx_array_api.npx.npx_numpy_tensors.EagerNumpyTensor>`
