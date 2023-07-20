@@ -90,6 +90,11 @@ nitpick_ignore = [
     ("py:class", "default=sklearn.utils.metadata_routing.UNCHANGED"),
 ]
 
+nitpic_ignore_regex = [
+    ("py:func", "numpy[.].*"),
+    ("py:class", "onnxruntime[.].*"),
+]
+
 sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": os.path.join(os.path.dirname(__file__), "examples"),

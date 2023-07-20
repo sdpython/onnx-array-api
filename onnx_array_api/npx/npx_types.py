@@ -20,7 +20,7 @@ class DType(WrapperType):
     following the :epkg:`Array API`.
 
     :param code: element type based on onnx definition,
-        if str, it looks into class :class:`onnxTensorProto`
+        if str, it looks into class :class:`onnx.TensorProto`
         to retrieve the code
     """
 

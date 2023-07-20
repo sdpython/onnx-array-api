@@ -1,6 +1,12 @@
 name: Documentation and Code Coverage
 
-on: [push]
+on:
+  push:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
 jobs:
   run:
@@ -54,10 +60,10 @@ jobs:
       - name: Install
         run: python setup.py install
 
-      - name: Copy license
-        run: cp LICENSE* ./_doc
-      - name: Copy changelogs
-        run: cp CHANGELOGS* ./_doc
+      - name: Copy license, changelogs
+        run: |
+          cp LICENSE* ./_doc
+          cp CHANGELOGS* ./_doc
 
       - name: Documentation
         run: python -m sphinx ./_doc ./dist/html -n -w doc.txt
