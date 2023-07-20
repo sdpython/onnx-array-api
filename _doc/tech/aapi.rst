@@ -21,7 +21,8 @@ backend. It can be :epkg:`numpy`, :epkg:`onnxruntime` or any other
 backend. The generation of every graph takes a significant amount of time.
 It must be avoided. These graphs are cached. But a graph can be reused
 only if the inputs - by ONNX semantic - change. If a parameter change,
-a new graph must be cached. Method :meth:`JitEager.make_key`
+a new graph must be cached. Method :meth:`JitEager.make_key
+<onnx_array_api.npx.npx_jit_eager.JitEager.make_key>`
 generates a unique key based on the input it receives,
 the signature of the function to call. If the key is the same,
 a cached onnx can be reused on the second call.
@@ -53,9 +54,13 @@ Beside, from onnx point of view, argument dtype should be named.
 Tensor type
 +++++++++++
 
-An :class:`EagerTensor` must be used to represent any tensor.
+An :class:`EagerTensor <onnx_array_api.npx.npx_tensors.EagerTensor>`
+must be used to represent any tensor.
 This class defines the backend to use as well.
-`EagerNumpyTensor` for :epkg:`numpy`, `EagerOrtTensor`
+:class:`EagerNumpyTensor
+<onnx_array_api.npx.npx_numpy_tensors.EagerNumpyTensor>`
+for :epkg:`numpy`, :class:`EagerOrtTensor
+<onnx_array_api.ort.ort_tensors.EagerOrtTensor>`
 for :epkg:`onnxruntime`. Since the Array API is new, 
 existing packages do not fully support the API if they support it
 (:epkg:`scikit-learn`). Some numpy array may still be used.

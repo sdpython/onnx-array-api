@@ -23,7 +23,7 @@ def plot_ort_profile(
     See :ref:`l-example-ort-profiling` for an example.
     """
     if ax0 is None:
-        ax0 = plt.gca()
+        ax0 = plt.gca()  # pragma: no cover
 
     gr_dur = (
         df[["dur", "args_op_name"]].groupby("args_op_name").sum().sort_values("dur")

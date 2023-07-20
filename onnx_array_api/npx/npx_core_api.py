@@ -20,7 +20,8 @@ class args_tuple(tuple):
 
 def cst(*args, **kwargs):
     """
-    Wraps a call to the building of class :class:`Cst`.
+    Wraps a call to the building of class
+    :class:`Cst <onnx_array_api.npx.npx_var.Cst>`.
     """
     return Cst(*args, **kwargs)
 
@@ -52,7 +53,8 @@ def make_tuple(
 
 def var(*args: Sequence[Var], **kwargs: Dict[str, Any]) -> Var:
     """
-    Wraps a call to the building of class :class:`Var`.
+    Wraps a call to the building of class
+    :class:`Var <onnx_array_api.npx.npx_var.Var>`.
     """
     return Var(*args, **kwargs)
 

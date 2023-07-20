@@ -87,9 +87,12 @@ from onnx_array_api.npx import absolute, eager_onnx
 
 
 def l1_loss(x, y):
+    """
+    err is a type inheriting from
+    :class:`EagerTensor <onnx_array_api.npx.npx_tensors.EagerTensor>`.
+    It needs to be converted to numpy first before any display.
+    """
     err = absolute(x - y).sum()
-    # err is a type inheriting from :class:`EagerTensor`.
-    # It needs to be converted to numpy first before any display.
     print(f"l1_loss={err.numpy()}")
     return err
 
@@ -105,10 +108,13 @@ def myloss(x, y):
 
 
 #################################
-# Eager mode is enabled by function :func:`eager_onnx`.
+# Eager mode is enabled by function :func:`eager_onnx
+# <onnx_array_api.npx.npx_jit_eager.eager_onnx>`.
 # It intercepts all calls to `my_loss`. On the first call,
 # it replaces a numpy array by a tensor corresponding to the
-# selected runtime, here numpy as well through :class:`EagerNumpyTensor`.
+# selected runtime, here numpy as well through
+# :class:`EagerNumpyTensor
+# <onnx_array_api.npx.npx_numpy_tensors.EagerNumpyTensor>`.
 eager_myloss = eager_onnx(myloss)
 
 x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)

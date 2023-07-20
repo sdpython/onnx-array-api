@@ -17,7 +17,8 @@ class EagerTensor(BaseArrayApi):
     """
     Defines a value for a specific eager mode.
     An eager tensor must overwrite every call to a method listed in class
-    :class:`BaseArrayApi`.
+    :class:`BaseArrayApi
+    <onnx_array_api.npx.npx_array_api.BaseArrayApi>`.
     """
 
     @classmethod

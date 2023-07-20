@@ -39,7 +39,7 @@ class OrtTensor:
         Creates an instance of :class:`OrtTensor` from a numpy array.
         Relies on `ortvalue_from_numpy`.
         A copy of the data in the Numpy object is held by the
-        :class:`C_OrtValue` only if the device is **not cpu**.
+        :epkg:`C_OrtValue` only if the device is **not cpu**.
         Any expression such as `from_array(x.copy())`, or
         `from_array(x.astype(np.float32))`, ... creates an intermediate
         variable scheduled to be deleted by the garbage collector
@@ -60,7 +60,7 @@ class OrtTensor:
 
     def numpy(self) -> np.ndarray:
         """
-        Converts the :class:`OrtValue` into numpy array.
+        Converts the :epkg:`OrtValue` into numpy array.
         """
         return self._tensor.numpy()
 
@@ -69,7 +69,8 @@ class OrtTensor:
         Wraps class :class:`onnxruntime.InferenceSession`
         to have a signature closer to python function.
 
-        :param tensor_class: class tensor such as :class:`NumpyTensor`
+        :param tensor_class: class tensor such as :class:`NumpyTensor
+            <onnx_array_api.npx.npx_numpy_tensors.NumpyTensor>`
         :param input_names: input names
         :param onx: onnx model
         :param f: unused except in error messages

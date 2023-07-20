@@ -7,9 +7,11 @@ API
     :maxdepth: 1
 
     array_api
+    npx_core_api
     npx_functions
-    npx_jit
+    npx_jit_eager
     npx_numpy
+    npx_tensors
     npx_types
     npx_var
     onnx_tools
@@ -17,3 +19,4 @@ API
     plotting
     reference
     tools
+    profiling

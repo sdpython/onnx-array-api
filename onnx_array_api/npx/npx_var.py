@@ -87,7 +87,7 @@ class Par:
 
 class ManyIdentity:
     """
-    Holds several instances of :class:`Var`.
+    Holds several instances of :class:`Var <onnx_array_api.npx.npx_var.Var>`.
     """
 
     def __init__(self, *inputs, input_indices=None):
@@ -930,7 +930,7 @@ class Var(BaseArrayApi):
         Flattens a matrix (see :meth:`numpy.ndarray.flatten`).
 
         :param axis: only flatten from axis to the end.
-        :return: :class:`Var`
+        :return: :class:`Var <onnx_array_api.npx.npx_var.Var>`
         """
         cst, var = Var.get_cst_var()
 
@@ -964,7 +964,8 @@ class Var(BaseArrayApi):
         * *index* is an integer or a slice, a tuple of integers and slices,
           example: `[0, 1]`, `[:5, :6]`, `[::2]` (**scenario 1**)
         * *index* is an *ONNX* object (more precisely an instance of
-          :class:`Var`), then the method assumes it is an array of
+          :class:`Var <onnx_array_api.npx.npx_var.Var>`),
+          then the method assumes it is an array of
           boolean to select a subset of the tensor along the first axis,
           example: `mat[mat == 0]` (**scenario 2**)
         """

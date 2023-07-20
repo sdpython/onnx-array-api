@@ -90,10 +90,10 @@ def _extract_attribute_value(
         value = fct(att)
         return value
     if ref_att is None:
-        raise AttributeError(
+        raise AttributeError(  # pragma: no cover
             f"Unable to convert attribute {att.name!r} type {att.type!r}."
         )
-    raise AttributeError(
+    raise AttributeError(  # pragma: no cover
         f"Unable to convert default value for {ref_att.name!r} " f"type {att.type!r}."
     )
 
@@ -115,7 +115,7 @@ def get_tensor_shape(obj):
     if isinstance(obj, ValueInfoProto):
         return get_tensor_shape(obj.type)
     elif not isinstance(obj, TypeProto):
-        raise TypeError(f"Unexpected type {type(obj)!r}.")
+        raise TypeError(f"Unexpected type {type(obj)!r}.")  # pragma: no cover
     shape = []
     for d in obj.tensor_type.shape.dim:
         v = d.dim_value if d.dim_value > 0 else d.dim_param
@@ -161,7 +161,7 @@ def _get_type(obj0):
         obj = obj.tensor_type
     if hasattr(obj, "elem_type"):
         return tensor_dtype_to_np_dtype(obj.elem_type)
-    raise RuntimeError(f"Unable to guess type from {obj0!r}.")
+    raise RuntimeError(f"Unable to guess type from {obj0!r}.")  # pragma: no cover
 
 
 def _get_shape(obj):
@@ -183,11 +183,11 @@ def _get_shape(obj):
         if hasattr(obj, "raw_data") and len(obj.raw_data) > 0:
             arr = to_array(obj)
             return arr.shape
-        raise RuntimeError(
+        raise RuntimeError(  # pragma: no cover
             f"Unable to guess type from {obj0!r}, " f"data_type is {obj.data_type!r}."
         )
     if hasattr(obj, "type"):
         obj = obj.type
     if hasattr(obj, "tensor_type"):
         return get_tensor_shape(obj)
-    raise RuntimeError(f"Unable to guess type from {obj0!r}.")
+    raise RuntimeError(f"Unable to guess type from {obj0!r}.")  # pragma: no cover

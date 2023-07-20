@@ -1,6 +1,3 @@
-"""
-Array API valid for an :class:`EagerOrtTensor`.
-"""
 from ..ort.ort_tensors import EagerOrtTensor
 from . import _finalize_array_api
 

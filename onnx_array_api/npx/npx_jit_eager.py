@@ -18,7 +18,7 @@ class JitEager:
 
     :param f: function to convert
     :param tensor_class: wrapper around a class defining the backend,
-        if None, it defaults to :class:`onnx.reference.ReferenceEvalutor`
+        if None, it defaults to :class:`onnx.reference.ReferenceEvaluator`
     :param target_opsets: dictionary `{opset: version}`
     :param output_types: shape and type inference cannot be run before
         the onnx graph is created and type is needed to do such,
@@ -551,7 +551,7 @@ class JitOnnx(JitEager):
 
     :param f: function to convert
     :param tensor_class: wrapper around a class defining the backend,
-        if None, it defaults to :class:`onnx.reference.ReferenceEvalutor`
+        if None, it defaults to :class:`onnx.reference.ReferenceEvaluator`
     :param target_opsets: dictionary `{opset: version}`
     :param output_types: shape and type inference cannot be run before
         the onnx graph is created and type is needed to do such,
@@ -608,7 +608,7 @@ class EagerOnnx(JitEager):
 
     :param f: function to convert
     :param tensor_class: wrapper around a class defining the backend,
-        if None, it defaults to :class:`onnx.reference.ReferenceEvalutor`
+        if None, it defaults to :class:`onnx.reference.ReferenceEvaluator`
     :param target_opsets: dictionary `{opset: version}`
     :param output_types: shape and type inference cannot be run before
         the onnx graph is created and type is needed to do such,
@@ -801,6 +801,7 @@ def jit_onnx(*args, **kwargs):
 
 def eager_onnx(*args, **kwargs):
     """
-    Returns an instance of :class:`EagerOnnx`.
+    Returns an instance of :class:`EagerOnnx
+    <onnx_array_api.npx.npx_jit_eager.EagerOnnx>`.
     """
     return EagerOnnx(*args, **kwargs)

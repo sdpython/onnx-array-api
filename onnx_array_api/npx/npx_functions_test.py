@@ -24,7 +24,6 @@ from .npx_types import (
 def _min_max(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TupleType[TensorType[ElemType.numerics, "T"], TensorType[ElemType.numerics, "T"]]:
-    "See :func:`numpy.abs`."
     return tuple_var(var(x, op="ReduceMin"), var(x, op="ReduceMax"))
 
 
@@ -32,7 +31,6 @@ def _min_max(
 def _min_max_inline(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TupleType[TensorType[ElemType.numerics, "T"], TensorType[ElemType.numerics, "T"]]:
-    "See :func:`numpy.abs`."
     return tuple_var(var(x, op="ReduceMin"), var(x, op="ReduceMax"))
 
 
@@ -40,7 +38,7 @@ def _min_max_inline(
 def absolute(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.abs`."
+    "See :func:`numpy.absolute`."
     return var(x, op="Abs")
 
 
@@ -94,7 +92,7 @@ def log1p(x: TensorType[ElemType.floats, "T"]) -> TensorType[ElemType.floats, "T
 def negative(
     x: TensorType[ElemType.numerics, "T"]
 ) -> TensorType[ElemType.numerics, "T"]:
-    "See :func:`numpy.abs`."
+    "See :func:`numpy.negative`."
     return var(x, op="Neg")
 
 

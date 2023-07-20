@@ -184,7 +184,9 @@ def onnx_text_plot_tree(node):
             rows.extend(r)
         return "\n".join(rows)
 
-    raise NotImplementedError(f"Type {node.op_type!r} cannot be displayed.")
+    raise NotImplementedError(  # pragma: no cover
+        f"Type {node.op_type!r} cannot be displayed."
+    )
 
 
 def _append_succ_pred(
@@ -401,7 +403,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                 )
 
         if len(sequences) == 0:
-            raise RuntimeError(
+            raise RuntimeError(  # pragma: no cover
                 "Unexpected empty sequence (len(possibles)=%d, "
                 "len(done)=%d, len(nodes)=%d). This is usually due to "
                 "a name used both as result name and node node. "
@@ -432,7 +434,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                         best = k
 
         if best is None:
-            raise RuntimeError(
+            raise RuntimeError(  # pragma: no cover
                 f"Wrong implementation (len(sequence)={len(sequences)})."
             )
         if verbose:
@@ -451,7 +453,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
             known |= set(v.output)
 
     if len(new_nodes) != len(nodes):
-        raise RuntimeError(
+        raise RuntimeError(  # pragma: no cover
             "The returned new nodes are different. "
             "len(nodes=%d) != %d=len(new_nodes). done=\n%r"
             "\n%s\n----------\n%s"
@@ -484,7 +486,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
     n0s = set(n.name for n in nodes)
     n1s = set(n.name for n in new_nodes)
     if n0s != n1s:
-        raise RuntimeError(
+        raise RuntimeError(  # pragma: no cover
             "The returned new nodes are different.\n"
             "%r !=\n%r\ndone=\n%r"
             "\n----------\n%s\n----------\n%s"
@@ -756,7 +758,7 @@ def onnx_simple_text_plot(
                     try:
                         val = str(to_array(att.t).tolist())
                     except TypeError as e:
-                        raise TypeError(
+                        raise TypeError(  # pragma: no cover
                             "Unable to display tensor type %r.\n%s"
                             % (att.type, str(att))
                         ) from e
@@ -851,7 +853,9 @@ def onnx_simple_text_plot(
             if isinstance(att, str):
                 rows.append(f"attribute: {att!r}")
             else:
-                raise NotImplementedError("Not yet introduced in onnx.")
+                raise NotImplementedError(  # pragma: no cover
+                    "Not yet introduced in onnx."
+                )
 
     # initializer
     if hasattr(model, "initializer"):
@@ -890,7 +894,7 @@ def onnx_simple_text_plot(
 
     try:
         nodes = reorder_nodes_for_display(model.node, verbose=verbose)
-    except RuntimeError as e:
+    except RuntimeError as e:  # pragma: no cover
         if raise_exc:
             raise e
         else:
@@ -920,7 +924,9 @@ def onnx_simple_text_plot(
                 indent = mi
                 if previous_indent is not None and indent < previous_indent:
                     if verbose:
-                        print(f"[onnx_simple_text_plot] break2 {node.op_type}")
+                        print(  # pragma: no cover
+                            f"[onnx_simple_text_plot] break2 {node.op_type}"
+                        )
                     add_break = True
             if not add_break and previous_out is not None:
                 if len(set(node.input) & previous_out) == 0:
