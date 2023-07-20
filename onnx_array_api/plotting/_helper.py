@@ -115,9 +115,7 @@ def get_tensor_shape(obj):
     if isinstance(obj, ValueInfoProto):
         return get_tensor_shape(obj.type)
     elif not isinstance(obj, TypeProto):
-        raise TypeError(  # pragma: no cover
-            f"Unexpected type {type(obj)!r}."
-        )
+        raise TypeError(f"Unexpected type {type(obj)!r}.")  # pragma: no cover
     shape = []
     for d in obj.tensor_type.shape.dim:
         v = d.dim_value if d.dim_value > 0 else d.dim_param
@@ -163,9 +161,7 @@ def _get_type(obj0):
         obj = obj.tensor_type
     if hasattr(obj, "elem_type"):
         return tensor_dtype_to_np_dtype(obj.elem_type)
-    raise RuntimeError(  # pragma: no cover
-        f"Unable to guess type from {obj0!r}."
-    )
+    raise RuntimeError(f"Unable to guess type from {obj0!r}.")  # pragma: no cover
 
 
 def _get_shape(obj):
@@ -194,6 +190,4 @@ def _get_shape(obj):
         obj = obj.type
     if hasattr(obj, "tensor_type"):
         return get_tensor_shape(obj)
-    raise RuntimeError(  # pragma: no cover
-        f"Unable to guess type from {obj0!r}."
-    )
+    raise RuntimeError(f"Unable to guess type from {obj0!r}.")  # pragma: no cover

@@ -925,7 +925,7 @@ def onnx_simple_text_plot(
                 if previous_indent is not None and indent < previous_indent:
                     if verbose:
                         print(  # pragma: no cover
-                              f"[onnx_simple_text_plot] break2 {node.op_type}"
+                            f"[onnx_simple_text_plot] break2 {node.op_type}"
                         )
                     add_break = True
             if not add_break and previous_out is not None:
