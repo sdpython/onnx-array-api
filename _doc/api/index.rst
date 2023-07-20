@@ -7,6 +7,7 @@ API
     :maxdepth: 1
 
     array_api
+    npx_core_api
     npx_functions
     npx_jit_eager
     npx_numpy
