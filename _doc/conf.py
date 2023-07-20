@@ -90,9 +90,15 @@ nitpick_ignore = [
     ("py:class", "default=sklearn.utils.metadata_routing.UNCHANGED"),
 ]
 
-nitpic_ignore_regex = [
+nitpick_ignore_regex = [
     ("py:func", ".*numpy[.].*"),
+    ("py:func", ".*scipy[.].*"),
     ("py:class", ".*onnxruntime[.].*"),
+    ("py:class", ".*onnx_array_api.npx.npx_types.OptParTypeTupleType_.*"),
+    ("py:class", ".*onnx_array_api.npx.npx_types.ParType[a-z].*"),
+    ("py:class", ".*onnx_array_api.npx.npx_types.OptTensorType_.*"),
+    ("py:class", ".*onnx_array_api.npx.npx_types.TensorType_.*"),
+    ("py:class", ".*onnx_array_api.npx.npx_types.[ui].*"),
 ]
 
 sphinx_gallery_conf = {
@@ -124,4 +130,13 @@ epkg_dictionary = {
     "scipy": "https://scipy.org/",
     "sphinx-gallery": "https://github.com/sphinx-gallery/sphinx-gallery",
     "torch": "https://pytorch.org/docs/stable/torch.html",
+    #
+    "C_OrtValue": (
+        "http://www.xavierdupre.fr/app/onnxcustom/helpsphinx/"
+        "api/onnxruntime_python/ortvalue.html#c-class-ortvalue-or-c-ortvalue"
+    ),
+    "OrtValue": (
+        "http://www.xavierdupre.fr/app/onnxcustom/helpsphinx/"
+        "api/onnxruntime_python/ortvalue.html#onnxruntime.OrtValue"
+    ),
 }

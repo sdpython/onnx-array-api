@@ -5,3 +5,4 @@ onnx_array_api.array_api
 
     array_api_numpy
     array_api_ort
+    npx_array_api

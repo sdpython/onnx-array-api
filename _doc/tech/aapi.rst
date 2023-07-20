@@ -21,7 +21,8 @@ backend. It can be :epkg:`numpy`, :epkg:`onnxruntime` or any other
 backend. The generation of every graph takes a significant amount of time.
 It must be avoided. These graphs are cached. But a graph can be reused
 only if the inputs - by ONNX semantic - change. If a parameter change,
-a new graph must be cached. Method :meth:`JitEager.make_key`
+a new graph must be cached. Method :meth:`JitEager.make_key
+<onnx_array_api.npx.npx_jit_eager.JitEager.make_key>`
 generates a unique key based on the input it receives,
 the signature of the function to call. If the key is the same,
 a cached onnx can be reused on the second call.

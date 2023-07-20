@@ -108,7 +108,8 @@ def myloss(x, y):
 
 
 #################################
-# Eager mode is enabled by function :func:`eager_onnx`.
+# Eager mode is enabled by function :func:`eager_onnx
+# <onnx_array_api.npx.npx_jit_eager.eager_onnx>`.
 # It intercepts all calls to `my_loss`. On the first call,
 # it replaces a numpy array by a tensor corresponding to the
 # selected runtime, here numpy as well through
