@@ -1,10 +1,16 @@
-name: RST Check
+name: Build Any Wheel
 
-on: [push, pull_request]
+#on:
+#  push:
+#    branches:
+#      - main
+#      - 'releases/**'
+
+on: [push]
 
 jobs:
   build_wheels:
-    name: rstcheck ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -20,8 +26,9 @@ jobs:
       - name: Install requirements
         run: python -m pip install -r requirements.txt
 
-      - name: Install rstcheck
-        run: python -m pip install sphinx tomli rstcheck[toml,sphinx]
+      - name: python version
+        run: python -m pip wheel .
 
-      - name: rstcheck
-        run: rstcheck -r _doc onnx_array_api
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./dist/*.whl
