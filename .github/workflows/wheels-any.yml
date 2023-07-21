@@ -23,12 +23,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install requirements
-        run: python -m pip install -r requirements.txt
-
       - name: python version
         run: python -m pip wheel .
 
       - uses: actions/upload-artifact@v3
         with:
-          path: ./dist/*.whl
+          path: ./onnx_array_api*.whl
