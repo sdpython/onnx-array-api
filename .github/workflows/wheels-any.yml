@@ -1,12 +1,10 @@
 name: Build Any Wheel
 
-#on:
-#  push:
-#    branches:
-#      - main
-#      - 'releases/**'
-
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
 
 jobs:
   build_wheels:
