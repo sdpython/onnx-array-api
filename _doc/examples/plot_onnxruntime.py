@@ -45,7 +45,7 @@ print(res.numpy())
 ###############################
 # Profiling
 # +++++++++
-from pyquickhelper.pycode.profiling import profile, profile2graph
+from onnx_array_api.profiling import profile, profile2graph
 
 x = np.random.randn(10000, 2).astype(np.float32)
 y = np.random.randn(10000, 2).astype(np.float32)

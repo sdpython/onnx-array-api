@@ -25,7 +25,7 @@ from onnxmltools.convert.lightgbm.operator_converters.LightGbm import convert_li
 from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
 from onnxruntime import InferenceSession, SessionOptions
 from psutil import cpu_count
-from pyquickhelper.loghelper import run_cmd
+from sphinx_runpython.runpython import run_cmd
 from skl2onnx import to_onnx, update_registered_converter
 from skl2onnx.common.shape_calculator import calculate_linear_regressor_output_shapes
 from sklearn import set_config
