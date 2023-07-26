@@ -491,7 +491,7 @@ def profile2df(
     ::
 
         import pstats
-        from pyquickhelper.pycode.profiling import profile2df
+        from onnx_array_api.profiling import profile2df
 
         ps = pstats.Stats('bench_ortmodule_nn_gpu6.prof')
         df = profile2df(pd)
@@ -519,7 +519,7 @@ def profile(
     sort: str = "cumulative",
     rootrem: Optional[str] = None,
     as_df: bool = False,
-    return_results=False,
+    return_results: bool = False,
     **kwargs,
 ) -> str:
     """
@@ -532,17 +532,22 @@ def profile(
     :param as_df: return the results as a dataframe and not text
     :param return_results: if True, return results as well
         (in the first position)
-    :param kwargs: additional parameters used to create the profiler
+    :param kwargs: additional parameters used to create the profiler,
+        see :epkg:`cProfile.Profile`
     :return: raw results, statistics text dump (or dataframe is *as_df* is True)
 
     .. plot::
 
         import matplotlib.pyplot as plt
-        from pyquickhelper.pycode.profiling import profile
-        from pyquickhelper.texthelper import compare_module_version
+        from onnx_array_api.profiling import profile
+
+        def subf(x):
+            return sum(x)
 
         def fctm():
-            return compare_module_version('0.20.4', '0.22.dev0')
+            x1 = subf([1, 2, 3])
+            x2 = subf([1, 2, 3, 4])
+            return x1 + x2
 
         pr, df = profile(lambda: [fctm() for i in range(0, 1000)], as_df=True)
         ax = df[['namefct', 'cum_tall']].head(n=15).set_index(
@@ -585,8 +590,7 @@ def profile(
                         res = res.replace(sub[0], sub[1])
                     else:
                         raise TypeError(
-                            "rootrem must contains strings or tuple not {0}"
-                            ".".format(rootrem)
+                            f"rootrem must contains strings or tuple not {rootrem!r}."
                         )
         return res
 

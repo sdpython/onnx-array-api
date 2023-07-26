@@ -54,7 +54,7 @@ issues_github_path = "sdpython/onnx-array-api"
 
 # The following is used by sphinx.ext.linkcode to provide links to github
 linkcode_resolve = make_linkcode_resolve(
-    "mlstatpy",
+    "onnx-array-api",
     (
         "https://github.com/sdpython/onnx-array-api/"
         "blob/{revision}/{package}/"
@@ -114,6 +114,7 @@ epkg_dictionary = {
         "https://data-apis.org/array-api/",
         ("2022.12/API_specification/generated/array_api.{0}.html", 1),
     ),
+    "cProfile.Profile": "https://docs.python.org/3/library/profile.html#profile.Profile",
     "DOT": "https://graphviz.org/doc/info/lang.html",
     "JIT": "https://en.wikipedia.org/wiki/Just-in-time_compilation",
     "onnx": "https://onnx.ai/onnx/",
