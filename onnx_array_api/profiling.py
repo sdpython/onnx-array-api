@@ -533,7 +533,7 @@ def profile(
     :param return_results: if True, return results as well
         (in the first position)
     :param kwargs: additional parameters used to create the profiler,
-        see :class:`cProfile.Profile`
+        see :epkg:`cProfile.Profile`
     :return: raw results, statistics text dump (or dataframe is *as_df* is True)
 
     .. plot::

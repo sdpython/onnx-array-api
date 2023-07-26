@@ -86,7 +86,6 @@ nitpicky = True
 nitpick_ignore = [
     ("py:class", "False"),
     ("py:class", "True"),
-    ("py:class", "cProfile.Profile"),
     ("py:class", "pipeline.Pipeline"),
     ("py:class", "default=sklearn.utils.metadata_routing.UNCHANGED"),
 ]
@@ -115,6 +114,7 @@ epkg_dictionary = {
         "https://data-apis.org/array-api/",
         ("2022.12/API_specification/generated/array_api.{0}.html", 1),
     ),
+    "cProfile.Profile": "https://docs.python.org/3/library/profile.html#profile.Profile",
     "DOT": "https://graphviz.org/doc/info/lang.html",
     "JIT": "https://en.wikipedia.org/wiki/Just-in-time_compilation",
     "onnx": "https://onnx.ai/onnx/",
