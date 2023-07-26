@@ -54,7 +54,7 @@ issues_github_path = "sdpython/onnx-array-api"
 
 # The following is used by sphinx.ext.linkcode to provide links to github
 linkcode_resolve = make_linkcode_resolve(
-    "mlstatpy",
+    "onnx-array-api",
     (
         "https://github.com/sdpython/onnx-array-api/"
         "blob/{revision}/{package}/"
@@ -86,6 +86,7 @@ nitpicky = True
 nitpick_ignore = [
     ("py:class", "False"),
     ("py:class", "True"),
+    ("py:class", "cProfile.Profile"),
     ("py:class", "pipeline.Pipeline"),
     ("py:class", "default=sklearn.utils.metadata_routing.UNCHANGED"),
 ]
