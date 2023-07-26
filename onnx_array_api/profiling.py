@@ -519,7 +519,7 @@ def profile(
     sort: str = "cumulative",
     rootrem: Optional[str] = None,
     as_df: bool = False,
-    return_results=False,
+    return_results: bool = False,
     **kwargs,
 ) -> str:
     """
@@ -532,7 +532,8 @@ def profile(
     :param as_df: return the results as a dataframe and not text
     :param return_results: if True, return results as well
         (in the first position)
-    :param kwargs: additional parameters used to create the profiler
+    :param kwargs: additional parameters used to create the profiler,
+        see :class:`cProfile.Profile`
     :return: raw results, statistics text dump (or dataframe is *as_df* is True)
 
     .. plot::
@@ -589,8 +590,7 @@ def profile(
                         res = res.replace(sub[0], sub[1])
                     else:
                         raise TypeError(
-                            "rootrem must contains strings or tuple not {0}"
-                            ".".format(rootrem)
+                            f"rootrem must contains strings or tuple not {rootrem!r}."
                         )
         return res
 
