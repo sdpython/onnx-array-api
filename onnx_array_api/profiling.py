@@ -539,7 +539,7 @@ def profile(
     .. plot::
 
         import matplotlib.pyplot as plt
-        from onnx_array_api.profiling import profile2df
+        from onnx_array_api.profiling import profile
 
         def subf(x):
             return sum(x)
