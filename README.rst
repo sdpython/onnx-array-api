@@ -115,4 +115,4 @@ The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
 and its documentation is published at
 `(Numpy) Array API for ONNX
-<http://www.xavierdupre.fr/app/onnx-array-api/helpsphinx/index.html>`_.
+<https://sdpython.github.io/doc/onnx-array-api/dev/>`_.

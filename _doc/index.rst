@@ -38,7 +38,8 @@ well as to execute it.
     api/index
     tech/index
     auto_examples/index
-    ../CHANGELOGS
+    CHANGELOGS
+    license
 
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_,
