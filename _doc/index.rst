@@ -14,7 +14,7 @@ onnx-array-api: (Numpy) Array API for ONNX
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
     :alt: MIT License
-    :target: http://opensource.org/licenses/MIT
+    :target: https://opensource.org/license/MIT/
 
 .. image:: https://img.shields.io/github/repo-size/sdpython/onnx-array-api
     :target: https://github.com/sdpython/onnx-array-api/
@@ -42,8 +42,7 @@ well as to execute it.
     license
 
 Sources available on
-`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_,
-see also `code coverage <_static/cov_html/index.html>`_.
+`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
 
 .. runpython::
     :showcode:
