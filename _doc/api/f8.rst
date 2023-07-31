@@ -1,0 +1,5 @@
+Float 8
+=======
+
+.. automodule:: onnx_array_api.validation.f8
+    :members:
