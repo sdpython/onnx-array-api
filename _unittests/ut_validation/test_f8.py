@@ -1151,7 +1151,16 @@ class TestF8(ExtTestCase):
         back = fe4m3_to_float32(to, fn=True, uz=True)
         self.assertTrue(numpy.isnan(back))
 
+    def test_fe4m3fn_to_float32_bug(self):
+        cases = [(1.8131605, 1.875)]
+        for val, expected in cases:
+            with self.subTest(value=val, expected=expected):
+                res = fe4m3_to_float32(search_float32_into_fe4m3(val))
+                self.assertEqual(expected, res)
+                res = fe4m3_to_float32(float32_to_fe4m3(val))
+                self.assertEqual(expected, res)
+
 
 if __name__ == "__main__":
-    TestF8().test_search_float32_into_fe4m3fn_simple()
+    TestF8().test_fe4m3fn_to_float32_bug()
     unittest.main(verbosity=2)

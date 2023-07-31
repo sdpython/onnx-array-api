@@ -122,9 +122,7 @@ epkg_dictionary = {
     "onnxruntime": "https://onnxruntime.ai/",
     "numpy": "https://numpy.org/",
     "numba": "https://numba.pydata.org/",
-    "onnx-array-api": (
-        "http://www.xavierdupre.fr/app/onnx-array-api/helpsphinx/index.html"
-    ),
+    "onnx-array-api": ("https://sdpython.github.io/doc/onnx-array-api/dev/"),
     "pyinstrument": "https://github.com/joerick/pyinstrument",
     "python": "https://www.python.org/",
     "scikit-learn": "https://scikit-learn.org/stable/",

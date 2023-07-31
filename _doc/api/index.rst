@@ -20,3 +20,4 @@ API
     reference
     tools
     profiling
+    f8

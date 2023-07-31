@@ -22,6 +22,8 @@ _doc/examples/data/*.optimized.onnx
 _doc/examples/*.html
 _doc/_static/require.js
 _doc/_static/viz.js
+_doc/LICENSE.txt
+_doc/CHANGELOGS.rst
 _unittests/ut__main/*.png
 _unittests/ut__main/_cache/*
 _unittests/ut__main/*.html

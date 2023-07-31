@@ -12,6 +12,25 @@ class UndefinedCastError(FloatingPointError):
     pass
 
 
+def display_int(ival, sign=1, exponent=8, mantissa=23):
+    """
+    Displays an integer as bits.
+
+    :param ival: value to display (float32)
+    :param sign: number of bits for the sign
+    :param exponent: number of bits for the exponent
+    :param mantissa: number of bits for the mantissa
+    :return: string
+    """
+    t = sign + exponent + mantissa
+    s = bin(ival)[2:]
+    s = "0" * (t - len(s)) + s
+    s1 = s[:sign]
+    s2 = s[sign : sign + exponent]
+    s3 = s[sign + exponent :]
+    return ".".join([s1, s2, s3])
+
+
 def display_float32(value, sign=1, exponent=8, mantissa=23):
     """
     Displays a float32 into b.
@@ -22,14 +41,12 @@ def display_float32(value, sign=1, exponent=8, mantissa=23):
     :param mantissa: number of bits for the mantissa
     :return: string
     """
-    t = sign + exponent + mantissa
-    ival = int.from_bytes(struct.pack("<f", numpy.float32(value)), "little")
-    s = bin(ival)[2:]
-    s = "0" * (t - len(s)) + s
-    s1 = s[:sign]
-    s2 = s[sign : sign + exponent]
-    s3 = s[sign + exponent :]
-    return ".".join([s1, s2, s3])
+    return display_int(
+        int.from_bytes(struct.pack("<f", numpy.float32(value)), "little"),
+        sign=sign,
+        exponent=exponent,
+        mantissa=mantissa,
+    )
 
 
 def display_float16(value, sign=1, exponent=5, mantissa=10):
@@ -42,14 +59,9 @@ def display_float16(value, sign=1, exponent=5, mantissa=10):
     :param mantissa: number of bits for the mantissa
     :return: string
     """
-    t = sign + exponent + mantissa
-    ival = numpy.float16(value).view("H")  # pylint: disable=E1121
-    s = bin(ival)[2:]
-    s = "0" * (t - len(s)) + s
-    s1 = s[:sign]
-    s2 = s[sign : sign + exponent]
-    s3 = s[sign + exponent :]
-    return ".".join([s1, s2, s3])
+    return display_int(
+        numpy.float16(value).view("H"), sign=sign, exponent=exponent, mantissa=mantissa
+    )
 
 
 def display_fexmx(value, sign, exponent, mantissa):
@@ -64,14 +76,7 @@ def display_fexmx(value, sign, exponent, mantissa):
     :param mantissa: number of bits for the mantissa
     :return: string
     """
-    t = sign + exponent + mantissa
-    ival = value
-    s = bin(ival)[2:]
-    s = "0" * (t - len(s)) + s
-    s1 = s[:sign]
-    s2 = s[sign : sign + exponent]
-    s3 = s[sign + exponent :]
-    return ".".join([s1, s2, s3])
+    return display_int(value, sign=sign, exponent=exponent, mantissa=mantissa)
 
 
 def display_fe4m3(value, sign=1, exponent=4, mantissa=3):
@@ -534,7 +539,9 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
                 else:
                     ret |= ex << 3
                     ret |= m >> 20
-                if m & 0x80000:
+                if (m & 0x80000) and (
+                    (m & 0x100000) or (m & 0x7FFFF)
+                ):  # round to nearest even
                     if (ret & 0x7F) < 0x7F:
                         # rounding
                         ret += 1
@@ -584,7 +591,7 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
                     if (ret & 0x7F) == 0x7F:
                         ret &= 0xFE
                 if (m & 0x80000) and (
-                    (m & 0x100000) or (m & 0x7C000)
+                    (m & 0x100000) or (m & 0x7FFFF)
                 ):  # round to nearest even
                     if (ret & 0x7F) < 0x7E:
                         # rounding
@@ -642,7 +649,9 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
                 ex = e - 111  # 127 - 16
                 ret |= ex << 2
                 ret |= m >> 21
-                if m & 0x100000:
+                if m & 0x100000 and (
+                    (m & 0xFFFFF) or (m & 0x200000)
+                ):  # round to nearest even
                     if (ret & 0x7F) < 0x7F:
                         # rounding
                         ret += 1
