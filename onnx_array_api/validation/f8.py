@@ -510,7 +510,7 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
             return 0x80
         if numpy.isinf(x):
             if saturate:
-                return ret | 126
+                return ret | 127
             return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
