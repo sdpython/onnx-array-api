@@ -650,7 +650,7 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
                     # rounding
                     ret += 1
             elif e < 112:
-                # denormlized number
+                # denormalized number
                 ex = e - 111
                 ret |= 1 << (1 + ex)
                 ret |= m >> (22 - ex)
@@ -704,7 +704,7 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
                     # rounding
                     ret += 1
             elif e < 113:
-                # denormlized number
+                # denormalized number
                 ex = e - 112
                 ret |= 1 << (1 + ex)
                 ret |= m >> (22 - ex)

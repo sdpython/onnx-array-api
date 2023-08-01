@@ -924,7 +924,7 @@ class TestF8(ExtTestCase):
         x = numpy.float32(numpy.inf)
         to = float32_to_fe4m3(x, uz=True)
         back = fe4m3_to_float32(to, uz=True)
-        self.assertEqual(back, 224)
+        self.assertEqual(back, 240)
 
         x = numpy.float32(numpy.inf)
         to = float32_to_fe4m3(x, uz=True, saturate=False)
@@ -934,7 +934,7 @@ class TestF8(ExtTestCase):
         x = numpy.float32(-numpy.inf)
         to = float32_to_fe4m3(x, uz=True)
         back = fe4m3_to_float32(to, uz=True)
-        self.assertEqual(back, -224)
+        self.assertEqual(back, -240)
 
         x = numpy.float32(-numpy.inf)
         to = float32_to_fe4m3(x, uz=True, saturate=False)
