@@ -1,9 +1,11 @@
 import os
 import pprint
+import struct
 import unittest
 import warnings
 import numpy
 import pandas
+from onnx import TensorProto
 from onnx_array_api.validation.f8 import (
     CastFloat8,
     UndefinedCastError,
@@ -285,6 +287,15 @@ class TestF8(ExtTestCase):
                             ok="" if b == nf else "WRONG",
                             true=value,
                             add=add,
+                            exponent=(
+                                int.from_bytes(
+                                    struct.pack("<f", numpy.float32(v)), "little"
+                                )
+                                & 0x7F800000
+                            )
+                            >> 23,
+                            d1=v - fe4m3_to_float32_float(nf),
+                            d2=v - fe4m3_to_float32_float(b),
                         )
                     )
         if wrong > 0:
@@ -449,10 +460,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
+                ex = abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe4m3(r1)}={fe4m3_to_float32(r1)} != "
-                    f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)}"
+                    f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)} "
+                    f"d1={v - fe4m3_to_float32(r1)} d2={v - fe4m3_to_float32(r2)} "
+                    f"|d1|==|d2|={ex}"
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
@@ -462,10 +476,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
+                ex = abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe4m3(r1)}={fe4m3_to_float32(r1)} != "
-                    f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)}"
+                    f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)} "
+                    f"d1={v - fe4m3_to_float32(r1)} d2={v - fe4m3_to_float32(r2)} "
+                    f"|d1|==|d2|={ex}"
                 )
 
     def test_search_e5m2_pow(self):
@@ -478,10 +495,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
+                ex = abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe5m2(r1)}={fe5m2_to_float32(r1)} != "
-                    f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)}"
+                    f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)} "
+                    f"d1={v - fe4m3_to_float32(r1)} d2={v - fe5m2_to_float32(r2)} "
+                    f"|d1|==|d2|={ex}"
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
@@ -491,10 +511,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
+                ex = abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe5m2(r1)}={fe5m2_to_float32(r1)} != "
-                    f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)}"
+                    f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)} "
+                    f"d1={v - fe4m3_to_float32(r1)} d2={v - fe5m2_to_float32(r2)} "
+                    f"|d1|==|d2|={ex}"
                 )
 
     def test_float32_to_fe4m3fn_inf(self):
@@ -1152,13 +1175,50 @@ class TestF8(ExtTestCase):
         self.assertTrue(numpy.isnan(back))
 
     def test_fe4m3fn_to_float32_bug(self):
-        cases = [(1.8131605, 1.875)]
-        for val, expected in cases:
-            with self.subTest(value=val, expected=expected):
-                res = fe4m3_to_float32(search_float32_into_fe4m3(val))
-                self.assertEqual(expected, res)
-                res = fe4m3_to_float32(float32_to_fe4m3(val))
-                self.assertEqual(expected, res)
+        cases = [
+            (0.00439453125, 0.00390625, TensorProto.FLOAT8E4M3FN),
+            (0.005859375, 0.005859375, TensorProto.FLOAT8E4M3FN),
+            (0.005759375, 0.005859375, TensorProto.FLOAT8E4M3FN),
+            (0.0046875, 0.00390625, TensorProto.FLOAT8E4M3FN),
+            (0.001953125, 0.001953125, TensorProto.FLOAT8E4M3FN),
+            (0.0029296875, 0.00390625, TensorProto.FLOAT8E4M3FN),
+            (0.002053125, 0.001953125, TensorProto.FLOAT8E4M3FN),
+            (0.00234375, 0.001953125, TensorProto.FLOAT8E4M3FN),
+            (0.0087890625, 0.0078125, TensorProto.FLOAT8E4M3FN),
+            (0.001171875, 0.001953125, TensorProto.FLOAT8E4M3FN),
+            (1.8131605, 1.875, TensorProto.FLOAT8E4M3FN),
+            (-100, -96, TensorProto.FLOAT8E4M3FNUZ),
+            (416, 384, TensorProto.FLOAT8E5M2FNUZ),
+        ]
+        for val, expected, pt in cases:
+            with self.subTest(value=val, expected=expected, proto=pt):
+                if pt == TensorProto.FLOAT8E4M3FN:
+                    res = fe4m3_to_float32(search_float32_into_fe4m3(val))
+                    self.assertEqual(expected, res)
+                    res = fe4m3_to_float32(float32_to_fe4m3(val))
+                    self.assertEqual(expected, res)
+                    continue
+                if pt == TensorProto.FLOAT8E4M3FNUZ:
+                    res = fe4m3_to_float32(
+                        search_float32_into_fe4m3(val, uz=True), uz=True
+                    )
+                    self.assertEqual(expected, res)
+                    res = fe4m3_to_float32(float32_to_fe4m3(val, uz=True), uz=True)
+                    self.assertEqual(expected, res)
+                    continue
+                if pt == TensorProto.FLOAT8E5M2FNUZ:
+                    res = fe5m2_to_float32(
+                        search_float32_into_fe5m2(val, fn=True, uz=True),
+                        fn=True,
+                        uz=True,
+                    )
+                    self.assertEqual(expected, res)
+                    res = fe5m2_to_float32(
+                        float32_to_fe5m2(val, fn=True, uz=True), fn=True, uz=True
+                    )
+                    self.assertEqual(expected, res)
+                    continue
+                raise AssertionError(f"Unexpected value for pt={pt}.")
 
 
 if __name__ == "__main__":
