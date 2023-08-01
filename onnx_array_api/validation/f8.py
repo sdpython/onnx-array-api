@@ -518,18 +518,14 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
         if e != 0:
             if e < 116:
                 pass
-            elif e < 117:
-                # first positive number
-                if m > 0:
-                    ret |= 1
-                if (m >> 23) & 1:
-                    # rounding
-                    ret += 1
             elif e < 120:
                 # denormalized number
                 ex = e - 119
-                ret |= 1 << (2 + ex)
-                ret |= m >> (21 - ex)
+                if ex >= -2:
+                    ret |= 1 << (2 + ex)
+                    ret |= m >> (21 - ex)
+                elif m > 0:
+                    ret |= 1
                 mask = 1 << (20 - ex)
                 if m & mask and (
                     ret & 1
@@ -574,15 +570,14 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
         if e != 0:
             if e < 117:
                 pass
-            elif e < 118:
-                # first positive number
-                if m > 0:
-                    ret |= 1
             elif e < 121:
                 # denormalized number
                 ex = e - 120
-                ret |= 1 << (2 + ex)
-                ret |= m >> (21 - ex)
+                if ex >= -2:
+                    ret |= 1 << (2 + ex)
+                    ret |= m >> (21 - ex)
+                elif m > 0:
+                    ret |= 1
                 mask = 1 << (20 - ex)
                 if m & mask and (
                     ret & 1
@@ -642,18 +637,14 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
         if e != 0:
             if e < 109:
                 pass
-            elif e < 110:
-                # first positive number
-                if m > 0:
-                    ret |= 1
-                if (m >> 23) & 1:
-                    # rounding
-                    ret += 1
             elif e < 112:
                 # denormalized number
                 ex = e - 111
-                ret |= 1 << (1 + ex)
-                ret |= m >> (22 - ex)
+                if ex >= -1:
+                    ret |= 1 << (1 + ex)
+                    ret |= m >> (22 - ex)
+                elif m > 0:
+                    ret |= 1
                 mask = 1 << (21 - ex)
                 if m & mask and (
                     ret & 1
@@ -696,18 +687,14 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
         if e != 0:
             if e < 110:
                 pass
-            elif e < 111:
-                # first positive number
-                if m > 0:
-                    ret |= 1
-                if (m >> 23) & 1:
-                    # rounding
-                    ret += 1
             elif e < 113:
                 # denormalized number
                 ex = e - 112
-                ret |= 1 << (1 + ex)
-                ret |= m >> (22 - ex)
+                if ex >= -1:
+                    ret |= 1 << (1 + ex)
+                    ret |= m >> (22 - ex)
+                elif m > 0:
+                    ret |= 1
                 mask = 1 << (21 - ex)
                 if m & mask and (
                     ret & 1
