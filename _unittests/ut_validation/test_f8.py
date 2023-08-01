@@ -460,12 +460,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
+                ex = abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe4m3(r1)}={fe4m3_to_float32(r1)} != "
                     f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)} "
                     f"d1={v - fe4m3_to_float32(r1)} d2={v - fe4m3_to_float32(r2)} "
-                    f"|d1|==|d2|={abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))}"
+                    f"|d1|==|d2|={ex}"
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
@@ -475,12 +476,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe4m3(v)
             if r1 != r2:
+                ex = abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe4m3(r1)}={fe4m3_to_float32(r1)} != "
                     f"bit={r2}:{display_fe4m3(r2)}={fe4m3_to_float32(r2)} "
                     f"d1={v - fe4m3_to_float32(r1)} d2={v - fe4m3_to_float32(r2)} "
-                    f"|d1|==|d2|={abs(v - fe4m3_to_float32(r1)) == abs(v - fe4m3_to_float32(r2))}"
+                    f"|d1|==|d2|={ex}"
                 )
 
     def test_search_e5m2_pow(self):
@@ -493,12 +495,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
+                ex = abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe5m2(r1)}={fe5m2_to_float32(r1)} != "
                     f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)} "
                     f"d1={v - fe4m3_to_float32(r1)} d2={v - fe5m2_to_float32(r2)} "
-                    f"|d1|==|d2|={abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))}"
+                    f"|d1|==|d2|={ex}"
                 )
         for p in range(1, 40):
             v = -(2 ** (-p))
@@ -508,12 +511,13 @@ class TestF8(ExtTestCase):
                 continue
             r2 = float32_to_fe5m2(v)
             if r1 != r2:
+                ex = abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))
                 raise AssertionError(
                     f"p={p}, v={v}, "
                     f"search={r1}:{display_fe5m2(r1)}={fe5m2_to_float32(r1)} != "
                     f"bit={r2}:{display_fe5m2(r2)}={fe5m2_to_float32(r2)} "
                     f"d1={v - fe4m3_to_float32(r1)} d2={v - fe5m2_to_float32(r2)} "
-                    f"|d1|==|d2|={abs(v - fe5m2_to_float32(r1)) == abs(v - fe5m2_to_float32(r2))}"
+                    f"|d1|==|d2|={ex}"
                 )
 
     def test_float32_to_fe4m3fn_inf(self):
