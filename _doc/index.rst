@@ -32,12 +32,18 @@ following the numpy API to convert that function into ONNX as
 well as to execute it.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
+    :caption: Contents
 
     tutorial/index
     api/index
     tech/index
     auto_examples/index
+
+.. toctree::
+    :maxdepth: 1
+    :caption: More
+
     CHANGELOGS
     license
 
