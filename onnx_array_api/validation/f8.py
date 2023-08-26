@@ -503,14 +503,17 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
     """
     if not fn:
         raise NotImplementedError("fn=False is not implemented.")
-    b = int.from_bytes(struct.pack("<f", numpy.float32(x)), "little")
+    if not isinstance(x, numpy.float32):
+        x = numpy.float32(x)
+    b = int.from_bytes(struct.pack("<f", x), "little")
     ret = (b & 0x80000000) >> 24  # sign
     if uz:
-        if (b & 0x7FC00000) == 0x7FC00000:
-            return 0x80
-        if numpy.isinf(x):
+        if (b & 0x7FFFFFFF) == 0x7F800000:
+            # infinity
             if saturate:
                 return ret | 127
+            return 0x80
+        if (b & 0x7F800000) == 0x7F800000:
             return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -558,11 +561,13 @@ def float32_to_fe4m3(x, fn: bool = True, uz: bool = False, saturate: bool = True
             ret = 0
         return int(ret)
     else:
-        if (b & 0x7FC00000) == 0x7FC00000:
-            return 0x7F | ret
-        if numpy.isinf(x):
+        if (b & 0x7FFFFFFF) == 0x7F800000:
+            # infinity
             if saturate:
                 return ret | 126
+            return 0x7F | ret
+        if (b & 0x7F800000) == 0x7F800000:
+            # non
             return 0x7F | ret
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -624,12 +629,13 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
     ret = (b & 0x80000000) >> 24  # sign
 
     if fn and uz:
-        if (b & 0x7FC00000) == 0x7FC00000:
-            return 0x80
         if (b & 0x7FFFFFFF) == 0x7F800000:
             # inf
             if saturate:
                 return ret | 0x7F
+            return 0x80
+        if (b & 0x7F800000) == 0x7F800000:
+            # nan
             return 0x80
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
@@ -675,12 +681,14 @@ def float32_to_fe5m2(x, fn: bool = False, uz: bool = False, saturate: bool = Tru
             ret = 0
         return int(ret)
     elif not fn and not uz:
-        if (b & 0x7FC00000) == 0x7FC00000:
-            return 0x7F | ret
-        if numpy.isinf(x):
+        if (b & 0x7FFFFFFF) == 0x7F800000:
+            # inf
             if saturate:
                 return 0x7B | ret
             return 0x7C | ret
+        if (b & 0x7F800000) == 0x7F800000:
+            # nan
+            return 0x7F | ret
         e = (b & 0x7F800000) >> 23  # exponent
         m = b & 0x007FFFFF  # mantissa
 
