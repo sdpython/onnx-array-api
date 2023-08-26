@@ -1220,7 +1220,32 @@ class TestF8(ExtTestCase):
                     continue
                 raise AssertionError(f"Unexpected value for pt={pt}.")
 
+    def test_inf(self):
+        for x, e in [(numpy.float32(numpy.inf), 126), (numpy.float32(-numpy.inf), 254)]:
+            f8 = float32_to_fe4m3(x)
+            self.assertEqual(e, f8)
+
+    def test_nan(self):
+        expected = 127
+        values = [
+            (
+                None,
+                int.from_bytes(struct.pack("<f", numpy.float32(numpy.nan)), "little"),
+                numpy.float32(numpy.nan),
+                expected,
+            )
+        ]
+        for i in range(0, 23):
+            v = 0x7F800000 | (1 << i)
+            f = numpy.uint32(v).view(numpy.float32)
+            values.append((i, v, f, expected))
+            values.append((i, v, -f, expected | 128))
+
+        for i, v, x, e in values:
+            with self.subTest(x=x, e=e, h=hex(v), i=i):
+                f8 = float32_to_fe4m3(x)
+                self.assertEqual(e, f8)
+
 
 if __name__ == "__main__":
-    TestF8().test_fe4m3fn_to_float32_bug()
     unittest.main(verbosity=2)
