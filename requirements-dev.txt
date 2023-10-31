@@ -17,6 +17,7 @@ pandas
 psutil
 pytest
 pytest-cov
+python-re2
 rstcheck[sphinx,toml]
 sphinx-issues
 git+https://github.com/sdpython/sphinx-runpython.git
