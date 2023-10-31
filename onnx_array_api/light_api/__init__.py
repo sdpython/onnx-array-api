@@ -25,5 +25,17 @@ def start(
 
         onx = start().vin("X").Neg().rename("Y").vout().to_onnx()
         print(onx)
+
+    Another with operator Add:
+
+    .. runpython::
+        :showcode:
+
+        from onnx_array_api.light_api import start
+
+        onx = (
+            start().vin("X").vin("Y").bring("X", "Y").Add().rename("Z").vout().to_onnx()
+        )
+        print(onx)
     """
     return OnnxGraph(opset=opset, opsets=opsets, is_function=is_function)

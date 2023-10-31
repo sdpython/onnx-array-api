@@ -23,9 +23,8 @@ from .annotations import (
 
 class OnnxGraph:
     """
-    Contains every piece needed to create an onnx model.
-    This API is meant to be light and allows the description of a graph
-    in a single line.
+    Contains every piece needed to create an onnx model in a single instructions.
+    This API is meant to be light and allows the description of a graph.
 
     :param opset: main opset version
     :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
@@ -60,6 +59,7 @@ class OnnxGraph:
         self.renames_: Dict[str, str] = {}
 
     def __repr__(self) -> str:
+        "usual"
         sts = [f"{self.__class__.__name__}("]
         els = [
             repr(getattr(self, o))
@@ -111,6 +111,7 @@ class OnnxGraph:
         :param name: input name
         :param elem_type: element type (the input is assumed to be a tensor)
         :param shape: shape
+        :return: an instance of ValueInfoProto
         """
         if self.has_name(name):
             raise ValueError(f"Name {name!r} is already taken.")
@@ -122,6 +123,14 @@ class OnnxGraph:
     def vin(
         self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
     ) -> "Var":
+        """
+        Declares a new input to the graph.
+
+        :param name: input name
+        :param elem_type: element_type
+        :param shape: shape
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
         from .var import Var
 
         proto = self.make_input(name, elem_type=elem_type, shape=shape)
@@ -136,12 +145,12 @@ class OnnxGraph:
         self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
     ) -> ValueInfoProto:
         """
-        Adds an input to the graph.
+        Adds an output to the graph.
 
         :param name: input name
         :param elem_type: element type (the input is assumed to be a tensor)
         :param shape: shape
-        :return:
+        :return: an instance of ValueInfoProto
         """
         if not self.has_name(name):
             raise ValueError(f"Name {name!r} does not exist.")
@@ -150,7 +159,9 @@ class OnnxGraph:
         self.unique_names_[name] = var
         return var
 
-    def make_constant(self, value: np.ndarray, name: Optional[str] = None) -> str:
+    def make_constant(
+        self, value: np.ndarray, name: Optional[str] = None
+    ) -> TensorProto:
         "Adds an initializer to the graph."
         if self.is_function:
             raise NotImplementedError(
@@ -158,10 +169,13 @@ class OnnxGraph:
             )
         if isinstance(value, np.ndarray):
             if name is None:
-                name = self.unique_name(i)
+                name = self.unique_name()
+            elif self.has_name(name):
+                raise RuntimeError(f"Name {name!r} already exists.")
             tensor = from_array(value, name=name)
             self.unique_names_[name] = tensor
-            self.initializer.append(tensor)
+            self.initializers.append(tensor)
+            return tensor
         raise TypeError(f"Unexpected type {type(value)} for constant {name!r}.")
 
     def make_node(
@@ -183,7 +197,7 @@ class OnnxGraph:
         :param output_names: output names, if not specified, outputs are given
             unique names
         :param kwargs: node attributes
-        :return: Var or Tuple
+        :return: NodeProto
         """
         if output_names is None:
             output_names = [self.unique_name(value=i) for i in range(n_outputs)]
@@ -213,9 +227,28 @@ class OnnxGraph:
             name = self.renames_[name]
         return name
 
+    def get_var(self, name: str) -> "Var":
+        from .var import Var
+
+        tr = self.true_name(name)
+        proto = self.unique_names_[tr]
+        if isinstance(proto, ValueInfoProto):
+            return Var(
+                self,
+                proto.name,
+                elem_type=proto.type.tensor_type.elem_type,
+                shape=make_shape(proto.type.tensor_type.shape),
+            )
+        if isinstance(proto, TensorProto):
+            return Var(
+                self, proto.name, elem_type=proto.data_type, shape=tuple(proto.dims)
+            )
+        raise TypeError(f"Unexpected type {type(proto)} for name {name!r}.")
+
     def rename(self, old_name: str, new_name: str):
         """
-        Renames a variables.
+        Renames a variable. The renaming does not
+        change anything but is stored in a container.
 
         :param old_name: old name
         :param new_name: new name
@@ -277,6 +310,9 @@ class OnnxGraph:
         return i
 
     def to_onnx(self) -> GRAPH_PROTO:
+        """
+        Converts the graph into an ONNX graph.
+        """
         if self.is_function:
             raise NotImplementedError("Unable to convert a graph input ")
         dense = [
@@ -302,6 +338,5 @@ class OnnxGraph:
             for k, v in self.opsets.items():
                 opsets.append(make_opsetid(k, v))
         model = make_model(graph, opset_imports=opsets)
-        print(model)
         check_model(model)
         return model

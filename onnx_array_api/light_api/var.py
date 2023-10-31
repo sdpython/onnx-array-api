@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
+import numpy as np
 from .annotations import (
     elem_type_int,
     make_shape,
@@ -9,39 +10,24 @@ from .annotations import (
     VAR_CONSTANT_TYPE,
 )
 from .model import OnnxGraph
+from ._op_var import OpsVar
+from ._op_vars import OpsVars
 
 
-class Var:
+class BaseVar:
     """
-    Represents an input, an initializer, a node, an output.
+    Represents an input, an initializer, a node, an output,
+    multiple variables.
+
+    :param parent: the graph containing the Variable
     """
 
     def __init__(
         self,
         parent: OnnxGraph,
-        name: str,
-        elem_type: Optional[ELEMENT_TYPE] = 1,
-        shape: Optional[SHAPE_TYPE] = None,
     ):
-        self.name_ = name
         self.parent = parent
-        self.elem_type = elem_type
-        self.shape = shape
 
-    @property
-    def name(self):
-        return self.parent.true_name(self.name_)
-
-    def __str__(self) -> str:
-        s = f"{self.name}"
-        if self.elem_type is None:
-            return s
-        s = f"{s}:{ELEMENT_TYPE_NAME[self.elem_type]}"
-        if self.shape is None:
-            return s
-        return f"{s}:[{''.join(map(str, self.shape))}]"
-
-    # main function
     def make_node(
         self,
         op_type: str,
@@ -50,7 +36,7 @@ class Var:
         n_outputs: int = 1,
         output_names: Optional[List[str]] = None,
         **kwargs: Dict[str, Any],
-    ) -> Union["Var", Tuple["Var"]]:
+    ) -> Union["Var", "Vars"]:
         """
         Creates a node with this Var as the first input.
 
@@ -61,11 +47,11 @@ class Var:
         :param output_names: output names, if not specified, outputs are given
             unique names
         :param kwargs: node attributes
-        :return: Var or Tuple
+        :return: instance of :class:`onnx_array_api.light_api.Var` or
+            :class:`onnx_array_api.light_api.Vars`
         """
         node_proto = self.parent.make_node(
             op_type,
-            self,
             *inputs,
             domain=domain,
             n_outputs=n_outputs,
@@ -75,11 +61,37 @@ class Var:
         names = node_proto.output
         if len(names) == 1:
             return Var(self.parent, names[0])
-        return tuple(map(lambda v: Var(self.parent, v), names))
+        return Vars(*map(lambda v: Var(self.parent, v), names))
+
+    def vin(
+        self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
+    ) -> "Var":
+        """
+        Declares a new input to the graph.
+
+        :param name: input name
+        :param elem_type: element_type
+        :param shape: shape
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
+        return self.parent.vin(name, elem_type=elem_type, shape=shape)
+
+    def cst(self, value: np.ndarray, name: Optional[str] = None) -> "Var":
+        """
+        Adds an initializer
+
+        :param value: constant tensor
+        :param name: input name
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
+        c = self.parent.make_constant(value, name=name)
+        return Var(self.parent, c.name, elem_type=c.data_type, shape=tuple(c.dims))
 
     def vout(self) -> "Var":
         """
-        Creates an output.
+        Declares a new output to the graph.
+
+        :return: instance of :class:`onnx_array_api.light_api.Var`
         """
         output = self.parent.make_output(self.name)
         return Var(
@@ -89,12 +101,84 @@ class Var:
             shape=make_shape(output.type.tensor_type.shape),
         )
 
+    def v(self, name: str) -> "Var":
+        """
+        Retrieves another variable than this one.
+
+        :param name: name of the variable
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
+        return self.parent.get_var(name)
+
+    def bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
+        """
+        Creates a set of variable as an instance of
+        :class:`onnx_array_api.light_api.Vars`.
+        """
+        return Vars(self.parent, *vars)
+
+    def left_bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
+        """
+        Creates a set of variable as an instance of
+        :class:`onnx_array_api.light_api.Vars`.
+        *vars is added to the left, `self` is added to the right.
+        """
+        vs = [*vars, self]
+        return Vars(self.parent, *vs)
+
+    def right_bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
+        """
+        Creates a set of variable as an instance of
+        :class:`onnx_array_api.light_api.Vars`.
+        *vars is added to the right, `self` is added to the left.
+        """
+        vs = [self, *vars]
+        return Vars(self.parent, *vs)
+
     def to_onnx(self) -> GRAPH_PROTO:
-        "Creates the model."
+        "Creates the onnx graph."
         return self.parent.to_onnx()
 
-    # shortcuts
+
+class Var(BaseVar, OpsVar):
+    """
+    Represents an input, an initializer, a node, an output.
+
+    :param parent: graph the variable belongs to
+    :param name: input name
+    :param elem_type: element_type
+    :param shape: shape
+    """
+
+    def __init__(
+        self,
+        parent: OnnxGraph,
+        name: str,
+        elem_type: Optional[ELEMENT_TYPE] = 1,
+        shape: Optional[SHAPE_TYPE] = None,
+    ):
+        BaseVar.__init__(self, parent)
+        self.name_ = name
+        self.elem_type = elem_type
+        self.shape = shape
+
+    @property
+    def name(self):
+        "Returns the name of the variable or the new name if it was renamed."
+        return self.parent.true_name(self.name_)
+
+    def __str__(self) -> str:
+        "usual"
+        s = f"{self.name}"
+        if self.elem_type is None:
+            return s
+        s = f"{s}:{ELEMENT_TYPE_NAME[self.elem_type]}"
+        if self.shape is None:
+            return s
+        return f"{s}:[{''.join(map(str, self.shape))}]"
+
     def rename(self, new_name: str) -> "Var":
+        "Renames a variable."
         self.parent.rename(self.name, new_name)
         return self
 
@@ -106,29 +190,41 @@ class Var:
         "Casts a tensor into another element type."
         return self.Cast(to=elem_type_int(to))
 
-    def __add__(self, var: VAR_CONSTANT_TYPE) -> "Var":
-        return self.Add(var)
-
-    def __sub__(self, var: VAR_CONSTANT_TYPE) -> "Var":
-        return self.Sub(var)
-
-    def __mul__(self, var: VAR_CONSTANT_TYPE) -> "Var":
-        return self.Mul(var)
-
-    def __div__(self, var: VAR_CONSTANT_TYPE) -> "Var":
-        return self.Div(var)
+    def reshape(self, new_shape: VAR_CONSTANT_TYPE) -> "Var":
+        "Reshapes a variable."
+        return self.bring(self, new_shape).Reshape()
 
     def __neg__(self) -> "Var":
+        "Intuitive."
         return self.Neg()
 
-    # operators
 
-    def Neg(self):
-        return self.make_node("Neg")
+class Vars(BaseVar, OpsVars):
+    """
+    Represents multiple Var.
 
+    :param parent: graph the variable belongs to
+    :param vars: list of names or variables
+    """
 
-def _complete_class_methods():
-    pass
+    def __init__(self, parent, *vars: List[Union[str, Var]]):
+        BaseVar.__init__(self, parent)
+        self.vars_ = []
+        for v in vars:
+            if isinstance(v, str):
+                var = self.parent.get_var(v)
+            else:
+                var = v
+            self.vars_.append(var)
 
+    def __len__(self):
+        "Returns the number of variables."
+        return len(self.vars_)
 
-_complete_class_methods()
+    def _check_nin(self, n_inputs):
+        if len(self) != n_inputs:
+            raise RuntimeError(f"Expecting {n_inputs} inputs not {len(self)}.")
+
+    def __add__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Add()
