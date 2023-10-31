@@ -18,6 +18,7 @@ BaseVar
 
 .. autoclass:: onnx_array_api.light_api.BaseVar
     :members:
+
 Var
 ===
 
