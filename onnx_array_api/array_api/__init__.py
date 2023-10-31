@@ -107,7 +107,8 @@ def array_api_wrap_function(f: Callable, TEagerTensor: type) -> Callable:
             else:
                 b = a
             new_args.append(b)
-        return f(TEagerTensor, *new_args, **kwargs)
+        res = f(TEagerTensor, *new_args, **kwargs)
+        return res
 
     wrap.__doc__ = f.__doc__
     return wrap

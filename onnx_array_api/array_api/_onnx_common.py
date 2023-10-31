@@ -96,10 +96,14 @@ def asarray(
         if all(map(lambda x: isinstance(x, bool), a)):
             v = TEagerTensor(np.array(a, dtype=np.bool_))
         elif all(map(lambda x: isinstance(x, int), a)):
-            if all(map(lambda x: x >= 0, a)):
-                v = TEagerTensor(np.array(a, dtype=np.uint64))
-            else:
-                v = TEagerTensor(np.array(a, dtype=np.int64))
+            try:
+                cvt = np.array(a, dtype=np.int64)
+            except OverflowError as e:
+                if all(map(lambda x: x >= 0, a)):
+                    cvt = np.array(a, dtype=np.uint64)
+                else:
+                    raise e
+            v = TEagerTensor(cvt)
         else:
             v = TEagerTensor(np.array(a))
     elif isinstance(a, np.ndarray):
