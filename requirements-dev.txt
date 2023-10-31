@@ -3,6 +3,7 @@ black
 coverage
 flake8
 furo
+google-re2
 hypothesis
 isort
 joblib
@@ -14,10 +15,10 @@ onnxruntime
 openpyxl
 packaging
 pandas
+Pillow
 psutil
 pytest
 pytest-cov
-re2
 rstcheck[sphinx,toml]
 sphinx-issues
 git+https://github.com/sdpython/sphinx-runpython.git
