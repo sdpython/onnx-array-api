@@ -12,7 +12,7 @@ def start(
     Starts an onnx model.
 
     :param opset: main opset version
-    :param is_function: a :epkg:`ModelProto` or a :epkg:`FunctionProto`
+    :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
     :param opsets: others opsets as a dictionary
     :return: an instance of :class:`onnx_array_api.light_api.OnnxGraph`
 

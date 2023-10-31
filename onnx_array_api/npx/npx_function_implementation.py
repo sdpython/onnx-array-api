@@ -14,7 +14,7 @@ def get_function_implementation(
     **kwargs: Any,
 ) -> FunctionProto:
     """
-    Returns a :epkg:`FunctionProto` for a specific proto.
+    Returns a :class:`onnx.FunctionProto` for a specific proto.
 
     :param domop: domain, function
     :param node_inputs: list of input names

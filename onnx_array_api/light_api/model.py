@@ -28,7 +28,7 @@ class OnnxGraph:
     in a single line.
 
     :param opset: main opset version
-    :param is_function: a :epkg:`ModelProto` or a :epkg:`FunctionProto`
+    :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
     :param opsets: others opsets as a dictionary
     """
 
