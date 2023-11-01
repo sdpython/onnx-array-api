@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 import numpy as np
+from onnx import TensorProto
 from .annotations import (
     elem_type_int,
     make_shape,
@@ -64,7 +65,10 @@ class BaseVar:
         return Vars(*map(lambda v: Var(self.parent, v), names))
 
     def vin(
-        self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
+        self,
+        name: str,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
     ) -> "Var":
         """
         Declares a new input to the graph.
@@ -87,13 +91,19 @@ class BaseVar:
         c = self.parent.make_constant(value, name=name)
         return Var(self.parent, c.name, elem_type=c.data_type, shape=tuple(c.dims))
 
-    def vout(self) -> "Var":
+    def vout(
+        self,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
+    ) -> "Var":
         """
         Declares a new output to the graph.
 
+        :param elem_type: element_type
+        :param shape: shape
         :return: instance of :class:`onnx_array_api.light_api.Var`
         """
-        output = self.parent.make_output(self.name)
+        output = self.parent.make_output(self.name, elem_type=elem_type, shape=shape)
         return Var(
             self.parent,
             output,
@@ -192,11 +202,74 @@ class Var(BaseVar, OpsVar):
 
     def reshape(self, new_shape: VAR_CONSTANT_TYPE) -> "Var":
         "Reshapes a variable."
+        if isinstance(new_shape, tuple):
+            cst = self.cst(np.array(new_shape, dtype=np.int64))
+            return self.bring(self, cst).Reshape()
         return self.bring(self, new_shape).Reshape()
 
-    def __neg__(self) -> "Var":
+    def __add__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Add()
+
+    def __eq__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Equal()
+
+    def __float__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Cast(to=TensorProto.FLOAT)
+
+    def __gt__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Greater()
+
+    def __ge__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).GreaterOrEqual()
+
+    def __int__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Cast(to=TensorProto.INT64)
+
+    def __lt__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Less()
+
+    def __le__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).LessOrEqual()
+
+    def __matmul__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).MatMul()
+
+    def __mod__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Mod()
+
+    def __mul__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Mul()
+
+    def __ne__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Equal().Not()
+
+    def __neg__(self, var: VAR_CONSTANT_TYPE) -> "Var":
         "Intuitive."
         return self.Neg()
+
+    def __pow__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Pow()
+
+    def __sub__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Sub()
+
+    def __truediv__(self, var: VAR_CONSTANT_TYPE) -> "Var":
+        "Intuitive."
+        return self.bring(self, var).Div()
 
 
 class Vars(BaseVar, OpsVars):
@@ -224,7 +297,4 @@ class Vars(BaseVar, OpsVars):
     def _check_nin(self, n_inputs):
         if len(self) != n_inputs:
             raise RuntimeError(f"Expecting {n_inputs} inputs not {len(self)}.")
-
-    def __add__(self, var: VAR_CONSTANT_TYPE) -> "Var":
-        "Intuitive."
-        return self.bring(self, var).Add()
+        return self

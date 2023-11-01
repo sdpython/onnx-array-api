@@ -15,6 +15,22 @@ ELEMENT_TYPE_NAME = {
     if isinstance(getattr(TensorProto, k), int)
 }
 
+_type_numpy = {
+    np.float32: TensorProto.FLOAT,
+    np.float64: TensorProto.DOUBLE,
+    np.float16: TensorProto.FLOAT16,
+    np.int8: TensorProto.INT8,
+    np.int16: TensorProto.INT16,
+    np.int32: TensorProto.INT32,
+    np.int64: TensorProto.INT64,
+    np.uint8: TensorProto.UINT8,
+    np.uint16: TensorProto.UINT16,
+    np.uint32: TensorProto.UINT32,
+    np.uint64: TensorProto.UINT64,
+    np.bool_: TensorProto.BOOL,
+    np.str_: TensorProto.STRING,
+}
+
 
 def elem_type_int(elem_type: ELEMENT_TYPE) -> int:
     """
@@ -25,6 +41,8 @@ def elem_type_int(elem_type: ELEMENT_TYPE) -> int:
     """
     if isinstance(elem_type, int):
         return elem_type
+    if elem_type in _type_numpy:
+        return _type_numpy[elem_type]
     return np_dtype_to_tensor_dtype(elem_type)
 
 

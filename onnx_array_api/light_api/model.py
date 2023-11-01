@@ -13,6 +13,7 @@ from onnx.helper import (
 )
 from onnx.numpy_helper import from_array
 from .annotations import (
+    elem_type_int,
     make_shape,
     GRAPH_PROTO,
     ELEMENT_TYPE,
@@ -103,7 +104,10 @@ class OnnxGraph:
         return name
 
     def make_input(
-        self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
+        self,
+        name: str,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
     ) -> ValueInfoProto:
         """
         Adds an input to the graph.
@@ -121,7 +125,10 @@ class OnnxGraph:
         return var
 
     def vin(
-        self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
+        self,
+        name: str,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
     ) -> "Var":
         """
         Declares a new input to the graph.
@@ -133,7 +140,7 @@ class OnnxGraph:
         """
         from .var import Var
 
-        proto = self.make_input(name, elem_type=elem_type, shape=shape)
+        proto = self.make_input(name, elem_type=elem_type_int(elem_type), shape=shape)
         return Var(
             self,
             proto.name,
@@ -142,7 +149,10 @@ class OnnxGraph:
         )
 
     def make_output(
-        self, name: str, elem_type: ELEMENT_TYPE = 1, shape: Optional[SHAPE_TYPE] = None
+        self,
+        name: str,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
     ) -> ValueInfoProto:
         """
         Adds an output to the graph.
@@ -154,7 +164,7 @@ class OnnxGraph:
         """
         if not self.has_name(name):
             raise ValueError(f"Name {name!r} does not exist.")
-        var = make_tensor_value_info(name, elem_type, shape)
+        var = make_tensor_value_info(name, elem_type_int(elem_type), shape)
         self.outputs.append(var)
         self.unique_names_[name] = var
         return var
