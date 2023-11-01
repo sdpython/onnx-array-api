@@ -114,5 +114,4 @@ It supports eager mode as well:
 The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
 and its documentation is published at
-`(Numpy) Array API for ONNX
-<https://sdpython.github.io/doc/onnx-array-api/dev/>`_.
+`(Numpy) Array API for ONNX <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.

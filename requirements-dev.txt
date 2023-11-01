@@ -3,6 +3,7 @@ black
 coverage
 flake8
 furo
+google-re2
 hypothesis
 isort
 joblib
@@ -14,6 +15,7 @@ onnxruntime
 openpyxl
 packaging
 pandas
+Pillow
 psutil
 pytest
 pytest-cov

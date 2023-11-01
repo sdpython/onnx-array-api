@@ -214,6 +214,10 @@ class ExtTestCase(unittest.TestCase):
             return
         raise AssertionError(f"value is not empty: {value!r}.")
 
+    def assertHasAttr(self, cls: type, name: str):
+        if not hasattr(cls, name):
+            raise AssertionError(f"Class {cls} has no attribute {name!r}.")
+
     def assertNotEmpty(self, value: Any):
         if value is None:
             raise AssertionError(f"value is empty: {value!r}.")

@@ -19,9 +19,9 @@ def rename_in_onnx_graph(
     """
     Renames input results in a GraphProto.
 
-    :param graph: :epkg:`GraphProto`
+    :param graph: :class:`onnx.GraphProto`
     :param replacements: replacements `{ old_name: new_name }`
-    :return: modified :epkg:`GraphProto` or None if no modifications
+    :return: modified :class:`onnx.GraphProto` or None if no modifications
         were detected
     """
 
@@ -153,8 +153,9 @@ def onnx_model_to_function(
     :param inputs2par: dictionary to move some inputs as attributes
         `{ name: None or default value }`
     :return: function, other functions
+
     .. warning::
-        :epkg:`FunctionProto` does not support default values yet.
+        :class:`onnx.FunctionProto` does not support default values yet.
         They are ignored.
     """
     if isinstance(onx, ModelProto):
