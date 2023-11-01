@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from .model import OnnxGraph
-from .var import Var
+from .var import Var, Vars
 
 
 def start(
