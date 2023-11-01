@@ -129,18 +129,18 @@ class BaseVar:
 
     def left_bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
         """
-        Creates a set of variable as an instance of
+        Creates a set of variables as an instance of
         :class:`onnx_array_api.light_api.Vars`.
-        *vars is added to the left, `self` is added to the right.
+        `*vars` is added to the left, `self` is added to the right.
         """
         vs = [*vars, self]
         return Vars(self.parent, *vs)
 
     def right_bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
         """
-        Creates a set of variable as an instance of
+        Creates a set of variables as an instance of
         :class:`onnx_array_api.light_api.Vars`.
-        *vars is added to the right, `self` is added to the left.
+        `*vars` is added to the right, `self` is added to the left.
         """
         vs = [self, *vars]
         return Vars(self.parent, *vs)
