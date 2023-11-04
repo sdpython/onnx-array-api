@@ -1,4 +1,4 @@
 array_api_compat
 numpy
-onnx
+onnx>=1.15.0
 scipy
