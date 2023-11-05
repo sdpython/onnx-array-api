@@ -10,8 +10,8 @@ joblib
 lightgbm
 matplotlib
 ml-dtypes
-onnxmltools
-onnxruntime
+git+https://github.com/onnx/onnxmltools.git
+onnxruntime>=1.16.1
 openpyxl
 packaging
 pandas
@@ -23,7 +23,7 @@ rstcheck[sphinx,toml]
 sphinx-issues
 git+https://github.com/sdpython/sphinx-runpython.git
 ruff
-scikit-learn
+scikit-learn>=1.3.2
 git+https://github.com/onnx/sklearn-onnx.git
 sphinx
 sphinx-gallery
