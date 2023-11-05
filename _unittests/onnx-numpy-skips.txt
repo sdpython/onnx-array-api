@@ -4,5 +4,6 @@
 array_api_tests/test_creation_functions.py::test_asarray_arrays
 array_api_tests/test_creation_functions.py::test_empty
 array_api_tests/test_creation_functions.py::test_empty_like
-# array_api_tests/test_creation_functions.py::test_linspace
+# fails to precision issue
+array_api_tests/test_creation_functions.py::test_linspace
 array_api_tests/test_creation_functions.py::test_meshgrid
