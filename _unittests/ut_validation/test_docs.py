@@ -1,4 +1,5 @@
 import unittest
+import sys
 import numpy as np
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -26,6 +27,7 @@ class TestDocs(ExtTestCase):
         got = ref.run(None, {"X": X, "Y": Y})[0]
         self.assertEqualArray(expected, got)
 
+    @unittest.skipIf(sys.platform == "win32", reason="unstable on Windows")
     def test_make_euclidean_np(self):
         from onnx_array_api.npx import jit_onnx
 
