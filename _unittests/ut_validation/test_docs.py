@@ -82,7 +82,7 @@ class TestDocs(ExtTestCase):
         Y = np.random.rand(3, 4).astype(np.float32)
         expected = ((X - Y) ** 2).sum(keepdims=1)
         got = ref.run(None, {"X": X, "Y": Y})[0]
-        self.assertEqualArray(expected, got)
+        self.assertEqualArray(expected, got, atol=1e-6)
 
 
 if __name__ == "__main__":

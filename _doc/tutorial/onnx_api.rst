@@ -29,7 +29,7 @@ For example, the well known Euclidian distance
     def euclidan(X: np.array, Y: np.array) -> float:
         return ((X - Y) ** 2).sum()
 
-The mathematical function must first be translate with :epkg:`ONNX Operators` or
+The mathematical function must first be translated with :epkg:`ONNX Operators` or
 primitives. It is usually easy because the primitives are very close to what
 numpy defines. It can be expressed as (the syntax is just for illustration).
 
@@ -75,8 +75,8 @@ the true implementation would be the following.
             return model
 
 
-        model = make_euclidean()
-        print(model)
+    model = make_euclidean()
+    print(model)
 
 Since it is a second implementation of an existing function, it is necessary to
 check the output is the same.
@@ -222,7 +222,7 @@ Many existing options are available to write custom onnx graphs.
 The development is usually driven by what they are used for. Each of them
 may not fully support all your needs and it is not always easy to understand
 the error messages they provide when something goes wrong.
-It is better to understand its own need fefore choosing one.
+It is better to understand its own need before choosing one.
 Here are some of the questions which may need to be answered.
 
 * ability to easily write loops and tests (control flow)
@@ -246,7 +246,7 @@ onnxscript
 It converts python code to onnx code by analyzing the python code
 (through :epkg:`ast`). The package makes it very easy to use loops and tests in onnx.
 It is very close to onnx syntax. It is not easy to support multiple
-implementing depending on the opset version required by the user.
+implementation depending on the opset version required by the user.
 
 Example taken from the documentation :
 
@@ -319,9 +319,11 @@ An Eager mode is available to debug what the code does.
 spox
 ++++
 
-The syntax of epkg:`spox` is similar but it does not use :epkg:`ast`.
+The syntax of :epkg:`spox` is similar but it does not use :epkg:`ast`.
 Therefore, `loops and tests <https://spox.readthedocs.io/en/latest/guides/advanced.html#Control-flow>`_
-are expressed in a very different way.
+are expressed in a very different way. The tricky part with it is to handle
+the local context. A variable created in the main graph is known by any
+of its subgraphs.
 
 Example taken from the documentation :
 
@@ -355,18 +357,19 @@ sklearn-onnx
 ++++++++++++
 
 :epkg:`sklearn-onnx` also implements its own API to add custom graphs.
-It was designed to shorten the time spend in reimplementing the scikit-learn
-code into onnx code. It can be used to implement a new converted as
-described in this example:
+It was designed to shorten the time spent in reimplementing :epkg:`scikit-learn`
+code into :epkg:`onnx` code. It can be used to implement a new converter
+mapped a custom model as described in this example:
 `Implement a new converter
 <https://onnx.ai/sklearn-onnx/auto_tutorial/plot_icustom_converter.html>`_.
-But it can also be used to build standalone example:
+But it can also be used to build standalone models.
 
 .. runpython::
     :showcode:
 
     import numpy as np
     import onnx
+    import onnx.helper as oh
     from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
 
@@ -389,15 +392,16 @@ But it can also be used to build standalone example:
         dummy = np.empty([1], np_type)
         return final.to_onnx({"X": dummy, "Y": dummy})
 
-        model = make_euclidean()
-        print(onnx_simple_text_plot(model))
+
+    model = make_euclidean_skl2onnx()
+    print(onnx_simple_text_plot(model))
     
 onnxblocks
 ++++++++++
 
 `onnxblocks <https://onnxruntime.ai/docs/api/python/on_device_training/training_artifacts.html#prepare-for-training>`_
 was introduced in onnxruntime to define custom losses in order to train
-a model with :epkg:`onnxruntime-training`.
+a model with :epkg:`onnxruntime-training`. It is mostly used for this usage.
 
 .. code-block:: python
 
@@ -446,7 +450,7 @@ a model with :epkg:`onnxruntime-training`.
 numpy API for onnx
 ++++++++++++++++++
 
-See :ref:`l-numpy-api-onnx`. This API was introduced to create graph
+See :ref:`l-numpy-api-onnx`. This API was introduced to create graphs
 by using numpy API. If a function is defined only with numpy,
 it should be possible to use the exact same code to create the
 corresponding onnx graph. That's what this API tries to achieve.

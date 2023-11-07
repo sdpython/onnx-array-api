@@ -42,15 +42,20 @@ Graph methods
 Any graph must start with function :func:`start <onnx_array_api.light_api.start>`.
 It is usually following by `vin` to add an input.
 
-* bring (:meth:`cst <onnx_array_api.light_api.Var.bring>`, :meth:`cst <onnx_array_api.light_api.Vars.bring>`):
+* bring (:meth:`Var.bring <onnx_array_api.light_api.Var.bring>`,
+  :meth:`Vars.bring <onnx_array_api.light_api.Vars.bring>`):
   assembles multiple results into a set before calling an operator taking mulitple inputs,
-* cst (:meth:`cst <onnx_array_api.light_api.Var.cst>`, :meth:`cst <onnx_array_api.light_api.Vars.cst>`):
+* cst (:meth:`Var.cst <onnx_array_api.light_api.Var.cst>`,
+  :meth:`Vars.cst <onnx_array_api.light_api.Vars.cst>`):
   adds a constant tensor to the graph,
-* rename  (:meth:`cst <onnx_array_api.light_api.Var.rename>`, :meth:`cst <onnx_array_api.light_api.Vars.rename>`):
+* rename  (:meth:`Var.rename <onnx_array_api.light_api.Var.rename>`,
+  :meth:`Vars.rename <onnx_array_api.light_api.Vars.rename>`):
   renames or give a name to a variable in order to call it later.
-* vin (:meth:`cst <onnx_array_api.light_api.Var.vin>`, :meth:`cst <onnx_array_api.light_api.Vars.vin>`):
+* vin (:meth:`Var.vin <onnx_array_api.light_api.Var.vin>`,
+  :meth:`Vars.vin <onnx_array_api.light_api.Vars.vin>`):
   adds an input to the graph,
-* vout (:meth:`cst <onnx_array_api.light_api.Var.vout>`, :meth:`cst <onnx_array_api.light_api.Vars.vout>`):
+* vout (:meth:`Var.vout <onnx_array_api.light_api.Var.vout>`,
+  :meth:`Vars.vout <onnx_array_api.light_api.Vars.vout>`):
   declares an existing result as an output.
 
 These methods are implemented in class :class:`onnx_array_api.light_api.var.BaseVar`
