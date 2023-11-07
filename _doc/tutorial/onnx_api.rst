@@ -16,66 +16,6 @@ an existing onnx models or to merge models coming from different packages.
 Sometimes, they are just not available, only onnx is.
 Let's see how it looks like a very simply example.
 
-Use torch or tensorflow
-=======================
-
-:epkg:`pytorch` offers the possibility to convert any function
-implemented with pytorch function into onnx with :epkg:`torch.onnx`.
-A couple of examples.
-
-.. code-block:: python
-
-    import torch
-    import torch.nn
-
-
-    class MyModel(torch.nn.Module):
-        def __init__(self) -> None:
-            super().__init__()
-            self.linear = torch.nn.Linear(2, 2)
-
-        def forward(self, x, bias=None):
-            out = self.linear(x)
-            out = out + bias
-            return out
-
-    model = MyModel()
-    kwargs = {"bias": 3.}
-    args = (torch.randn(2, 2, 2),)
-
-    export_output = torch.onnx.dynamo_export(
-        model,
-        *args,
-        **kwargs).save("my_simple_model.onnx")    
-
-.. code-block:: python
-
-    from typing import Dict, Tuple
-    import torch
-    import torch.onnx
-
-
-    def func_with_nested_input_structure(
-        x_dict: Dict[str, torch.Tensor],
-        y_tuple: Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]],
-    ):
-        if "a" in x_dict:
-            x = x_dict["a"]
-        elif "b" in x_dict:
-            x = x_dict["b"]
-        else:
-            x = torch.randn(3)
-
-        y1, (y2, y3) = y_tuple
-
-        return x + y1 + y2 + y3
-
-    x_dict = {"a": torch.tensor(1.)}
-    y_tuple = (torch.tensor(2.), (torch.tensor(3.), torch.tensor(4.)))
-    export_output = torch.onnx.dynamo_export(func_with_nested_input_structure, x_dict, y_tuple)
-
-    print(export_output.adapt_torch_inputs_to_onnx(x_dict, y_tuple))
-
 Euclidian distance
 ==================
 
@@ -297,6 +237,66 @@ Here are some of the questions which may need to be answered.
 * ability to support local functions
 * easy error messages
 * is it actively maintained?
+
+Use torch or tensorflow
++++++++++++++++++++++++
+
+:epkg:`pytorch` offers the possibility to convert any function
+implemented with pytorch function into onnx with :epkg:`torch.onnx`.
+A couple of examples.
+
+.. code-block:: python
+
+    import torch
+    import torch.nn
+
+
+    class MyModel(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.linear = torch.nn.Linear(2, 2)
+
+        def forward(self, x, bias=None):
+            out = self.linear(x)
+            out = out + bias
+            return out
+
+    model = MyModel()
+    kwargs = {"bias": 3.}
+    args = (torch.randn(2, 2, 2),)
+
+    export_output = torch.onnx.dynamo_export(
+        model,
+        *args,
+        **kwargs).save("my_simple_model.onnx")    
+
+.. code-block:: python
+
+    from typing import Dict, Tuple
+    import torch
+    import torch.onnx
+
+
+    def func_with_nested_input_structure(
+        x_dict: Dict[str, torch.Tensor],
+        y_tuple: Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]],
+    ):
+        if "a" in x_dict:
+            x = x_dict["a"]
+        elif "b" in x_dict:
+            x = x_dict["b"]
+        else:
+            x = torch.randn(3)
+
+        y1, (y2, y3) = y_tuple
+
+        return x + y1 + y2 + y3
+
+    x_dict = {"a": torch.tensor(1.)}
+    y_tuple = (torch.tensor(2.), (torch.tensor(3.), torch.tensor(4.)))
+    export_output = torch.onnx.dynamo_export(func_with_nested_input_structure, x_dict, y_tuple)
+
+    print(export_output.adapt_torch_inputs_to_onnx(x_dict, y_tuple))
 
 onnxscript
 ++++++++++
@@ -539,7 +539,7 @@ produces different onnx graphs depending on the execution path.
     model = jitted_myloss.get_onnx()
     print(onnx_simple_text_plot(model))
 
-light API
+Light API
 +++++++++
 
 See :ref:`l-light-api`. This API was created to be able to write an onnx graph
