@@ -33,8 +33,10 @@ class TestDocs(ExtTestCase):
             return ((x - y) ** 2).sum(keepdims=1)
 
         jitted_myloss = jit_onnx(l2_loss)
-        dummy = np.array([0], dtype=np.float32)
-        jitted_myloss(dummy, dummy)
+        dummy1 = np.array([0], dtype=np.float32)
+        dummy2 = np.array([1], dtype=np.float32)
+        # unstable on windows?
+        jitted_myloss(dummy1, dummy2)
         model = jitted_myloss.get_onnx()
 
         ref = ReferenceEvaluator(model)
