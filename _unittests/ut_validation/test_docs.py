@@ -73,7 +73,7 @@ class TestDocs(ExtTestCase):
     def test_ort_make_euclidean(self):
         from onnxruntime import InferenceSession
 
-        model = make_euclidean()
+        model = make_euclidean(opset=18)
 
         ref = InferenceSession(
             model.SerializeToString(), providers=["CPUExecutionProvider"]
