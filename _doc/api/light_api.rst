@@ -24,9 +24,11 @@ Var
 
 .. autoclass:: onnx_array_api.light_api.Var
     :members:
+    :inherited-members:
 
 Vars
 ====
 
 .. autoclass:: onnx_array_api.light_api.Vars
     :members:
+    :inherited-members:

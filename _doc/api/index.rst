@@ -22,3 +22,4 @@ API
     tools
     profiling
     f8
+    docs

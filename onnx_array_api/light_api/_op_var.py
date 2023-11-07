@@ -186,6 +186,90 @@ class OpsVar:
             "RandomUniformLike", self, dtype=dtype, high=high, low=low, seed=seed
         )
 
+    def ReduceL1(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceL1",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceL2(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceL2",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceLogSum(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceLogSum",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceLogSumExp(
+        self, keepdims: int = 1, noop_with_empty_axes: int = 0
+    ) -> "Var":
+        return self.make_node(
+            "ReduceLogSumExp",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceMax(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceMax",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceMean(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceMean",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceMin(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceMin",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceProd(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceProd",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceSum(self, keepdims: int = 1, noop_with_empty_axes: int = 0) -> "Var":
+        return self.make_node(
+            "ReduceSum",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
+    def ReduceSumSquare(
+        self, keepdims: int = 1, noop_with_empty_axes: int = 0
+    ) -> "Var":
+        return self.make_node(
+            "ReduceSumSquare",
+            self,
+            keepdims=keepdims,
+            noop_with_empty_axes=noop_with_empty_axes,
+        )
+
     def Selu(
         self, alpha: float = 1.6732631921768188, gamma: float = 1.0507010221481323
     ) -> "Var":

@@ -6,5 +6,7 @@ Tutorial
 .. toctree::
     :maxdepth: 1
 
-    overview
+    onnx_api
+    light_api
+    numpy_api
     benchmarks
