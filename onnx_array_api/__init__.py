@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-(Numpy) Array API for ONNX.
+APIs to create ONNX Graphs.
 """
 
 __version__ = "0.1.2"
