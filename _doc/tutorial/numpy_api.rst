@@ -21,6 +21,8 @@ loss functions for example without knowing too much about ONNX.
     The first version (onnx==1.15) does not support control flow yet (test and loops).
     There is no easy syntax for that yet and the main challenge is to deal with local context.
 
+You read :ref:`l-array-api-painpoint` as well.
+
 Overview
 ========
 
