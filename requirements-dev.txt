@@ -19,7 +19,6 @@ Pillow
 psutil
 pytest
 pytest-cov
-rstcheck[sphinx,toml]
 sphinx-issues
 git+https://github.com/sdpython/sphinx-runpython.git
 ruff
