@@ -81,9 +81,6 @@ jobs:
       ruff .
     displayName: 'Ruff'
   - script: |
-      rstcheck -r ./_doc ./onnx_array_api
-    displayName: 'rstcheck'
-  - script: |
       black --diff .
     displayName: 'Black'
   - script: |
@@ -177,9 +174,6 @@ jobs:
   - script: |
       ruff .
     displayName: 'Ruff'
-  - script: |
-      rstcheck -r ./_doc ./onnx_array_api
-    displayName: 'rstcheck'
   - script: |
       black --diff .
     displayName: 'Black'

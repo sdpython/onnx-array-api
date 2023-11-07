@@ -95,6 +95,8 @@ class OnnxGraph:
         :param value: this name is mapped to this value
         :return: unique name
         """
+        if isinstance(value, int):
+            raise TypeError(f"Unexpected type {type(value)}, prefix={prefix!r}.")
         name = prefix
         i = len(self.unique_names_)
         while name in self.unique_names_:
@@ -210,7 +212,10 @@ class OnnxGraph:
         :return: NodeProto
         """
         if output_names is None:
-            output_names = [self.unique_name(value=i) for i in range(n_outputs)]
+            output_names = [
+                self.unique_name(prefix=f"r{len(self.nodes)}_{i}")
+                for i in range(n_outputs)
+            ]
         elif n_outputs != len(output_names):
             raise ValueError(
                 f"Expecting {n_outputs} outputs but received {output_names}."
@@ -233,6 +238,10 @@ class OnnxGraph:
         Some names were renamed. If name is one of them, the function
         returns the new name.
         """
+        if not isinstance(name, str):
+            raise TypeError(
+                f"Unexpected type {type(name)}, rename must be placed before vout."
+            )
         while name in self.renames_:
             name = self.renames_[name]
         return name
@@ -242,6 +251,8 @@ class OnnxGraph:
 
         tr = self.true_name(name)
         proto = self.unique_names_[tr]
+        if proto is None:
+            return Var(self, name)
         if isinstance(proto, ValueInfoProto):
             return Var(
                 self,
@@ -267,7 +278,12 @@ class OnnxGraph:
             raise RuntimeError(f"Name {old_name!r} does not exist.")
         if self.has_name(new_name):
             raise RuntimeError(f"Name {old_name!r} already exist.")
-        self.unique_names_[new_name] = self.unique_names_[old_name]
+        value = self.unique_names_[old_name]
+        if isinstance(value, int):
+            raise TypeError(
+                f"Unexpected type {type(value)} for value {old_name!r} renamed into {new_name!r}."
+            )
+        self.unique_names_[new_name] = value
         self.renames_[old_name] = new_name
 
     def _fix_name_tensor(

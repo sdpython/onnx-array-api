@@ -298,3 +298,7 @@ class Vars(BaseVar, OpsVars):
         if len(self) != n_inputs:
             raise RuntimeError(f"Expecting {n_inputs} inputs not {len(self)}.")
         return self
+
+    def rename(self, new_name: str) -> "Var":
+        "Renames variables."
+        raise NotImplementedError("Not yet implemented.")

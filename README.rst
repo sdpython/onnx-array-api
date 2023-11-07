@@ -2,7 +2,7 @@
 .. image:: https://github.com/sdpython/onnx-array-api/raw/main/_doc/_static/logo.png
     :width: 120
 
-onnx-array-api: (Numpy) Array API for ONNX
+onnx-array-api: APIs to create ONNX Graphs
 ==========================================
 
 .. image:: https://dev.azure.com/xavierdupre3/onnx-array-api/_apis/build/status/sdpython.onnx-array-api
@@ -29,7 +29,9 @@ onnx-array-api: (Numpy) Array API for ONNX
 .. image:: https://codecov.io/gh/sdpython/onnx-array-api/branch/main/graph/badge.svg?token=Wb9ZGDta8J 
     :target: https://codecov.io/gh/sdpython/onnx-array-api
 
-**onnx-array-api** implements a numpy API for ONNX.
+**onnx-array-api** implements APIs to create custom ONNX graphs.
+The objective is to speed up the implementation of converter libraries.
+The first one matches **numpy API**.
 It gives the user the ability to convert functions written
 following the numpy API to convert that function into ONNX as
 well as to execute it.
@@ -110,6 +112,31 @@ It supports eager mode as well:
     l1_loss=[0.04]
     l2_loss=[0.002]
     [0.042]
+
+The second API ir **Light API** tends to do every thing in one line.
+The euclidean distance looks like the following:
+
+::
+
+    import numpy as np
+    from onnx_array_api.light_api import start
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    model = (
+        start()
+        .vin("X")
+        .vin("Y")
+        .bring("X", "Y")
+        .Sub()
+        .rename("dxy")
+        .cst(np.array([2], dtype=np.int64), "two")
+        .bring("dxy", "two")
+        .Pow()
+        .ReduceSum()
+        .rename("Z")
+        .vout()
+        .to_onnx()
+    )    
 
 The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_

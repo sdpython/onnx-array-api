@@ -1,7 +1,7 @@
 Change Logs
 ===========
 
-0.2.0
+0.1.2
 +++++
 
 * :pr:`42`: first sketch for a very simple API to create onnx graph in one or two lines

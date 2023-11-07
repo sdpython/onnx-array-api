@@ -1,6 +1,7 @@
+.. _l-array-api-painpoint:
 
-Difficulty to implement an an Array API for ONNX
-================================================
+Difficulty to implement an Array API for ONNX
+=============================================
 
 Implementing the full array API is not always easy with :epkg:`onnx`.
 Python is not strongly typed and many different types can be used

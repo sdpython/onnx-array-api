@@ -1,5 +1,5 @@
 
-onnx-array-api: (Numpy) Array API for ONNX
+onnx-array-api: APIs to create ONNX Graphs
 ==========================================
 
 .. image:: https://dev.azure.com/xavierdupre3/onnx-array-api/_apis/build/status/sdpython.onnx-array-api
@@ -26,10 +26,8 @@ onnx-array-api: (Numpy) Array API for ONNX
 .. image:: https://codecov.io/gh/sdpython/onnx-array-api/branch/main/graph/badge.svg?token=Wb9ZGDta8J 
     :target: https://codecov.io/gh/sdpython/onnx-array-api
 
-**onnx-array-api** implements a numpy API for ONNX.
-It gives the user the ability to convert functions written
-following the numpy API to convert that function into ONNX as
-well as to execute it.
+**onnx-array-api** implements APIs to create custom ONNX graphs.
+The objective is to speed up the implementation of converter libraries.
 
 .. toctree::
     :maxdepth: 1
@@ -47,6 +45,8 @@ well as to execute it.
     CHANGELOGS
     license
 
+**Numpy API**
+
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
 
@@ -57,7 +57,7 @@ Sources available on
 
     import numpy as np  # A
     from onnx_array_api.npx import absolute, jit_onnx
-    from onnx_array_api.plotting.dot_plot import to_dot
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
     def l1_loss(x, y):
         return absolute(x - y).sum()
@@ -77,6 +77,8 @@ Sources available on
     y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
     res = jitted_myloss(x, y)
     print(res)
+
+    print(onnx_simple_text_plot(jitted_myloss.get_onnx()))
 
 .. gdot::
     :script: DOT-SECTION
@@ -106,3 +108,30 @@ Sources available on
     y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
     res = jitted_myloss(x, y)
     print(to_dot(jitted_myloss.get_onnx()))
+
+**Light API**
+
+.. runpython::
+    :showcode:
+
+    import numpy as np
+    from onnx_array_api.light_api import start
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    model = (
+        start()
+        .vin("X")
+        .vin("Y")
+        .bring("X", "Y")
+        .Sub()
+        .rename("dxy")
+        .cst(np.array([2], dtype=np.int64), "two")
+        .bring("dxy", "two")
+        .Pow()
+        .ReduceSum()
+        .rename("Z")
+        .vout()
+        .to_onnx()
+    )
+
+    print(onnx_simple_text_plot(model))
