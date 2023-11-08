@@ -6,7 +6,7 @@ class OpsVars:
     Operators taking multiple inputs.
     """
 
-    def BitShift(self, direction: str = b"") -> "Var":
+    def BitShift(self, direction: str = "") -> "Var":
         return self.make_node("BitShift", *self.vars_, direction=direction)
 
     def CenterCropPad(self, axes: Optional[List[int]] = None) -> "Var":
@@ -42,7 +42,7 @@ class OpsVars:
 
     def Conv(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         dilations: Optional[List[int]] = None,
         group: int = 1,
         kernel_shape: Optional[List[int]] = None,
@@ -66,7 +66,7 @@ class OpsVars:
 
     def ConvInteger(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         dilations: Optional[List[int]] = None,
         group: int = 1,
         kernel_shape: Optional[List[int]] = None,
@@ -90,7 +90,7 @@ class OpsVars:
 
     def ConvTranspose(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         dilations: Optional[List[int]] = None,
         group: int = 1,
         kernel_shape: Optional[List[int]] = None,
@@ -155,7 +155,7 @@ class OpsVars:
     def DequantizeLinear(self, axis: int = 1) -> "Var":
         return self.make_node("DequantizeLinear", *self.vars_, axis=axis)
 
-    def Einsum(self, equation: str = b"") -> "Var":
+    def Einsum(self, equation: str = "") -> "Var":
         return self.make_node("Einsum", *self.vars_, equation=equation)
 
     def Gather(self, axis: int = 0) -> "Var":
@@ -174,8 +174,8 @@ class OpsVars:
     def GridSample(
         self,
         align_corners: int = 0,
-        mode: str = b"bilinear",
-        padding_mode: str = b"zeros",
+        mode: str = "bilinear",
+        padding_mode: str = "zeros",
     ) -> "Var":
         return self.make_node(
             "GridSample",
@@ -240,7 +240,7 @@ class OpsVars:
         return self.make_node("Mod", *self.vars_, fmod=fmod)
 
     def NegativeLogLikelihoodLoss(
-        self, ignore_index: int = 0, reduction: str = b"mean"
+        self, ignore_index: int = 0, reduction: str = "mean"
     ) -> "Var":
         return self.make_node(
             "NegativeLogLikelihoodLoss",
@@ -257,12 +257,12 @@ class OpsVars:
     def OneHot(self, axis: int = -1) -> "Var":
         return self.make_node("OneHot", *self.vars_, axis=axis)
 
-    def Pad(self, mode: str = b"constant") -> "Var":
+    def Pad(self, mode: str = "constant") -> "Var":
         return self.make_node("Pad", *self.vars_, mode=mode)
 
     def QLinearConv(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         dilations: Optional[List[int]] = None,
         group: int = 1,
         kernel_shape: Optional[List[int]] = None,
@@ -431,13 +431,13 @@ class OpsVars:
         self,
         antialias: int = 0,
         axes: Optional[List[int]] = None,
-        coordinate_transformation_mode: str = b"half_pixel",
+        coordinate_transformation_mode: str = "half_pixel",
         cubic_coeff_a: float = -0.75,
         exclude_outside: int = 0,
         extrapolation_value: float = 0.0,
-        keep_aspect_ratio_policy: str = b"stretch",
-        mode: str = b"nearest",
-        nearest_mode: str = b"round_prefer_floor",
+        keep_aspect_ratio_policy: str = "stretch",
+        mode: str = "nearest",
+        nearest_mode: str = "round_prefer_floor",
     ) -> "Var":
         axes = axes or []
         return self.make_node(
@@ -456,8 +456,8 @@ class OpsVars:
 
     def RoiAlign(
         self,
-        coordinate_transformation_mode: str = b"half_pixel",
-        mode: str = b"avg",
+        coordinate_transformation_mode: str = "half_pixel",
+        mode: str = "avg",
         output_height: int = 1,
         output_width: int = 1,
         sampling_ratio: int = 0,
@@ -480,12 +480,12 @@ class OpsVars:
     def Scatter(self, axis: int = 0) -> "Var":
         return self.make_node("Scatter", *self.vars_, axis=axis)
 
-    def ScatterElements(self, axis: int = 0, reduction: str = b"none") -> "Var":
+    def ScatterElements(self, axis: int = 0, reduction: str = "none") -> "Var":
         return self.make_node(
             "ScatterElements", *self.vars_, axis=axis, reduction=reduction
         )
 
-    def ScatterND(self, reduction: str = b"none") -> "Var":
+    def ScatterND(self, reduction: str = "none") -> "Var":
         return self.make_node("ScatterND", *self.vars_, reduction=reduction)
 
     def Slice(
@@ -498,13 +498,18 @@ class OpsVars:
 
     def TopK(self, axis: int = -1, largest: int = 1, sorted: int = 1) -> "Vars":
         return self.make_node(
-            "TopK", *self.vars_, axis=axis, largest=largest, sorted=sorted
+            "TopK",
+            *self.vars_,
+            axis=axis,
+            largest=largest,
+            sorted=sorted,
+            n_outputs=2,
         )
 
     def Trilu(self, upper: int = 1) -> "Var":
         return self.make_node("Trilu", *self.vars_, upper=upper)
 
-    def Upsample(self, mode: str = b"nearest") -> "Var":
+    def Upsample(self, mode: str = "nearest") -> "Var":
         return self.make_node("Upsample", *self.vars_, mode=mode)
 
     def Where(

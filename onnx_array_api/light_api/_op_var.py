@@ -30,7 +30,7 @@ class OpsVar:
 
     def AveragePool(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         ceil_mode: int = 0,
         count_include_pad: int = 0,
         dilations: Optional[List[int]] = None,
@@ -68,7 +68,7 @@ class OpsVar:
     def Celu(self, alpha: float = 1.0) -> "Var":
         return self.make_node("Celu", self, alpha=alpha)
 
-    def DepthToSpace(self, blocksize: int = 0, mode: str = b"DCR") -> "Var":
+    def DepthToSpace(self, blocksize: int = 0, mode: str = "DCR") -> "Var":
         return self.make_node("DepthToSpace", self, blocksize=blocksize, mode=mode)
 
     def DynamicQuantizeLinear(
@@ -137,7 +137,7 @@ class OpsVar:
 
     def LpPool(
         self,
-        auto_pad: str = b"NOTSET",
+        auto_pad: str = "NOTSET",
         ceil_mode: int = 0,
         dilations: Optional[List[int]] = None,
         kernel_shape: Optional[List[int]] = None,
