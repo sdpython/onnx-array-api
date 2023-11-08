@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import TensorProto
+from onnx.defs import get_schema
 from .annotations import (
     elem_type_int,
     make_shape,
@@ -53,6 +54,27 @@ class BaseVar:
         :return: instance of :class:`onnx_array_api.light_api.Var` or
             :class:`onnx_array_api.light_api.Vars`
         """
+        if domain in ("", "ai.onnx.ml"):
+            if self.parent.opset is None:
+                schema = get_schema(op_type, domain)
+            else:
+                schema = get_schema(op_type, self.parent.opset, domain)
+            if n_outputs < schema.min_output or n_outputs > schema.max_output:
+                raise RuntimeError(
+                    f"Unexpected number of outputs ({n_outputs}) "
+                    f"for node type {op_type!r}, domain={domain!r}, "
+                    f"version={self.parent.opset}, it should be in "
+                    f"[{schema.min_output}, {schema.max_output}]."
+                )
+            n_inputs = len(inputs)
+            if n_inputs < schema.min_input or n_inputs > schema.max_input:
+                raise RuntimeError(
+                    f"Unexpected number of inputs ({n_inputs}) "
+                    f"for node type {op_type!r}, domain={domain!r}, "
+                    f"version={self.parent.opset}, it should be in "
+                    f"[{schema.min_input}, {schema.max_input}]."
+                )
+
         node_proto = self.parent.make_node(
             op_type,
             *inputs,

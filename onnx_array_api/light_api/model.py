@@ -28,8 +28,8 @@ class OnnxGraph:
     This API is meant to be light and allows the description of a graph.
 
     :param opset: main opset version
+    :param opsets: other opsets as a dictionary
     :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
-    :param opsets: others opsets as a dictionary
     """
 
     def __init__(
