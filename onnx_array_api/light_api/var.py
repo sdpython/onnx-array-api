@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import TensorProto
 from .annotations import (
@@ -27,6 +27,8 @@ class BaseVar:
         self,
         parent: OnnxGraph,
     ):
+        if not isinstance(parent, OnnxGraph):
+            raise RuntimeError(f"Unexpected parent type {type(parent)}.")
         self.parent = parent
 
     def make_node(
@@ -60,9 +62,13 @@ class BaseVar:
             **kwargs,
         )
         names = node_proto.output
+        if n_outputs is not None and len(node_proto.output) != len(names):
+            raise RuntimeError(
+                f"Expects {n_outputs} outputs but output names are {names}."
+            )
         if len(names) == 1:
             return Var(self.parent, names[0])
-        return Vars(*map(lambda v: Var(self.parent, v), names))
+        return Vars(self.parent, *list(map(lambda v: Var(self.parent, v), names)))
 
     def vin(
         self,
@@ -91,26 +97,6 @@ class BaseVar:
         c = self.parent.make_constant(value, name=name)
         return Var(self.parent, c.name, elem_type=c.data_type, shape=tuple(c.dims))
 
-    def vout(
-        self,
-        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
-        shape: Optional[SHAPE_TYPE] = None,
-    ) -> "Var":
-        """
-        Declares a new output to the graph.
-
-        :param elem_type: element_type
-        :param shape: shape
-        :return: instance of :class:`onnx_array_api.light_api.Var`
-        """
-        output = self.parent.make_output(self.name, elem_type=elem_type, shape=shape)
-        return Var(
-            self.parent,
-            output,
-            elem_type=output.type.tensor_type.elem_type,
-            shape=make_shape(output.type.tensor_type.shape),
-        )
-
     def v(self, name: str) -> "Var":
         """
         Retrieves another variable than this one.
@@ -126,6 +112,13 @@ class BaseVar:
         :class:`onnx_array_api.light_api.Vars`.
         """
         return Vars(self.parent, *vars)
+
+    def vout(self, **kwargs: Dict[str, Any]) -> Union["Var", "Vars"]:
+        """
+        This method needs to be overwritten for Var and Vars depending
+        on the number of variable to declare as outputs.
+        """
+        raise RuntimeError(f"The method was not overwritten in class {type(self)}.")
 
     def left_bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
         """
@@ -186,6 +179,26 @@ class Var(BaseVar, OpsVar):
         if self.shape is None:
             return s
         return f"{s}:[{''.join(map(str, self.shape))}]"
+
+    def vout(
+        self,
+        elem_type: ELEMENT_TYPE = TensorProto.FLOAT,
+        shape: Optional[SHAPE_TYPE] = None,
+    ) -> "Var":
+        """
+        Declares a new output to the graph.
+
+        :param elem_type: element_type
+        :param shape: shape
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
+        output = self.parent.make_output(self.name, elem_type=elem_type, shape=shape)
+        return Var(
+            self.parent,
+            output,
+            elem_type=output.type.tensor_type.elem_type,
+            shape=make_shape(output.type.tensor_type.shape),
+        )
 
     def rename(self, new_name: str) -> "Var":
         "Renames a variable."
@@ -299,6 +312,39 @@ class Vars(BaseVar, OpsVars):
             raise RuntimeError(f"Expecting {n_inputs} inputs not {len(self)}.")
         return self
 
-    def rename(self, new_name: str) -> "Var":
+    def rename(self, *new_names: List[str]) -> "Vars":
         "Renames variables."
-        raise NotImplementedError("Not yet implemented.")
+        if len(new_names) != len(self):
+            raise ValueError(
+                f"Vars has {len(self)} elements but the method received {len(new_names)} names."
+            )
+        new_vars = []
+        for var, name in zip(self.vars_, new_names):
+            new_vars.append(var.rename(name))
+        return Vars(self.parent, *new_names)
+
+    def vout(
+        self,
+        *elem_type_shape: List[
+            Union[ELEMENT_TYPE, Tuple[ELEMENT_TYPE, Optional[SHAPE_TYPE]]]
+        ],
+    ) -> "Vars":
+        """
+        Declares a new output to the graph.
+
+        :param elem_type_shape: list of tuple(element_type, shape)
+        :return: instance of :class:`onnx_array_api.light_api.Vars`
+        """
+        vars = []
+        for i, v in enumerate(self.vars_):
+            if i < len(elem_type_shape):
+                if isinstance(elem_type_shape[i]) or len(elem_type_shape[i]) < 2:
+                    elem_type = elem_type_shape[i][0]
+                    shape = None
+                else:
+                    elem_type, shape = elem_type_shape[i]
+            else:
+                elem_type = TensorProto.FLOAT
+                shape = None
+            vars.append(v.vout(elem_type=elem_type, shape=shape))
+        return Vars(self.parent, *vars)

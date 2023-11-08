@@ -402,6 +402,45 @@ class TestLightApi(ExtTestCase):
             got = ref.run(None, {"X": a, "Y": b})[0]
             self.assertEqualArray(f(a, b), got)
 
+    def test_topk(self):
+        onx = (
+            start()
+            .vin("X", np.float32)
+            .vin("K", np.int64)
+            .bring("X", "K")
+            .TopK()
+            .rename("Values", "Indices")
+            .vout()
+            .to_onnx()
+        )
+        self.assertIsInstance(onx, ModelProto)
+        ref = ReferenceEvaluator(onx)
+        x = np.array([[0, 1, 2, 3], [9, 8, 7, 6]], dtype=np.float32)
+        k = np.array([2], dtype=np.int64)
+        got = ref.run(None, {"X": x, "K": k})
+        self.assertEqualArray(np.array([[3, 2], [9, 8]], dtype=np.float32), got[0])
+        self.assertEqualArray(np.array([[3, 2], [0, 1]], dtype=np.int64), got[1])
+
+    def test_topk_reverse(self):
+        onx = (
+            start()
+            .vin("X", np.float32)
+            .vin("K", np.int64)
+            .bring("X", "K")
+            .TopK(largest=0)
+            .rename("Values", "Indices")
+            .vout()
+            .to_onnx()
+        )
+        self.assertIsInstance(onx, ModelProto)
+        ref = ReferenceEvaluator(onx)
+        x = np.array([[0, 1, 2, 3], [9, 8, 7, 6]], dtype=np.float32)
+        k = np.array([2], dtype=np.int64)
+        got = ref.run(None, {"X": x, "K": k})
+        self.assertEqualArray(np.array([[0, 1], [6, 7]], dtype=np.float32), got[0])
+        self.assertEqualArray(np.array([[0, 1], [3, 2]], dtype=np.int64), got[1])
+
 
 if __name__ == "__main__":
+    # TestLightApi().test_topk()
     unittest.main(verbosity=2)
