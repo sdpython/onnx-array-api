@@ -1,6 +1,11 @@
 Change Logs
 ===========
 
+0.1.3
++++++
+
+* :pr:`45`: fixes light API for operators with two outputs
+
 0.1.2
 +++++
 
