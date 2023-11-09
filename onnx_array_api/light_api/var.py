@@ -128,11 +128,13 @@ class BaseVar:
         """
         return self.parent.get_var(name)
 
-    def bring(self, *vars: List[Union[str, "Var"]]) -> "Vars":
+    def bring(self, *vars: List[Union[str, "Var"]]) -> Union["Var", "Vars"]:
         """
         Creates a set of variable as an instance of
         :class:`onnx_array_api.light_api.Vars`.
         """
+        if len(vars) == 1:
+            return Var(self.parent, vars[0])
         return Vars(self.parent, *vars)
 
     def vout(self, **kwargs: Dict[str, Any]) -> Union["Var", "Vars"]:
