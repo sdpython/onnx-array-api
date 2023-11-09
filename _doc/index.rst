@@ -45,7 +45,8 @@ The objective is to speed up the implementation of converter libraries.
     CHANGELOGS
     license
 
-**Numpy API**
+Numpy API
++++++++++
 
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
@@ -109,7 +110,8 @@ Sources available on
     res = jitted_myloss(x, y)
     print(to_dot(jitted_myloss.get_onnx()))
 
-**Light API**
+Light API
++++++++++
 
 .. runpython::
     :showcode:
@@ -135,3 +137,9 @@ Sources available on
     )
 
     print(onnx_simple_text_plot(model))
+
+
+Older versions
+++++++++++++++
+
+* `0.1.2 <../v0.1.2/index.html>`_
