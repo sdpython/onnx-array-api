@@ -12,7 +12,7 @@ GRAPH_PROTO = Union[FunctionProto, GraphProto, ModelProto]
 ELEMENT_TYPE_NAME = {
     getattr(TensorProto, k): k
     for k in dir(TensorProto)
-    if isinstance(getattr(TensorProto, k), int)
+    if isinstance(getattr(TensorProto, k), int) and "_" not in k
 }
 
 _type_numpy = {
