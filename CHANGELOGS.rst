@@ -4,6 +4,7 @@ Change Logs
 0.1.3
 +++++
 
+* :pr:`46`: adds an export to convert an onnx graph into light API code
 * :pr:`45`: fixes light API for operators with two outputs
 
 0.1.2

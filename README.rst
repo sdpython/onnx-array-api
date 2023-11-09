@@ -141,4 +141,4 @@ The euclidean distance looks like the following:
 The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
 and its documentation is published at
-`(Numpy) Array API for ONNX <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.
+`APIs to create ONNX Graphs <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.

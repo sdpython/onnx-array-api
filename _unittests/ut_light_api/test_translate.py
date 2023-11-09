@@ -12,7 +12,7 @@ OPSET_API = min(19, onnx_opset_version() - 1)
 
 class TestTranslate(ExtTestCase):
     def test_exp(self):
-        onx = start().vin("X").Exp().rename("Y").vout().to_onnx()
+        onx = start(opset=19).vin("X").Exp().rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
@@ -24,7 +24,7 @@ class TestTranslate(ExtTestCase):
         expected = dedent(
             """
         (
-            start(opset=20)
+            start(opset=19)
             .vin('X', elem_type=TensorProto.FLOAT)
             .bring('X')
             .Exp()
@@ -37,7 +37,7 @@ class TestTranslate(ExtTestCase):
         self.assertEqual(expected, code)
 
         onx2 = (
-            start(opset=20)
+            start(opset=19)
             .vin("X", elem_type=TensorProto.FLOAT)
             .bring("X")
             .Exp()
@@ -53,7 +53,7 @@ class TestTranslate(ExtTestCase):
 
     def test_transpose(self):
         onx = (
-            start()
+            start(opset=19)
             .vin("X")
             .reshape((-1, 1))
             .Transpose(perm=[1, 0])
@@ -72,7 +72,7 @@ class TestTranslate(ExtTestCase):
         expected = dedent(
             """
             (
-                start(opset=20)
+                start(opset=19)
                 .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()
@@ -89,7 +89,7 @@ class TestTranslate(ExtTestCase):
 
     def test_topk_reverse(self):
         onx = (
-            start()
+            start(opset=19)
             .vin("X", np.float32)
             .vin("K", np.int64)
             .bring("X", "K")
@@ -110,7 +110,7 @@ class TestTranslate(ExtTestCase):
         expected = dedent(
             """
             (
-                start(opset=20)
+                start(opset=19)
                 .vin('X', elem_type=TensorProto.FLOAT)
                 .vin('K', elem_type=TensorProto.INT64)
                 .bring('X', 'K')
