@@ -51,15 +51,18 @@ Classes for the Translater
 Emitter
 +++++++
 
-.. autofunction:: onnx_array_api.light_api.translate.Emitter
+.. autoclass:: onnx_array_api.light_api.translate.Emitter
+    :members:
 
 EventType
 +++++++++
 
-.. autofunction:: onnx_array_api.light_api.translate.EventType
+.. autoclass:: onnx_array_api.light_api.translate.EventType
+    :members:
 
 Translater
 ++++++++++
 
-.. autofunction:: onnx_array_api.light_api.translate.Translater
+.. autoclass:: onnx_array_api.light_api.translate.Translater
+    :members:
 
