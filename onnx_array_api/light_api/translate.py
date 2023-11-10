@@ -12,12 +12,22 @@ class EventType(IntEnum):
     OUTPUT = 2
     NODE = 3
     TO_ONNX = 4
+    BEGIN_GRAPH = 5
+    END_GRAPH = 6
+    BEGIN_FUNCTION = 5
+    END_FUNCTION = 6
 
 
 class Emitter:
     """
     Converts event into proper code.
     """
+
+    def join(self, rows: List[str], single_line: bool = False) -> str:
+        "Join the rows"
+        if single_line:
+            return ".".join(rows)
+        return "".join(["(\n    ", "\n    .".join(rows), "\n)"])
 
     def __call__(self, event: EventType, **kwargs: Dict[str, Any]) -> List[str]:
         """
@@ -124,21 +134,23 @@ class Translater:
         emitter: Optional[Emitter] = None,
     ):
         self.proto_ = proto
-        self.emit = emitter or Emitter()
+        self.emitter = emitter or Emitter()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(<{type(self.proto_)})"
 
-    def export(self) -> List[str]:
+    def export(self, as_str, single_line: bool = False) -> Union[str, List[str]]:
         """
         Exports into a code.
 
+        :param as_str: as a single string or by rows
+        :param single_line: tries to compress the output into a single line
         :return: list of instructions
         """
         rows = []
         if isinstance(self.proto_, ModelProto):
             opsets = {d.domain: d.version for d in self.proto_.opset_import}
-            rows.extend(self.emit(EventType.START, opsets=opsets))
+            rows.extend(self.emitter(EventType.START, opsets=opsets))
             inputs = self.proto_.graph.input
             outputs = self.proto_.graph.output
             nodes = self.proto_.graph.node
@@ -149,12 +161,19 @@ class Translater:
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
+        rows.extend(
+            self.emitter(
+                EventType.BEGIN_FUNCTION
+                if isinstance(self.proto_, FunctionProto)
+                else EventType.BEGIN_GRAPH
+            )
+        )
         for i in inputs:
             if isinstance(i, str):
-                rows.extend(self.emit(EventType.INPUT, name=i))
+                rows.extend(self.emitter(EventType.INPUT, name=i))
             else:
                 rows.extend(
-                    self.emit(
+                    self.emitter(
                         EventType.INPUT,
                         name=i.name,
                         elem_type=i.type.tensor_type.elem_type,
@@ -168,7 +187,7 @@ class Translater:
         for node in nodes:
             atts = self.extract_attributes(node)
             rows.extend(
-                self.emit(
+                self.emitter(
                     EventType.NODE,
                     op_type=node.op_type,
                     inputs=node.input,
@@ -180,10 +199,10 @@ class Translater:
 
         for o in outputs:
             if isinstance(i, str):
-                rows.extend(self.emit(EventType.INPUT, name=o))
+                rows.extend(self.emitter(EventType.INPUT, name=o))
             else:
                 rows.extend(
-                    self.emit(
+                    self.emitter(
                         EventType.OUTPUT,
                         name=o.name,
                         elem_type=o.type.tensor_type.elem_type,
@@ -193,11 +212,20 @@ class Translater:
                         ),
                     )
                 )
+        rows.extend(
+            self.emitter(
+                EventType.END_FUNCTION
+                if isinstance(self.proto_, FunctionProto)
+                else EventType.END_GRAPH
+            )
+        )
 
         if isinstance(self.proto_, ModelProto) and len(self.proto_.functions) > 0:
             raise NotImplementedError("Local functions are not yet implemented.")
 
-        rows.extend(self.emit(EventType.TO_ONNX))
+        rows.extend(self.emitter(EventType.TO_ONNX))
+        if as_str:
+            return self.emitter.join(rows, single_line=single_line)
         return rows
 
     def extract_attributes(
