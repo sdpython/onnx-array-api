@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Tuple
-from onnx import AttributeProto
+from onnx import AttributeProto, TensorProto
 from .annotations import ELEMENT_TYPE_NAME
 from .translate import Emitter, EventType, Translater
 
@@ -62,6 +62,22 @@ class InnerEmitter(Emitter):
                 ")",
             ]
             return lines
+
+        if event == EventType.INITIALIZER:
+            name = kwargs["name"]
+            value = kwargs["value"]
+            dtype = {
+                TensorProto.FLOAT: "float32",
+                TensorProto.INT64: "int64",
+            }[kwargs["init"].data_type]
+            return [
+                "initializers.append(",
+                "    from_array(",
+                f"        np.{repr(value).strip()}.astype(np.{dtype}),",
+                f"        name={name!r}",
+                "    )",
+                ")",
+            ]
 
         if event in (EventType.INPUT, EventType.OUTPUT):
             container = "inputs" if event == EventType.INPUT else "outputs"

@@ -136,6 +136,12 @@ class TestTranslateClassic(ExtTestCase):
             initializers = []
             sparse_initializers = []
             functions = []
+            initializers.append(
+                from_array(
+                    np.array([-1,  1]).astype(np.int64),
+                    name='r'
+                )
+            )
             inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node(
