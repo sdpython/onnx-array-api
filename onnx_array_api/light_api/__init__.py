@@ -103,8 +103,8 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
     """
     if api == "light":
         tr = Translater(proto)
-    elif api == "onnx":
+        return tr.export(single_line=single_line, as_str=True)
+    if api == "onnx":
         tr = Translater(proto, emitter=InnerEmitter())
-    else:
-        raise ValueError(f"Unexpected value {api!r} for api.")
-    return tr.export(single_line=single_line, as_str=True)
+        return tr.export(as_str=True)
+    raise ValueError(f"Unexpected value {api!r} for api.")

@@ -14,8 +14,8 @@ class EventType(IntEnum):
     TO_ONNX = 4
     BEGIN_GRAPH = 5
     END_GRAPH = 6
-    BEGIN_FUNCTION = 5
-    END_FUNCTION = 6
+    BEGIN_FUNCTION = 7
+    END_FUNCTION = 8
 
 
 class Emitter:
@@ -51,6 +51,12 @@ class Emitter:
 
         if event == EventType.TO_ONNX:
             return ["to_onnx()"]
+
+        if event == EventType.BEGIN_GRAPH:
+            return []
+
+        if event == EventType.END_GRAPH:
+            return []
 
         if event == EventType.INPUT:
             name = kwargs["name"]
@@ -95,7 +101,10 @@ class Emitter:
             atts = kwargs.get("atts", {})
             args = []
             for k, v in atts.items():
-                args.append(f"{k}={self.render_attribute_value(v)}")
+                before, vatt = self.render_attribute_value(v)
+                if before:
+                    raise NotImplementedError("Graph attribute not supported yet.")
+                args.append(f"{k}={vatt}")
 
             str_inputs = ", ".join([f"{i!r}" for i in inputs])
             inst = [f"bring({str_inputs})", f"{op_type}({', '.join(args)})"]
@@ -108,18 +117,21 @@ class Emitter:
 
         raise ValueError(f"Unexpected EventType {event}.")
 
-    def render_attribute_value(self, value: Any) -> str:
+    def render_attribute_value(self, value: Any) -> Tuple[List[str], str]:
         """
         Renders an attribute value into a string.
+
+        :param value: value to converter
+        :return: rows to append before, actual value
         """
         v = value[-1]
         if isinstance(v, (int, float, list)):
-            return str(v)
+            return [], str(v)
         if isinstance(v, np.ndarray):
             if len(v.shape) == 0:
-                return str(v)
+                return [], str(v)
             if len(v.shape) == 1:
-                return str(v.tolist())
+                return [], str(v.tolist())
         raise ValueError(f"Unable to render an attribute {value}.")
 
 
@@ -198,7 +210,7 @@ class Translater:
             )
 
         for o in outputs:
-            if isinstance(i, str):
+            if isinstance(o, str):
                 rows.extend(self.emitter(EventType.INPUT, name=o))
             else:
                 rows.extend(

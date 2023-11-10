@@ -1,6 +1,7 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
+from onnx import AttributeProto
 from .annotations import ELEMENT_TYPE_NAME
-from .translate import Emitter, EventType
+from .translate import Emitter, EventType, Translater
 
 
 class InnerEmitter(Emitter):
@@ -75,10 +76,7 @@ class InnerEmitter(Emitter):
                 return [
                     f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
                 ]
-            raise RuntimeError(
-                f"Element type must be known. Invalid syntax for event={event} and kwargs={kwargs}."
-            )
-
+            return [f"{container}.append(make_tensor_value_info({name!r}))"]
         if event == EventType.NODE:
             op_type = kwargs["op_type"]
             inputs = kwargs["inputs"]
@@ -87,22 +85,45 @@ class InnerEmitter(Emitter):
                 domain = kwargs["domain"]
                 raise NotImplementedError(f"domain={domain!r} not supported yet.")
 
+            before_lines = []
             lines = [
                 "nodes.append(",
                 "    make_node(",
                 f"        {op_type!r},",
                 f"        {inputs},",
-                f"        {outputs}",
+                f"        {outputs},",
             ]
             domain = kwargs.get("domain", "")
             if domain:
                 lines.append(f"        domain={domain!r},")
             atts = kwargs.get("atts", {})
-            if len(atts) > 0:
-                lines[-1] += ","
             for k, v in atts.items():
-                lines.append(f"        {k}={self.render_attribute_value(v)}")
+                before, value = self.render_attribute_value(v)
+                before_lines.extend(before)
+                lines.append(f"        {k}={value},")
+            lines[-1] = lines[-1][:-1]
             lines.extend(["    )", ")"])
-            return lines
+            return before_lines + lines
 
         raise ValueError(f"Unexpected EventType {event}.")
+
+    def render_attribute_value(self, value: Any) -> Tuple[List[str], str]:
+        """
+        Renders an attribute value into a string.
+
+        :param value: value to converter
+        :return: rows to append before, actual value
+        """
+        if value[0].type == AttributeProto.GRAPH:
+            tr = Translater(value[0].g, emitter=self)
+            rows = tr.export(as_str=False, single_line=False)
+            new_rows = [f"def _make_local_graph_{value[0].name}():"]
+            for line in rows:
+                if "make_model" in line:
+                    break
+                new_rows.append("    " + line)
+            new_rows.append("    return graph")
+            new_rows.append(f"{value[0].name} = _make_local_graph_{value[0].name}()")
+            return new_rows, value[0].name
+
+        return super().render_attribute_value(value)

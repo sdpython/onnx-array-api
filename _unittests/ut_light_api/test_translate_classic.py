@@ -1,7 +1,8 @@
 import unittest
+import os
 from textwrap import dedent
 import numpy as np
-from onnx import ModelProto, TensorProto
+from onnx import ModelProto, TensorProto, load
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx.helper import (
@@ -207,8 +208,8 @@ class TestTranslateClassic(ExtTestCase):
                     'TopK',
                     ['X', 'K'],
                     ['Values', 'Indices'],
-                    axis=-1
-                    largest=0
+                    axis=-1,
+                    largest=0,
                     sorted=1
                 )
             )
@@ -228,7 +229,22 @@ class TestTranslateClassic(ExtTestCase):
                 opset_imports=opset_imports
             )"""
         ).strip("\n")
+        self.maxDiff = None
         self.assertEqual(expected, code)
+
+    def test_fft(self):
+        data = os.path.join(
+            os.path.dirname(__file__), "_data", "stft_inlined_batch_1.onnx"
+        )
+        onx = load(data)
+        code = translate(onx, api="onnx")
+        try:
+            compile(code, "<string>", mode="exec")
+        except Exception as e:
+            new_code = "\n".join(
+                [f"{i+1:04} {line}" for i, line in enumerate(code.split("\n"))]
+            )
+            raise AssertionError(f"ERROR {e}\n{new_code}")
 
 
 if __name__ == "__main__":
