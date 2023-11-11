@@ -48,6 +48,12 @@ Vars
 Classes for the Translater
 ==========================
 
+BaseEmitter
++++++++++++
+
+.. autoclass:: onnx_array_api.light_api.emitter.BaseEmitter
+    :members:
+
 Emitter
 +++++++
 

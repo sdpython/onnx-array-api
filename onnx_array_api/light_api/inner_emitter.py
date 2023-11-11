@@ -1,127 +1,14 @@
 from typing import Any, Dict, List, Tuple
 from onnx import AttributeProto, TensorProto
 from .annotations import ELEMENT_TYPE_NAME
-from .translate import Emitter, EventType, Translater
+from .emitter import BaseEmitter
+from .translate import EventType, Translater
 
 
-class InnerEmitter(Emitter):
+class InnerEmitter(BaseEmitter):
     """
     Converts event into proper code.
     """
-
-    def join(self, rows: List[str], single_line: bool = False) -> str:
-        "Returns the separators. `single_line` is unused."
-        return "\n".join(rows)
-
-    def __call__(self, event: EventType, **kwargs: Dict[str, Any]) -> List[str]:
-        """
-        Converts an event into an instruction.
-
-        :param event: event kind
-        :param kwargs: event parameters
-        :return: list of instructions
-        """
-        if event == EventType.START:
-            lines = ["opset_imports = ["]
-            opsets = kwargs.get("opsets", {})
-            for k, v in opsets.items():
-                lines.append(f"    make_opsetid({k!r}, {v!r}),")
-            lines.append("]")
-            return lines
-
-        if event == EventType.TO_ONNX:
-            lines = [
-                "model = make_model(",
-                "    graph,",
-                "    functions=functions,",
-                "    opset_imports=opset_imports",
-                ")",
-            ]
-            return lines
-
-        if event == EventType.BEGIN_GRAPH:
-            lines = [
-                "inputs = []",
-                "outputs = []",
-                "nodes = []",
-                "initializers = []",
-                "sparse_initializers = []",
-                "functions = []",
-            ]
-            return lines
-
-        if event == EventType.END_GRAPH:
-            lines = [
-                "graph = make_graph(",
-                "    nodes,",
-                "    'noname',",
-                "    inputs,",
-                "    outputs,",
-                "    initializers,",
-                "    sparse_initializer=sparse_initializers,",
-                ")",
-            ]
-            return lines
-
-        if event == EventType.INITIALIZER:
-            name = kwargs["name"]
-            value = kwargs["value"]
-            dtype = {
-                TensorProto.FLOAT: "float32",
-                TensorProto.INT64: "int64",
-            }[kwargs["init"].data_type]
-            return [
-                "initializers.append(",
-                "    from_array(",
-                f"        np.{repr(value).strip()}.astype(np.{dtype}),",
-                f"        name={name!r}",
-                "    )",
-                ")",
-            ]
-
-        if event in (EventType.INPUT, EventType.OUTPUT):
-            container = "inputs" if event == EventType.INPUT else "outputs"
-            name = kwargs["name"]
-            elem_type = kwargs.get("elem_type", None)
-            shape = kwargs.get("shape", None)
-            if elem_type and shape:
-                return [
-                    f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
-                ]
-            if elem_type:
-                return [
-                    f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
-                ]
-            return [f"{container}.append(make_tensor_value_info({name!r}))"]
-        if event == EventType.NODE:
-            op_type = kwargs["op_type"]
-            inputs = kwargs["inputs"]
-            outputs = kwargs["outputs"]
-            if kwargs.get("domain", "") != "":
-                domain = kwargs["domain"]
-                raise NotImplementedError(f"domain={domain!r} not supported yet.")
-
-            before_lines = []
-            lines = [
-                "nodes.append(",
-                "    make_node(",
-                f"        {op_type!r},",
-                f"        {inputs},",
-                f"        {outputs},",
-            ]
-            domain = kwargs.get("domain", "")
-            if domain:
-                lines.append(f"        domain={domain!r},")
-            atts = kwargs.get("atts", {})
-            for k, v in atts.items():
-                before, value = self.render_attribute_value(v)
-                before_lines.extend(before)
-                lines.append(f"        {k}={value},")
-            lines[-1] = lines[-1][:-1]
-            lines.extend(["    )", ")"])
-            return before_lines + lines
-
-        raise ValueError(f"Unexpected EventType {event}.")
 
     def render_attribute_value(self, value: Any) -> Tuple[List[str], str]:
         """
@@ -143,3 +30,116 @@ class InnerEmitter(Emitter):
             return new_rows, value[0].name
 
         return super().render_attribute_value(value)
+
+    def join(self, rows: List[str], single_line: bool = False) -> str:
+        "Returns the separators. `single_line` is unused."
+        return "\n".join(rows)
+
+    def _emit_start(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = ["opset_imports = ["]
+        opsets = kwargs.get("opsets", {})
+        for k, v in opsets.items():
+            lines.append(f"    make_opsetid({k!r}, {v!r}),")
+        lines.append("]")
+        return lines
+
+    def _emit_to_onnx(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = [
+            "model = make_model(",
+            "    graph,",
+            "    functions=functions,",
+            "    opset_imports=opset_imports",
+            ")",
+        ]
+        return lines
+
+    def _emit_begin_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = [
+            "inputs = []",
+            "outputs = []",
+            "nodes = []",
+            "initializers = []",
+            "sparse_initializers = []",
+            "functions = []",
+        ]
+        return lines
+
+    def _emit_end_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = [
+            "graph = make_graph(",
+            "    nodes,",
+            "    'noname',",
+            "    inputs,",
+            "    outputs,",
+            "    initializers,",
+            "    sparse_initializer=sparse_initializers,",
+            ")",
+        ]
+        return lines
+
+    def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
+        name = kwargs["name"]
+        value = kwargs["value"]
+        svalue = repr(value).strip()
+        if "dtype" not in svalue:
+            dtype = {
+                TensorProto.FLOAT: "float32",
+                TensorProto.INT64: "int64",
+            }[kwargs["init"].data_type]
+            svalue += f".astype(np.{dtype})"
+        return [
+            "initializers.append(",
+            "    from_array(",
+            f"        np.{svalue},",
+            f"        name={name!r}",
+            "    )",
+            ")",
+        ]
+
+    def _emit_io(self, container: str, **kwargs: Dict[str, Any]) -> List[str]:
+        name = kwargs["name"]
+        elem_type = kwargs.get("elem_type", None)
+        shape = kwargs.get("shape", None)
+        if elem_type and shape:
+            return [
+                f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
+            ]
+        if elem_type:
+            return [
+                f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
+            ]
+        return [f"{container}.append(make_tensor_value_info({name!r}))"]
+
+    def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return self._emit_io("inputs", **kwargs)
+
+    def _emit_output(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return self._emit_io("outputs", **kwargs)
+
+    def _emit_node(self, **kwargs: Dict[str, Any]) -> List[str]:
+        op_type = kwargs["op_type"]
+        inputs = kwargs["inputs"]
+        outputs = kwargs["outputs"]
+        if kwargs.get("domain", "") != "":
+            domain = kwargs["domain"]
+            raise NotImplementedError(f"domain={domain!r} not supported yet.")
+
+        before_lines = []
+        lines = [
+            "nodes.append(",
+            "    make_node(",
+            f"        {op_type!r},",
+            f"        {inputs},",
+            f"        {outputs},",
+        ]
+        domain = kwargs.get("domain", "")
+        if domain:
+            lines.append(f"        domain={domain!r},")
+        atts = kwargs.get("atts", {})
+        for k, v in atts.items():
+            before, value = self.render_attribute_value(v)
+            before_lines.extend(before)
+            lines.append(f"        {k}={value},")
+        lines[-1] = lines[-1][:-1]
+        lines.extend(["    )", ")"])
+        return before_lines + lines
