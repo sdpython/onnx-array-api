@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Tuple
-from onnx import AttributeProto, TensorProto
+from onnx import AttributeProto
 from .annotations import ELEMENT_TYPE_NAME
 from .emitter import BaseEmitter
 from .translate import Translater
@@ -80,17 +80,12 @@ class InnerEmitter(BaseEmitter):
     def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
         value = kwargs["value"]
-        svalue = repr(value).strip()
-        if "dtype" not in svalue:
-            dtype = {
-                TensorProto.FLOAT: "float32",
-                TensorProto.INT64: "int64",
-            }[kwargs["init"].data_type]
-            svalue += f".astype(np.{dtype})"
+        repl = {"bool": "bool_", "object": "object_", "str": "str_"}
+        sdtype = repl.get(str(value.dtype), str(str(value.dtype)))
         return [
             "initializers.append(",
             "    from_array(",
-            f"        np.{svalue},",
+            f"        np.array({value.tolist()}, dtype=np.{sdtype}),",
             f"        name={name!r}",
             "    )",
             ")",

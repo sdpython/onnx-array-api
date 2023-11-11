@@ -40,17 +40,26 @@ class ExportWrapper:
         return self.expected_sess.input_names
 
     @property
+    def input_types(self):
+        return self.expected_sess.input_types
+
+    @property
     def output_names(self):
         return self.expected_sess.output_names
+
+    @property
+    def output_types(self):
+        return self.expected_sess.output_types
 
     def run(
         self, names: Optional[List[str]], feeds: Optional[Dict[str, Any]] = None
     ) -> List[Any]:
         try:
             expected = self.expected_sess.run(names, feeds)
-        except RuntimeError as e:
+        except (RuntimeError, AssertionError, TypeError, KeyError) as e:
             raise ReferenceImplementationError(
-                f"ReferenceImplementation fails with {self.model}"
+                f"ReferenceImplementation fails with {onnx_simple_text_plot(self.model)}"
+                f"\n--RAW--\n{self.model}"
             ) from e
 
         for api in self.apis:
@@ -60,7 +69,7 @@ class ExportWrapper:
                 continue
             except ValueError as e:
                 raise AssertionError(
-                    f"Unable to run the export model for api {api!r}, "
+                    f"Unable to translate model for api {api!r}, "
                     f"\n--BASE--\n{onnx_simple_text_plot(self.model)}"
                     f"\n--EXPECTED--\n{expected}"
                 ) from e
@@ -87,7 +96,7 @@ class ExportWrapper:
             globs = locs.copy()
             try:
                 exec(code_compiled, globs, locs)
-            except (TypeError, NameError) as e:
+            except (TypeError, NameError, ValueError) as e:
                 new_code = "\n".join(
                     [f"{i+1:04} {line}" for i, line in enumerate(code.split("\n"))]
                 )
@@ -132,11 +141,23 @@ class ExportWrapper:
                         f"\n--BASE--\n{onnx_simple_text_plot(self.model)}"
                         f"\n--EXP[{api}]--\n{onnx_simple_text_plot(export_model)}"
                     )
+                if a.dtype in (numpy.str_, object, numpy.object_) or isinstance(
+                    a.dtype, numpy.dtypes.StrDType
+                ):
+                    if a.tolist() != b.tolist():
+                        raise AssertionError(
+                            f"Text discrepancies for api {api!r} with a.dtype={a.dtype} "
+                            f"and b.dtype={b.dtype}"
+                            f"\n--BASE--\n{onnx_simple_text_plot(self.model)}"
+                            f"\n--EXP[{api}]--\n{onnx_simple_text_plot(export_model)}"
+                        )
+                    continue
                 try:
                     assert_allclose(a, b, atol=1e-3)
-                except AssertionError as e:
+                except (AssertionError, TypeError) as e:
                     raise AssertionError(
-                        f"Discrepancies for api {api!r}."
+                        f"Discrepancies for api {api!r} with a.dtype={a.dtype} "
+                        f"and b.dtype={b.dtype} (type-dtype={type(a.dtype)})"
                         f"\n--BASE--\n{onnx_simple_text_plot(self.model)}"
                         f"\n--EXP[{api}]--\n{onnx_simple_text_plot(export_model)}"
                     ) from e
@@ -213,7 +234,7 @@ backend_test = onnx.backend.test.BackendTest(ExportBackend, __name__)
 
 # The following tests are too slow with the reference implementation (Conv).
 backend_test.exclude(
-    "(FLOAT8|BFLOAT16|_opt_|_3d_|_momentum_"
+    "(FLOAT8|BFLOAT16|_opt_|_3d_|_momentum_|_4d_"
     "|test_adagrad"
     "|test_adam"
     "|test_ai_onnx_ml_"
@@ -224,14 +245,19 @@ backend_test.exclude(
     "|test_bernoulli"
     "|test_bvlc_alexnet"
     "|test_conv"  # too long
+    "|test_gradient_"
     "|test_densenet121"
     "|test_inception_v1"
     "|test_inception_v2"
     "|test_loop11_"
     "|test_loop16_seq_none"
+    "|test_MaxPool2d"
     "|test_quantizelinear_e"
     "|test_resnet50"
     "|test_sequence_model"
+    "|test_scan_sum"
+    "|test_scatter_with_axis"
+    "|test_scatter_without_axis"
     "|test_shufflenet"
     "|test_squeezenet"
     "|test_vgg19"

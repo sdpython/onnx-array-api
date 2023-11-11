@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Dict, List, Tuple
 from enum import IntEnum
 import numpy as np
-from onnx import AttributeProto, TensorProto
+from onnx import AttributeProto
 from .annotations import ELEMENT_TYPE_NAME
 
 
@@ -74,8 +74,12 @@ class BaseEmitter:
         """
         v = value[-1]
         if value[0].type == AttributeProto.TENSOR:
-            r = f"{v!r}".replace("dtype=", "dtype=np.")
-            return [], f"from_array(np.{r}, name={value[0].name!r})"
+            repl = {"bool": "bool_", "object": "object_", "str": "str_"}
+            sdtype = repl.get(str(v.dtype), str(str(v.dtype)))
+            return [], (
+                f"from_array(np.array({v.tolist()}, dtype=np.{sdtype}), "
+                f"name={value[0].name!r})"
+            )
         if isinstance(v, (int, float, list)):
             return [], str(v)
         if isinstance(v, str):
@@ -84,10 +88,19 @@ class BaseEmitter:
             if len(v.shape) == 0:
                 return [], str(v)
             if len(v.shape) == 1:
-                if value[0].type in (AttributeProto.INTS, AttributeProto.FLOATS):
+                if value[0].type in (
+                    AttributeProto.INTS,
+                    AttributeProto.FLOATS,
+                    AttributeProto.STRINGS,
+                ):
                     return [], str(v.tolist())
 
-        raise ValueError(f"Unable to render an attribute {type(v)}, {value}.")
+        raise ValueError(
+            f"Unable to render an attribute {type(v)}, "
+            f"attribute type={value[0].type}, "
+            f"dtype={getattr(v, 'dtype', '-')}, "
+            f"shape={getattr(v, 'shape', '-')}, {value}."
+        )
 
     def join(self, rows: List[str], single_line: bool = False) -> str:
         raise NotImplementedError(
@@ -175,14 +188,12 @@ class Emitter(BaseEmitter):
     def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
         value = kwargs["value"]
-        svalue = repr(value).strip()
-        if "dtype" not in svalue:
-            dtype = {
-                TensorProto.FLOAT: "float32",
-                TensorProto.INT64: "int64",
-            }[kwargs["init"].data_type]
-            svalue += f".astype(np.{dtype})"
-        return [f"cst(np.{svalue})", f"rename({name!r})"]
+        repl = {"bool": "bool_", "object": "object_", "str": "str_"}
+        sdtype = repl.get(str(value.dtype), str(str(value.dtype)))
+        return [
+            f"cst(np.array({value.tolist()}, dtype=np.{sdtype}))",
+            f"rename({name!r})",
+        ]
 
     def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
