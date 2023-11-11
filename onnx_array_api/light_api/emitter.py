@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Dict, List, Tuple
 from enum import IntEnum
 import numpy as np
-from onnx import TensorProto
+from onnx import AttributeProto, TensorProto
 from .annotations import ELEMENT_TYPE_NAME
 
 
@@ -73,14 +73,21 @@ class BaseEmitter:
         :return: rows to append before, actual value
         """
         v = value[-1]
+        if value[0].type == AttributeProto.TENSOR:
+            r = f"{v!r}".replace("dtype=", "dtype=np.")
+            return [], f"from_array(np.{r}, name={value[0].name!r})"
         if isinstance(v, (int, float, list)):
             return [], str(v)
+        if isinstance(v, str):
+            return [], f"{v!r}"
         if isinstance(v, np.ndarray):
             if len(v.shape) == 0:
                 return [], str(v)
             if len(v.shape) == 1:
-                return [], str(v.tolist())
-        raise ValueError(f"Unable to render an attribute {value}.")
+                if value[0].type in (AttributeProto.INTS, AttributeProto.FLOATS):
+                    return [], str(v.tolist())
+
+        raise ValueError(f"Unable to render an attribute {type(v)}, {value}.")
 
     def join(self, rows: List[str], single_line: bool = False) -> str:
         raise NotImplementedError(

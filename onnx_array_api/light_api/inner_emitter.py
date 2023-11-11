@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Tuple
 from onnx import AttributeProto, TensorProto
 from .annotations import ELEMENT_TYPE_NAME
 from .emitter import BaseEmitter
-from .translate import EventType, Translater
+from .translate import Translater
 
 
 class InnerEmitter(BaseEmitter):
@@ -108,7 +108,9 @@ class InnerEmitter(BaseEmitter):
             return [
                 f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
             ]
-        return [f"{container}.append(make_tensor_value_info({name!r}))"]
+        return [
+            f"{container}.append(make_tensor_value_info({name!r}, TensorProto.UNDEFINED, []))"
+        ]
 
     def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
         return self._emit_io("inputs", **kwargs)

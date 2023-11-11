@@ -61,8 +61,6 @@ class ExtendedReferenceEvaluatorBackend(onnx.backend.base.Backend):
     def prepare(
         cls, model: Any, device: str = "CPU", **kwargs: Any
     ) -> ExtendedReferenceEvaluatorBackendRep:
-        # if isinstance(model, ExtendedReferenceEvaluatorBackendRep):
-        #    return model
         if isinstance(model, ExtendedReferenceEvaluator):
             return ExtendedReferenceEvaluatorBackendRep(model)
         if isinstance(model, (str, bytes, ModelProto)):
