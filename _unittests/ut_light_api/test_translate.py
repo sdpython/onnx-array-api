@@ -135,7 +135,7 @@ class TestTranslate(ExtTestCase):
 
     def test_export_if(self):
         onx = (
-            start()
+            start(opset=19)
             .vin("X", np.float32)
             .ReduceSum()
             .rename("Xs")
@@ -164,7 +164,7 @@ class TestTranslate(ExtTestCase):
         expected = dedent(
             f"""
             (
-                start(opset=20)
+                start(opset=19)
                 .cst(np.array([0.0], dtype=np.float32))
                 .rename('r')
                 .vin('X', elem_type=TensorProto.FLOAT)

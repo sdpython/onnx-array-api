@@ -450,7 +450,7 @@ class TestLightApi(ExtTestCase):
         self.assertEqual(len(onx.output), 1)
         self.assertEqual([o.name for o in onx.output], ["Z"])
         onx = (
-            start()
+            start(opset=19)
             .vin("X", np.float32)
             .ReduceSum()
             .rename("Xs")
