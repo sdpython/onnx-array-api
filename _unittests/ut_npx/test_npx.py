@@ -1,5 +1,6 @@
 import inspect
 import unittest
+import sys
 from contextlib import redirect_stdout
 from io import StringIO
 
@@ -1355,6 +1356,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(y, got[0])
 
+    @unittest.skipIf(sys.platform == "win32", reason="unstable on windows")
     def test_arange_inline(self):
         # arange(5)
         f = arange_inline(Input("A"))

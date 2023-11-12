@@ -24,6 +24,11 @@ from .annotations import (
 
 
 class ProtoType(IntEnum):
+    """
+    The same code can be used to output a GraphProto, a FunctionProto or a ModelProto.
+    This class specifies the output type at the beginning of the code.
+    """
+
     FUNCTION = 1
     GRAPH = 2
     MODEL = 3
