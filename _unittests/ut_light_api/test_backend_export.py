@@ -1,13 +1,14 @@
 import unittest
 from typing import Any, Dict, List, Optional
 from difflib import unified_diff
+import packaging.version as pv
 import numpy
 from numpy.testing import assert_allclose
 import onnx.backend.base
 import onnx.backend.test
 import onnx.shape_inference
 import onnx.version_converter
-from onnx import ModelProto, TensorProto
+from onnx import ModelProto, TensorProto, __version__ as onnx_version
 from onnx.helper import (
     make_function,
     make_graph,
@@ -142,7 +143,7 @@ class ExportWrapper:
                         f"\n--EXP[{api}]--\n{onnx_simple_text_plot(export_model)}"
                     )
                 if a.dtype in (numpy.str_, object, numpy.object_) or isinstance(
-                    a.dtype, numpy.dtypes.StrDType
+                    a.dtype, getattr(getattr(numpy, "dtypes", None), "StrDType", type)
                 ):
                     if a.tolist() != b.tolist():
                         raise AssertionError(
@@ -264,6 +265,9 @@ backend_test.exclude(
     "|test_zfnet512"
     ")"
 )
+
+if pv.Version(onnx_version) < pv.Version("1.16.0"):
+    backend_test.exclude("(test_strnorm|test_range_)")
 
 # The following tests cannot pass because they consists in generating random number.
 backend_test.exclude("(test_bernoulli)")
