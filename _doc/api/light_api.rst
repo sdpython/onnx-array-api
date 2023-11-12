@@ -69,7 +69,7 @@ EventType
 InnerEmitter
 ++++++++++++
 
-.. autoclass:: onnx_array_api.light_api.inner_emitter.Emitter
+.. autoclass:: onnx_array_api.light_api.inner_emitter.InnerEmitter
     :members:
 
 Translater
