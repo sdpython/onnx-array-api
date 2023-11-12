@@ -160,6 +160,8 @@ def _get_type(obj0):
     if hasattr(obj, "tensor_type"):
         obj = obj.tensor_type
     if hasattr(obj, "elem_type"):
+        if obj.elem_type == 0:
+            return "NOTENSOR"
         return tensor_dtype_to_np_dtype(obj.elem_type)
     raise RuntimeError(f"Unable to guess type from {obj0!r}.")  # pragma: no cover
 

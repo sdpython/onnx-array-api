@@ -1,116 +1,8 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
-from enum import IntEnum
 import numpy as np
 from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProto
 from onnx.numpy_helper import to_array
-from .annotations import ELEMENT_TYPE_NAME
-
-
-class EventType(IntEnum):
-    START = 0
-    INPUT = 1
-    OUTPUT = 2
-    NODE = 3
-    TO_ONNX = 4
-
-
-class Emitter:
-    """
-    Converts event into proper code.
-    """
-
-    def __call__(self, event: EventType, **kwargs: Dict[str, Any]) -> List[str]:
-        """
-        Converts an event into an instruction.
-
-        :param event: event kind
-        :param kwargs: event parameters
-        :return: list of instructions
-        """
-        if event == EventType.START:
-            opsets = kwargs.get("opsets", {})
-            opset = opsets.get("", None)
-            if opset is not None:
-                del opsets[""]
-            args = []
-            if opset:
-                args.append(f"opset={opset}")
-            if opsets:
-                args.append(f"opsets={opsets}")
-            return [f"start({', '.join(args)})"]
-
-        if event == EventType.TO_ONNX:
-            return ["to_onnx()"]
-
-        if event == EventType.INPUT:
-            name = kwargs["name"]
-            elem_type = kwargs.get("elem_type", None)
-            shape = kwargs.get("shape", None)
-            if elem_type and shape:
-                return [
-                    f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r})"
-                ]
-            if elem_type:
-                return [
-                    f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})"
-                ]
-            return [f"vin({name!r})"]
-
-        if event == EventType.OUTPUT:
-            inst = []
-            if "name" in kwargs:
-                name = kwargs["name"]
-                inst.append(f"bring({name!r})")
-            elem_type = kwargs.get("elem_type", None)
-            shape = kwargs.get("shape", None)
-            if elem_type and shape:
-                inst.append(
-                    f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r})"
-                )
-            elif elem_type:
-                inst.append(
-                    f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})"
-                )
-            else:
-                inst.append("vout()")
-            return inst
-
-        if event == EventType.NODE:
-            op_type = kwargs["op_type"]
-            inputs = kwargs["inputs"]
-            outputs = kwargs["outputs"]
-            if kwargs.get("domain", "") != "":
-                domain = kwargs["domain"]
-                raise NotImplementedError(f"domain={domain!r} not supported yet.")
-            atts = kwargs.get("atts", {})
-            args = []
-            for k, v in atts.items():
-                args.append(f"{k}={self.render_attribute_value(v)}")
-
-            str_inputs = ", ".join([f"{i!r}" for i in inputs])
-            inst = [f"bring({str_inputs})", f"{op_type}({', '.join(args)})"]
-            if len(outputs) == 1:
-                inst.append(f"rename({outputs[0]!r})")
-            else:
-                str_outputs = ", ".join([f"{o!r}" for o in outputs])
-                inst.append(f"rename({str_outputs})")
-            return inst
-
-        raise ValueError(f"Unexpected EventType {event}.")
-
-    def render_attribute_value(self, value: Any) -> str:
-        """
-        Renders an attribute value into a string.
-        """
-        v = value[-1]
-        if isinstance(v, (int, float, list)):
-            return str(v)
-        if isinstance(v, np.ndarray):
-            if len(v.shape) == 0:
-                return str(v)
-            if len(v.shape) == 1:
-                return str(v.tolist())
-        raise ValueError(f"Unable to render an attribute {value}.")
+from .emitter import EventType, Emitter
 
 
 class Translater:
@@ -124,37 +16,65 @@ class Translater:
         emitter: Optional[Emitter] = None,
     ):
         self.proto_ = proto
-        self.emit = emitter or Emitter()
+        self.emitter = emitter or Emitter()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(<{type(self.proto_)})"
 
-    def export(self) -> List[str]:
+    def export(self, as_str, single_line: bool = False) -> Union[str, List[str]]:
         """
         Exports into a code.
 
+        :param as_str: as a single string or by rows
+        :param single_line: tries to compress the output into a single line
         :return: list of instructions
         """
         rows = []
         if isinstance(self.proto_, ModelProto):
             opsets = {d.domain: d.version for d in self.proto_.opset_import}
-            rows.extend(self.emit(EventType.START, opsets=opsets))
+            rows.extend(self.emitter(EventType.START, opsets=opsets))
             inputs = self.proto_.graph.input
             outputs = self.proto_.graph.output
             nodes = self.proto_.graph.node
+            initializers = self.proto_.graph.initializer
+            sparse_initializers = self.proto_.graph.sparse_initializer
         elif isinstance(self.proto_, (FunctionProto, GraphProto)):
             inputs = self.proto_.input
             outputs = self.proto_.output
             nodes = self.proto_.node
+            if isinstance(self.proto_, GraphProto):
+                initializers = self.proto_.initializer
+                sparse_initializers = self.proto_.sparse_initializer
+            else:
+                initializers = []
+                sparse_initializers = []
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
+        if len(sparse_initializers) != 0:
+            raise NotImplementedError("Sparse initializer not supported yet.")
+
+        rows.extend(
+            self.emitter(
+                EventType.BEGIN_FUNCTION
+                if isinstance(self.proto_, FunctionProto)
+                else EventType.BEGIN_GRAPH
+            )
+        )
+
+        for i in initializers:
+            rows.extend(
+                self.emitter(
+                    EventType.INITIALIZER, name=i.name, init=i, value=to_array(i)
+                )
+            )
+
         for i in inputs:
             if isinstance(i, str):
-                rows.extend(self.emit(EventType.INPUT, name=i))
+                rows.extend(self.emitter(EventType.INPUT, name=i))
             else:
                 rows.extend(
-                    self.emit(
+                    self.emitter(
                         EventType.INPUT,
                         name=i.name,
                         elem_type=i.type.tensor_type.elem_type,
@@ -168,7 +88,7 @@ class Translater:
         for node in nodes:
             atts = self.extract_attributes(node)
             rows.extend(
-                self.emit(
+                self.emitter(
                     EventType.NODE,
                     op_type=node.op_type,
                     inputs=node.input,
@@ -179,11 +99,11 @@ class Translater:
             )
 
         for o in outputs:
-            if isinstance(i, str):
-                rows.extend(self.emit(EventType.INPUT, name=o))
+            if isinstance(o, str):
+                rows.extend(self.emitter(EventType.INPUT, name=o))
             else:
                 rows.extend(
-                    self.emit(
+                    self.emitter(
                         EventType.OUTPUT,
                         name=o.name,
                         elem_type=o.type.tensor_type.elem_type,
@@ -193,11 +113,20 @@ class Translater:
                         ),
                     )
                 )
+        rows.extend(
+            self.emitter(
+                EventType.END_FUNCTION
+                if isinstance(self.proto_, FunctionProto)
+                else EventType.END_GRAPH
+            )
+        )
 
         if isinstance(self.proto_, ModelProto) and len(self.proto_.functions) > 0:
             raise NotImplementedError("Local functions are not yet implemented.")
 
-        rows.extend(self.emit(EventType.TO_ONNX))
+        rows.extend(self.emitter(EventType.TO_ONNX))
+        if as_str:
+            return self.emitter.join(rows, single_line=single_line)
         return rows
 
     def extract_attributes(

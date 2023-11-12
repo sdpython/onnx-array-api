@@ -6,11 +6,17 @@ from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.light_api import start, translate
+from onnx_array_api.light_api.emitter import EventType
 
 OPSET_API = min(19, onnx_opset_version() - 1)
 
 
 class TestTranslate(ExtTestCase):
+    def test_event_type(self):
+        self.assertEqual(
+            EventType.to_str(EventType.INITIALIZER), "EventType.INITIALIZER"
+        )
+
     def test_exp(self):
         onx = start(opset=19).vin("X").Exp().rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
@@ -73,6 +79,8 @@ class TestTranslate(ExtTestCase):
             """
             (
                 start(opset=19)
+                .cst(np.array([-1, 1], dtype=np.int64))
+                .rename('r')
                 .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()

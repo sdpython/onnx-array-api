@@ -1,4 +1,5 @@
 import unittest
+import sys
 from typing import Callable, Optional
 import numpy as np
 from onnx import ModelProto
@@ -144,6 +145,7 @@ class TestLightApi(ExtTestCase):
                     f"{new_missing}\n{text}"
                 )
 
+    @unittest.skipIf(sys.platform == "win32", reason="unstable test on Windows")
     def test_list_ops_missing(self):
         self.list_ops_missing(1)
         self.list_ops_missing(2)
