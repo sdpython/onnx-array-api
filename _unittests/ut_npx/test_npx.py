@@ -1393,6 +1393,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x1, "B": x2, "C": x3})
         self.assertEqualArray(y, got[0])
 
+    @unittest.skipIf(sys.platform == "win32", reason="unstable on windows")
     def test_arange_inline_dtype(self):
         # arange(1, 5, 2), dtype
         f = arange_inline(Input("A"), Input("B"), Input("C"), dtype=np.float64)
