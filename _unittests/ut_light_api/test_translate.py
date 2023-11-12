@@ -5,7 +5,7 @@ from onnx import ModelProto, TensorProto
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.light_api import start, translate
+from onnx_array_api.light_api import start, translate, g
 from onnx_array_api.light_api.emitter import EventType
 
 OPSET_API = min(19, onnx_opset_version() - 1)
@@ -133,7 +133,59 @@ class TestTranslate(ExtTestCase):
         ).strip("\n")
         self.assertEqual(expected, code)
 
+    def test_export_if(self):
+        onx = (
+            start()
+            .vin("X", np.float32)
+            .ReduceSum()
+            .rename("Xs")
+            .cst(np.array([0], dtype=np.float32))
+            .left_bring("Xs")
+            .Greater()
+            .If(
+                then_branch=g().cst(np.array([1], dtype=np.int64)).rename("Z").vout(),
+                else_branch=g().cst(np.array([0], dtype=np.int64)).rename("Z").vout(),
+            )
+            .rename("W")
+            .vout()
+            .to_onnx()
+        )
+
+        self.assertIsInstance(onx, ModelProto)
+        ref = ReferenceEvaluator(onx)
+        x = np.array([[0, 1, 2, 3], [9, 8, 7, 6]], dtype=np.float32)
+        k = np.array([2], dtype=np.int64)
+        got = ref.run(None, {"X": x, "K": k})
+        self.assertEqualArray(np.array([1], dtype=np.int64), got[0])
+
+        code = translate(onx)
+        selse = "g().cst(np.array([0], dtype=np.int64)).rename('Z').bring('Z').vout(elem_type=TensorProto.FLOAT)"
+        sthen = "g().cst(np.array([1], dtype=np.int64)).rename('Z').bring('Z').vout(elem_type=TensorProto.FLOAT)"
+        expected = dedent(
+            f"""
+            (
+                start(opset=20)
+                .cst(np.array([0.0], dtype=np.float32))
+                .rename('r')
+                .vin('X', elem_type=TensorProto.FLOAT)
+                .bring('X')
+                .ReduceSum(keepdims=1, noop_with_empty_axes=0)
+                .rename('Xs')
+                .bring('Xs', 'r')
+                .Greater()
+                .rename('r1_0')
+                .bring('r1_0')
+                .If(else_branch={selse}, then_branch={sthen})
+                .rename('W')
+                .bring('W')
+                .vout(elem_type=TensorProto.FLOAT)
+                .to_onnx()
+            )"""
+        ).strip("\n")
+        self.maxDiff = None
+        self.assertEqual(expected, code)
+
 
 if __name__ == "__main__":
-    # TestLightApi().test_topk()
+    TestTranslate().test_export_if()
     unittest.main(verbosity=2)
