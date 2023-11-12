@@ -79,7 +79,7 @@ class TestTranslate(ExtTestCase):
             """
             (
                 start(opset=19)
-                .cst(np.array([-1,  1]).astype(np.int64))
+                .cst(np.array([-1, 1], dtype=np.int64))
                 .rename('r')
                 .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X', 'r')

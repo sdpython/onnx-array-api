@@ -138,7 +138,7 @@ class TestTranslateClassic(ExtTestCase):
             functions = []
             initializers.append(
                 from_array(
-                    np.array([-1,  1]).astype(np.int64),
+                    np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
