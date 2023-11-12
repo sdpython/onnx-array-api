@@ -214,7 +214,7 @@ jobs:
   - script: pip install onnxmltools --no-deps
     displayName: 'Install onnxmltools'
   - script: |
-      python -m pytest
+      python -m pytest -v
     displayName: 'Runs Unit Tests'
   - script: |
       python -u setup.py bdist_wheel
