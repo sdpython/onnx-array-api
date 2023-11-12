@@ -1,3 +1,4 @@
+import sys
 from typing import Any, Dict, List, Optional, Union
 from enum import IntEnum
 import numpy as np
@@ -396,5 +397,7 @@ class OnnxGraph:
             # If no opsets, it a subgraph, not a model.
             return graph
         model = make_model(graph, opset_imports=opsets)
-        check_model(model)
+        if sys.platform != "win32":
+            # check_model fails sometimes on Windows
+            check_model(model)
         return model

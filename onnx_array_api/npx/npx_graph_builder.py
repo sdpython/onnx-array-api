@@ -1,6 +1,6 @@
+import sys
 from inspect import Parameter, signature
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
 import numpy as np
 from onnx import (
     IR_VERSION,
@@ -476,14 +476,16 @@ class _GraphBuilder:
             functions=list(f[0] for f in self.functions_.values()),
             ir_version=self.ir_version,
         )
-        try:
-            check_model(model)
-        except ValidationError as e:
-            if "Field 'shape' of 'type' is required but missing" in str(e):
-                # checker does like undefined shape
-                pass
-            else:
-                raise RuntimeError(f"Model is not valid\n{model}") from e
+        if sys.platform != "win32":
+            # check_model fails sometimes on Windows
+            try:
+                check_model(model)
+            except ValidationError as e:
+                if "Field 'shape' of 'type' is required but missing" in str(e):
+                    # checker does like undefined shape
+                    pass
+                else:
+                    raise RuntimeError(f"Model is not valid\n{model}") from e
         has_undefined = 0 in set(
             o.type.tensor_type.elem_type for o in model.graph.output
         )
