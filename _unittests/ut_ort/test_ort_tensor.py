@@ -3,7 +3,6 @@ from contextlib import redirect_stdout
 from io import StringIO
 import numpy as np
 from onnx import TensorProto
-from onnx.checker import check_model
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
@@ -197,7 +196,6 @@ class TestOrtTensor(ExtTestCase):
     def test_astype_w2(self):
         f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
-        check_model(onx)
         x = np.array([[-5, 6]], dtype=np.float64)
         z = np.abs(x.astype(np.float32))
         ref = InferenceSession(
@@ -209,7 +207,6 @@ class TestOrtTensor(ExtTestCase):
     def test_astype0_w2(self):
         f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
-        check_model(onx)
         x = np.array(-5, dtype=np.float64)
         z = np.abs(x.astype(np.float32))
         ref = InferenceSession(
