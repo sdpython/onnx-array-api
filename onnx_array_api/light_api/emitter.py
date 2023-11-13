@@ -95,6 +95,15 @@ class BaseEmitter:
                 ):
                     return [], str(v.tolist())
 
+        if value[0].type == AttributeProto.GRAPH:
+            from .translate import Translater
+
+            tr = Translater(value[0].g, emitter=self)
+            rows = tr.export(as_str=False, single_line=False)
+            # last instruction is to_onnx, let's drop it.
+            srows = ".".join(rows[:-1])
+            return [], f"g().{srows}"
+
         raise ValueError(
             f"Unable to render an attribute {type(v)}, "
             f"attribute type={value[0].type}, "

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 class OpsVar:
@@ -108,6 +108,34 @@ class OpsVar:
 
     def Hardmax(self, axis: int = -1) -> "Var":
         return self.make_node("Hardmax", self, axis=axis)
+
+    def If(
+        self,
+        then_branch: Optional[Union["Var", "Vars", "OnnxGraph"]] = None,
+        else_branch: Optional[Union["Var", "Vars", "OnnxGraph"]] = None,
+    ) -> Union["Var", "Vars"]:
+        attr = {}
+        n_outputs = None
+        for name, att in zip(
+            ["then_branch", "else_branch"], [then_branch, else_branch]
+        ):
+            if att is None:
+                raise ValueError(f"Parameter {name!r} cannot be None.")
+            if hasattr(att, "to_onnx"):
+                # Let's overwrite the opsets.
+                att.parent.opset = self.parent.opset
+                att.parent.opsets = self.parent.opsets
+                graph = att.to_onnx()
+                attr[name] = graph
+                if n_outputs is None:
+                    n_outputs = len(graph.output)
+                elif n_outputs != len(graph.output):
+                    raise ValueError(
+                        "then and else branches have different number of outputs."
+                    )
+            else:
+                raise ValueError(f"Unexpeted type {type(att)} for parameter {name!r}.")
+        return self.make_node("If", self, **attr)
 
     def IsInf(self, detect_negative: int = 1, detect_positive: int = 1) -> "Var":
         return self.make_node(

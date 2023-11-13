@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from onnx import ModelProto
-from .model import OnnxGraph
+from .model import OnnxGraph, ProtoType
 from .translate import Translater
 from .var import Var, Vars
 from .inner_emitter import InnerEmitter
@@ -9,13 +9,11 @@ from .inner_emitter import InnerEmitter
 def start(
     opset: Optional[int] = None,
     opsets: Optional[Dict[str, int]] = None,
-    is_function: bool = False,
 ) -> OnnxGraph:
     """
     Starts an onnx model.
 
     :param opset: main opset version
-    :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
     :param opsets: others opsets as a dictionary
     :return: an instance of :class:`onnx_array_api.light_api.OnnxGraph`
 
@@ -48,7 +46,15 @@ def start(
         )
         print(onx)
     """
-    return OnnxGraph(opset=opset, opsets=opsets, is_function=is_function)
+    return OnnxGraph(opset=opset, opsets=opsets)
+
+
+def g() -> OnnxGraph:
+    """
+    Starts a subgraph.
+    :return: an instance of :class:`onnx_array_api.light_api.OnnxGraph`
+    """
+    return OnnxGraph(proto_type=ProtoType.GRAPH)
 
 
 def translate(proto: ModelProto, single_line: bool = False, api: str = "light") -> str:

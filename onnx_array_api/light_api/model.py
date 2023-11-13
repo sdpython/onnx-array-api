@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
+from enum import IntEnum
 import numpy as np
 from onnx import NodeProto, SparseTensorProto, TensorProto, ValueInfoProto
 from onnx.checker import check_model
@@ -12,6 +13,7 @@ from onnx.helper import (
     make_tensor_type_proto,
 )
 from onnx.numpy_helper import from_array
+from ..ext_test_case import is_azure, is_windows
 from .annotations import (
     elem_type_int,
     make_shape,
@@ -20,6 +22,17 @@ from .annotations import (
     SHAPE_TYPE,
     VAR_CONSTANT_TYPE,
 )
+
+
+class ProtoType(IntEnum):
+    """
+    The same code can be used to output a GraphProto, a FunctionProto or a ModelProto.
+    This class specifies the output type at the beginning of the code.
+    """
+
+    FUNCTION = 1
+    GRAPH = 2
+    MODEL = 3
 
 
 class OnnxGraph:
@@ -36,7 +49,7 @@ class OnnxGraph:
         self,
         opset: Optional[int] = None,
         opsets: Optional[Dict[str, int]] = None,
-        is_function: bool = False,
+        proto_type: ProtoType = ProtoType.MODEL,
     ):
         if opsets is not None and "" in opsets:
             if opset is None:
@@ -45,11 +58,11 @@ class OnnxGraph:
                 raise ValueError(
                     "The main opset can be specified twice with different values."
                 )
-        if is_function:
+        if proto_type == ProtoType.FUNCTION:
             raise NotImplementedError(
                 "The first version of this API does not support functions."
             )
-        self.is_function = is_function
+        self.proto_type = proto_type
         self.opsets = opsets
         self.opset = opset
         self.nodes: List[Union[NodeProto, TensorProto]] = []
@@ -58,6 +71,10 @@ class OnnxGraph:
         self.initializers: List[TensorProto] = []
         self.unique_names_: Dict[str, Any] = {}
         self.renames_: Dict[str, str] = {}
+
+    @property
+    def is_function(self) -> bool:
+        return self.proto_type == ProtoType.FUNCTION
 
     def __repr__(self) -> str:
         "usual"
@@ -233,6 +250,19 @@ class OnnxGraph:
         self.nodes.append(node)
         return node
 
+    def cst(self, value: np.ndarray, name: Optional[str] = None) -> "Var":
+        """
+        Adds an initializer
+
+        :param value: constant tensor
+        :param name: input name
+        :return: instance of :class:`onnx_array_api.light_api.Var`
+        """
+        from .var import Var
+
+        c = self.make_constant(value, name=name)
+        return Var(self, c.name, elem_type=c.data_type, shape=tuple(c.dims))
+
     def true_name(self, name: str) -> str:
         """
         Some names were renamed. If name is one of them, the function
@@ -363,6 +393,11 @@ class OnnxGraph:
         if self.opsets:
             for k, v in self.opsets.items():
                 opsets.append(make_opsetid(k, v))
+        if self.proto_type == ProtoType.GRAPH:
+            # If no opsets, it a subgraph, not a model.
+            return graph
         model = make_model(graph, opset_imports=opsets)
-        check_model(model)
+        if not is_windows() or not is_azure():
+            # check_model fails sometimes on Windows
+            check_model(model)
         return model

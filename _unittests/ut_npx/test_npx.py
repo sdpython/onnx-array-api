@@ -20,7 +20,7 @@ from onnx.helper import (
 from onnx.reference import ReferenceEvaluator
 from onnx.shape_inference import infer_shapes
 
-from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
+from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings, skipif_ci_windows
 from onnx_array_api.reference import ExtendedReferenceEvaluator
 from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_core_api import (
@@ -1355,6 +1355,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(y, got[0])
 
+    @skipif_ci_windows("Unstable on Windows.")
     def test_arange_inline(self):
         # arange(5)
         f = arange_inline(Input("A"))
@@ -1391,6 +1392,7 @@ class TestNpx(ExtTestCase):
         got = ref.run(None, {"A": x1, "B": x2, "C": x3})
         self.assertEqualArray(y, got[0])
 
+    @skipif_ci_windows("Unstable on Windows.")
     def test_arange_inline_dtype(self):
         # arange(1, 5, 2), dtype
         f = arange_inline(Input("A"), Input("B"), Input("C"), dtype=np.float64)

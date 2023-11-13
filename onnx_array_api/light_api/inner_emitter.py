@@ -65,10 +65,11 @@ class InnerEmitter(BaseEmitter):
         return lines
 
     def _emit_end_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
+        name = kwargs.get("name", "noname")
         lines = [
             "graph = make_graph(",
             "    nodes,",
-            "    'noname',",
+            f"    {name!r},",
             "    inputs,",
             "    outputs,",
             "    initializers,",

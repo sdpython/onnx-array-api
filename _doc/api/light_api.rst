@@ -19,6 +19,12 @@ translate
 Classes for the Light API
 =========================
 
+ProtoType
++++++++++
+
+.. autoclass:: onnx_array_api.light_api.model.ProtoType
+    :members:
+
 OnnxGraph
 +++++++++
 
