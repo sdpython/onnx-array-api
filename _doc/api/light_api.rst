@@ -84,3 +84,20 @@ Translater
 .. autoclass:: onnx_array_api.light_api.translate.Translater
     :members:
 
+Available operators
+===================
+
+One input
++++++++++
+
+.. autoclass:: onnx_array_api.light_api._op_var.OpsVar
+    :members:
+
+Two inputs or more
+++++++++++++++++++
+
+.. autoclass:: onnx_array_api.light_api._op_vars.OpsVars
+    :members:
+
+
+
