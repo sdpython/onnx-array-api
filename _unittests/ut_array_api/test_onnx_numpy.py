@@ -1,4 +1,3 @@
-import sys
 import unittest
 import numpy as np
 from onnx import TensorProto
@@ -92,8 +91,6 @@ class TestOnnxNumpy(ExtTestCase):
         matnp = mat.numpy()
         self.assertEqual(matnp.shape, (0,))
         expected = np.arange(0, 0)
-        if sys.platform == "win32":
-            expected = expected.astype(np.int64)
         self.assertEqualArray(matnp, expected)
 
     @ignore_warnings(DeprecationWarning)
@@ -102,8 +99,6 @@ class TestOnnxNumpy(ExtTestCase):
         matnp = mat.numpy()
         self.assertEqual(matnp.shape, (0,))
         expected = np.arange(0, 0)
-        if sys.platform == "win32":
-            expected = expected.astype(np.int64)
         self.assertEqualArray(matnp, expected)
 
     def test_ones_like_uint16(self):

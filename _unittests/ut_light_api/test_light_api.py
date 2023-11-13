@@ -1,5 +1,4 @@
 import unittest
-import sys
 from typing import Callable, Optional
 import numpy as np
 from onnx import GraphProto, ModelProto
@@ -11,7 +10,7 @@ from onnx.defs import (
     SchemaError,
 )
 from onnx.reference import ReferenceEvaluator
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.light_api import start, OnnxGraph, Var, g
 from onnx_array_api.light_api._op_var import OpsVar
 from onnx_array_api.light_api._op_vars import OpsVars
@@ -145,7 +144,7 @@ class TestLightApi(ExtTestCase):
                     f"{new_missing}\n{text}"
                 )
 
-    @unittest.skipIf(sys.platform == "win32", reason="unstable test on Windows")
+    @skipif_ci_windows("Unstable on Windows.")
     def test_list_ops_missing(self):
         self.list_ops_missing(1)
         self.list_ops_missing(2)
