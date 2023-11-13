@@ -27,7 +27,7 @@ from onnx.onnx_cpp2py_export.checker import ValidationError
 from onnx.onnx_cpp2py_export.shape_inference import InferenceError
 from onnx.shape_inference import infer_shapes
 
-from ..ext_text_case import is_windows, is_azure
+from ..ext_test_case import is_windows, is_azure
 from ..reference import from_array_extended as from_array
 from .npx_constants import _OPSET_TO_IR_VERSION, FUNCTION_DOMAIN, ONNX_DOMAIN
 from .npx_function_implementation import get_function_implementation
