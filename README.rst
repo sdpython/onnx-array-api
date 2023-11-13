@@ -113,7 +113,7 @@ It supports eager mode as well:
     l2_loss=[0.002]
     [0.042]
 
-The second API ir **Light API** tends to do every thing in one line.
+The second API or **Light API** tends to do every thing in one line.
 The euclidean distance looks like the following:
 
 ::

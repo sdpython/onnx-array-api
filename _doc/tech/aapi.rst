@@ -8,7 +8,7 @@ Python is not strongly typed and many different types can be used
 to represent a value. Argument *axis* can be an integer or a tuple
 (see `min from Array API
 <https://data-apis.org/array-api/2022.12/API_specification/
-generated/array_api.min.html>`
+generated/array_api.min.html>`_
 for example). On the other side, `ReduceMin from ONNX
 <https://onnx.ai/onnx/operators/onnx__ReduceMin.html>`_
 is considered as a tensor.
