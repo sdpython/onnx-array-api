@@ -35,7 +35,7 @@ class TestTranslateClassic(ExtTestCase):
         outputs.append(make_tensor_value_info("Y", TensorProto.FLOAT, shape=[]))
         graph = make_graph(
             nodes,
-            "noname",
+            "onename",
             inputs,
             outputs,
             initializers,
@@ -77,7 +77,7 @@ class TestTranslateClassic(ExtTestCase):
         outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
         graph = make_graph(
             nodes,
-            'noname',
+            'light_api',
             inputs,
             outputs,
             initializers,
@@ -161,7 +161,7 @@ class TestTranslateClassic(ExtTestCase):
             outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
             graph = make_graph(
                 nodes,
-                'noname',
+                'light_api',
                 inputs,
                 outputs,
                 initializers,
@@ -223,7 +223,7 @@ class TestTranslateClassic(ExtTestCase):
             outputs.append(make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
             graph = make_graph(
                 nodes,
-                'noname',
+                'light_api',
                 inputs,
                 outputs,
                 initializers,
