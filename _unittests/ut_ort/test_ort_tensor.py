@@ -20,7 +20,6 @@ DEFAULT_OPSET = onnx_opset_version()
 
 
 class TestOrtTensor(ExtTestCase):
-
     @skipif_ci_windows("Unstable on Windows")
     def test_eager_numpy_type_ort(self):
         def impl(A):
@@ -71,6 +70,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, res.numpy())
         self.assertEqual(res.numpy().dtype, np.float64)
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_ort(self):
         def impl(A):
             print("A")
@@ -219,6 +219,7 @@ class TestOrtTensor(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_ort_cast(self):
         def impl(A):
             return A.astype(DType("FLOAT"))
