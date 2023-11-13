@@ -49,7 +49,7 @@ def randomize_proto(
             doc_string=onx.doc_string,
             opset_imports=list(onx.opset_import),
         )
-        if len(onx.metadata_props) > 0:
+        if onx.metadata_props:
             values = {p.key: p.value for p in onx.metadata_props}
             set_model_props(onnx_model, values)
         return onnx_model

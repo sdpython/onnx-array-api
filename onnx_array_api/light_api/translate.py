@@ -51,7 +51,7 @@ class Translater:
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
-        if len(sparse_initializers) != 0:
+        if sparse_initializers:
             raise NotImplementedError("Sparse initializer not supported yet.")
 
         rows.extend(

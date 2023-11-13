@@ -138,7 +138,7 @@ class TestLightApi(ExtTestCase):
                     methods.append("")
                 new_missing.append(m)
             text = "\n".join(methods)
-            if len(new_missing) > 0:
+            if new_missing:
                 raise AssertionError(
                     f"n_inputs={n_inputs}: missing method for operators "
                     f"{new_missing}\n{text}"

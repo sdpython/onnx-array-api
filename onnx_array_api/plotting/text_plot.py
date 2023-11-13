@@ -75,7 +75,7 @@ def onnx_text_plot_tree(node):
         def process_node(self):
             "node to string"
             if self.nodes_modes == "LEAF":
-                if len(self.targets) == 0:
+                if not self.targets:
                     text = f"{self.true_false}f"
                 elif len(self.targets) == 1:
                     t = self.targets[0]
@@ -264,7 +264,7 @@ def _append_succ_pred_s(
                     unknown.add(i)
             for i in n.output:
                 known[i] = n
-        if len(unknown) > 0:
+        if unknown:
             # These inputs are coming from the graph below.
             for name in unknown:
                 successors[name].append(parent_node_name)
@@ -402,7 +402,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                     % (k, ",".join(sequences[k]), list(sequences))
                 )
 
-        if len(sequences) == 0:
+        if not sequences:
             raise RuntimeError(  # pragma: no cover
                 "Unexpected empty sequence (len(possibles)=%d, "
                 "len(done)=%d, len(nodes)=%d). This is usually due to "
@@ -417,7 +417,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                 # if the sequence of successors is longer
                 best = k
             elif len(v) == len(sequences[best]):
-                if len(new_nodes) > 0:
+                if new_nodes:
                     # then choose the next successor sharing input with
                     # previous output
                     so = set(new_nodes[-1].output)
@@ -808,7 +808,7 @@ def onnx_simple_text_plot(
                     val = ".%d" % att.type
                 atts.append(f"{att.name}={val}")
         inputs = list(node.input)
-        if len(atts) > 0:
+        if atts:
             inputs.extend(atts)
         if node.domain in ("", "ai.onnx.ml"):
             domain = ""
@@ -917,7 +917,7 @@ def onnx_simple_text_plot(
             indent = previous_indent
         else:
             inds = [indents.get(i, 0) for i in node.input if i not in init_names]
-            if len(inds) == 0:
+            if not inds:
                 indent = 0
             else:
                 mi = min(inds)
@@ -929,7 +929,7 @@ def onnx_simple_text_plot(
                         )
                     add_break = True
             if not add_break and previous_out is not None:
-                if len(set(node.input) & previous_out) == 0:
+                if not (set(node.input) & previous_out):
                     if verbose:
                         print(f"[onnx_simple_text_plot] break3 {node.op_type}")
                     add_break = True

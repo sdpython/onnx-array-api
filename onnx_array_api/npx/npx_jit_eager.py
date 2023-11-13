@@ -253,7 +253,7 @@ class JitEager:
         """
         self.info("+", "to_jit", args=values, kwargs=kwargs)
         annotations = self.f.__annotations__
-        if len(annotations) > 0:
+        if annotations:
             input_to_kwargs = {}
             kwargs_to_input = {}
             names = list(annotations.keys())
@@ -352,10 +352,10 @@ class JitEager:
             if iname in constraints
         ]
         names = [i.name for i in inputs]
-        if len(new_kwargs) > 0:
+        if new_kwargs:
             # An attribute is not named in the numpy API
             # but is the ONNX definition.
-            if len(kwargs) == 0:
+            if not kwargs:
                 kwargs = new_kwargs
             else:
                 kwargs = kwargs.copy()
@@ -375,13 +375,13 @@ class JitEager:
             target_opsets=self.target_opsets,
             ir_version=self.ir_version,
         )
-        if len(values) > 0 and len(values[0].shape) == 0:
+        if values and not values[0].shape:
             inps = onx.graph.input[0]
             shape = []
             for d in inps.type.tensor_type.shape.dim:
                 v = d.dim_value if d.dim_value > 0 else d.dim_param
                 shape.append(v)
-            if len(shape) != 0:
+            if shape:
                 raise RuntimeError(
                     f"Shape mismatch, values[0]={values[0]} "
                     f"and inputs={onx.graph.input}."
@@ -441,7 +441,7 @@ class JitEager:
                 f"self.input_to_kwargs_ is not initialized for function {self.f} "
                 f"from module {self.f.__module__!r}."
             )
-        if len(self.input_to_kwargs_) == 0:
+        if not self.input_to_kwargs_:
             return values, kwargs
         new_values = []
         new_kwargs = kwargs.copy()

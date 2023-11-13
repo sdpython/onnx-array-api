@@ -228,7 +228,7 @@ class ExtTestCase(unittest.TestCase):
     def assertEmpty(self, value: Any):
         if value is None:
             return
-        if len(value) == 0:
+        if value:
             return
         raise AssertionError(f"value is not empty: {value!r}.")
 
@@ -240,7 +240,7 @@ class ExtTestCase(unittest.TestCase):
         if value is None:
             raise AssertionError(f"value is empty: {value!r}.")
         if isinstance(value, (list, dict, tuple, set)):
-            if len(value) == 0:
+            if value:
                 raise AssertionError(f"value is empty: {value!r}.")
 
     def assertStartsWith(self, prefix: str, full: str):

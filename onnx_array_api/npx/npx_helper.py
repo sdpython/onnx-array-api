@@ -47,7 +47,7 @@ def rename_in_onnx_graph(
     nodes = []
     modified = False
     for node in graph.node:
-        if len(set(node.input) & set_rep) == 0:
+        if not (set(node.input) & set_rep):
             modified = True
             new_inputs = [replacements.get(i, i) for i in node.input]
             atts = _process_attributes(node.attribute) or node.attribute
@@ -66,7 +66,7 @@ def rename_in_onnx_graph(
     if not modified:
         return None
 
-    if len(set(i.name for i in graph.input) & set_rep) == 0:
+    if not (set(i.name for i in graph.input) & set_rep):
         return make_graph(nodes, graph.name, graph.input, graph.output)
 
     new_inputs = []

@@ -344,7 +344,7 @@ class TestF8(ExtTestCase):
                             add = value
                         else:
                             add = v - value
-                            if len(w) > 0:
+                            if w:
                                 raise AssertionError(
                                     f"A warning was thrown for v={v}, "
                                     f"value={value}, w={w[0]}."

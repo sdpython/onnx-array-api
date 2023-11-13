@@ -919,7 +919,7 @@ class _GraphBuilder:
                     [(var, i, None) for i in range(var.n_var_outputs)]
                 )
 
-        if len(possible_types) > 0:
+        if possible_types:
             # converts possibles types into a dictionary
             map_types = {}
             for var, i, dt in possible_types:

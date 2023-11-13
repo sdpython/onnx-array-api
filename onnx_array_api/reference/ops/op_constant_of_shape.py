@@ -7,7 +7,7 @@ class ConstantOfShape(OpRun):
     def _process(value):
         cst = value[0] if isinstance(value, np.ndarray) and value.size > 0 else value
         if isinstance(value, np.ndarray):
-            if len(value.shape) == 0:
+            if not value.shape:
                 cst = value
             elif value.size > 0:
                 cst = value.ravel()[0]

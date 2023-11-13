@@ -71,7 +71,7 @@ class ProfileNode:
         def _get_root(node, stor=None):
             if stor is not None:
                 stor.append(node)
-            if len(node.called_by) == 0:
+            if not node.called_by:
                 return node
             if len(node.called_by) == 1:
                 return _get_root(node.called_by[0], stor=stor)
@@ -383,7 +383,7 @@ class ProfileNode:
                         continue
                     child[key] = walk(n, roots_key, indent + 1)
 
-            if len(child) > 0:
+            if child:
                 mx = max(_[0] for _ in child)
                 dg = int(math.log(mx) / math.log(10) + 1.5)
                 form = f"%-{dg}d-%s"
