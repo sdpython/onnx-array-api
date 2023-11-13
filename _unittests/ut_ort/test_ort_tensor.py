@@ -6,7 +6,7 @@ from onnx import TensorProto
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.npx import eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
 from onnx_array_api.npx.npx_functions import cdist as cdist_inline
@@ -141,6 +141,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqual(tuple(res.shape()), z.shape)
         self.assertStartsWith("A\nB\nC\n", text)
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_cdist_com_microsoft(self):
         from scipy.spatial.distance import cdist as scipy_cdist
 
