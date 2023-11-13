@@ -220,7 +220,7 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
             )
         if self.shape == (0,):
             return False
-        if len(self.shape) != 0:
+        if self.shape:
             warnings.warn(
                 f"Conversion to bool only works for scalar, not for {self!r}, "
                 f"bool(...)={bool(self._tensor)}."
@@ -233,7 +233,7 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
 
     def __int__(self):
         "Implicit conversion to int."
-        if len(self.shape) != 0:
+        if self.shape:
             raise ValueError(
                 f"Conversion to bool only works for scalar, not for {self!r}."
             )
@@ -255,7 +255,7 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
 
     def __float__(self):
         "Implicit conversion to float."
-        if len(self.shape) != 0:
+        if self.shape:
             raise ValueError(
                 f"Conversion to bool only works for scalar, not for {self!r}."
             )

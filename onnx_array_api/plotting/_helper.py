@@ -120,10 +120,7 @@ def get_tensor_shape(obj):
     for d in obj.tensor_type.shape.dim:
         v = d.dim_value if d.dim_value > 0 else d.dim_param
         shape.append(v)
-    if len(shape) == 0:
-        shape = None
-    else:
-        shape = list(None if s == 0 else s for s in shape)
+    shape = None if not shape else list(None if s == 0 else s for s in shape)
     return shape
 
 

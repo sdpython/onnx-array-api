@@ -174,7 +174,7 @@ class ManyIdentity:
                     f"Mismatch number of outputs, expecting {len(outputs)}, "
                     f"got ({len(onx.output)})."
                 )
-            if len(g.functions_) > 0:
+            if g.functions_:
                 return [g.functions_, onx]
             return onx
 
@@ -1020,7 +1020,7 @@ class Var(BaseArrayApi):
 
         if not isinstance(index, tuple):
             index = (index,)
-        elif len(index) == 0:
+        elif not index:
             # The array contains a scalar and it needs to be returned.
             return var(self, op="Identity")
 
@@ -1091,7 +1091,7 @@ class Var(BaseArrayApi):
         starts = np.array(starts, dtype=np.int64)
         axes = np.array(axes, dtype=np.int64)
 
-        if len(needs_shape) > 0:
+        if needs_shape:
             shape = self.shape
             conc = []
             for e in ends:
@@ -1116,7 +1116,7 @@ class Var(BaseArrayApi):
             sliced_args.append(steps)
         sliced_args_cst = [v if isinstance(v, Var) else cst(v) for v in sliced_args]
         sliced = var(self.self_var, *sliced_args_cst, op="Slice")
-        if len(axis_squeeze) > 0:
+        if axis_squeeze:
             return var(
                 sliced,
                 cst(np.array(axis_squeeze, dtype=np.int64)),

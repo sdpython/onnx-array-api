@@ -85,7 +85,7 @@ class BaseEmitter:
         if isinstance(v, str):
             return [], f"{v!r}"
         if isinstance(v, np.ndarray):
-            if len(v.shape) == 0:
+            if not v.shape:
                 return [], str(v)
             if len(v.shape) == 1:
                 if value[0].type in (

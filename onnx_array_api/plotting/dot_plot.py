@@ -242,7 +242,7 @@ def to_dot(
     for node in nodes:
         exp.append("")
         for out in node.output:
-            if len(out) > 0 and out not in inter_vars:
+            if out and out not in inter_vars:
                 inter_vars[out] = out
                 sh = shapes.get(out, "")
                 if sh:
@@ -318,7 +318,7 @@ def to_dot(
                         f"{dot_name(subprefix)}{dot_name(inp2.name)};"
                     )
                 for out1, out2 in zip(body.output, node.output):
-                    if len(out2) == 0:
+                    if not out2:
                         # Empty output, it cannot be used.
                         continue
                     exp.append(
@@ -346,7 +346,7 @@ def to_dot(
                 f"{dot_name(prefix)}{dot_name(node.name)};"
             )
         for out in node.output:
-            if len(out) == 0:
+            if not out:
                 # Empty output, it cannot be used.
                 continue
             exp.append(
