@@ -13,6 +13,7 @@ from onnx.helper import (
     make_tensor_type_proto,
 )
 from onnx.numpy_helper import from_array
+from ..ext_test_case import is_azure, is_windows
 from .annotations import (
     elem_type_int,
     make_shape,
