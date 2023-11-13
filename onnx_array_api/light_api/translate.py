@@ -113,11 +113,16 @@ class Translater:
                         ),
                     )
                 )
+        if isinstance(self.proto_, (GraphProto, FunctionProto)):
+            name = self.proto_.name
+        else:
+            name = self.proto_.graph.name
         rows.extend(
             self.emitter(
                 EventType.END_FUNCTION
                 if isinstance(self.proto_, FunctionProto)
-                else EventType.END_GRAPH
+                else EventType.END_GRAPH,
+                name=name,
             )
         )
 

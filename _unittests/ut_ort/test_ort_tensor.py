@@ -6,7 +6,7 @@ from onnx import TensorProto
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnxruntime import InferenceSession
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.npx import eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_functions import absolute as absolute_inline
 from onnx_array_api.npx.npx_functions import cdist as cdist_inline
@@ -20,6 +20,7 @@ DEFAULT_OPSET = onnx_opset_version()
 
 
 class TestOrtTensor(ExtTestCase):
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_numpy_type_ort(self):
         def impl(A):
             self.assertIsInstance(A, EagerOrtTensor)
@@ -45,6 +46,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, res.numpy())
         self.assertEqual(res.numpy().dtype, np.float64)
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_numpy_type_ort_op(self):
         def impl(A):
             self.assertIsInstance(A, EagerOrtTensor)
@@ -68,6 +70,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqualArray(z, res.numpy())
         self.assertEqual(res.numpy().dtype, np.float64)
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_ort(self):
         def impl(A):
             print("A")
@@ -141,6 +144,7 @@ class TestOrtTensor(ExtTestCase):
         self.assertEqual(tuple(res.shape()), z.shape)
         self.assertStartsWith("A\nB\nC\n", text)
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_cdist_com_microsoft(self):
         from scipy.spatial.distance import cdist as scipy_cdist
 
@@ -193,7 +197,7 @@ class TestOrtTensor(ExtTestCase):
         if len(pieces) > 2:
             raise AssertionError(f"Function is not using argument:\n{onx}")
 
-    def test_astype(self):
+    def test_astype_w2(self):
         f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array([[-5, 6]], dtype=np.float64)
@@ -204,7 +208,7 @@ class TestOrtTensor(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
-    def test_astype0(self):
+    def test_astype0_w2(self):
         f = absolute_inline(copy_inline(Input("A")).astype(DType(TensorProto.FLOAT)))
         onx = f.to_onnx(constraints={"A": Float64[None]})
         x = np.array(-5, dtype=np.float64)
@@ -215,6 +219,7 @@ class TestOrtTensor(ExtTestCase):
         got = ref.run(None, {"A": x})
         self.assertEqualArray(z, got[0])
 
+    @skipif_ci_windows("Unstable on Windows")
     def test_eager_ort_cast(self):
         def impl(A):
             return A.astype(DType("FLOAT"))

@@ -1,8 +1,7 @@
 import unittest
-import sys
 import numpy as np
 from onnx.reference import ReferenceEvaluator
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.validation.docs import make_euclidean, make_euclidean_skl2onnx
 
 
@@ -27,7 +26,7 @@ class TestDocs(ExtTestCase):
         got = ref.run(None, {"X": X, "Y": Y})[0]
         self.assertEqualArray(expected, got)
 
-    @unittest.skipIf(sys.platform == "win32", reason="unstable on Windows")
+    @skipif_ci_windows("Unstable on Windows.")
     def test_make_euclidean_np(self):
         from onnx_array_api.npx import jit_onnx
 

@@ -5,6 +5,7 @@ Change Logs
 +++++
 
 * :pr:`49`: adds command line to export a model into code
+* :pr:`48`: support for subgraph in light API
 * :pr:`47`: extends export onnx to code to support inner API
 * :pr:`46`: adds an export to convert an onnx graph into light API code
 * :pr:`45`: fixes light API for operators with two outputs

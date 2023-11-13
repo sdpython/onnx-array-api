@@ -1,8 +1,7 @@
 import unittest
-import sys
 from typing import Callable, Optional
 import numpy as np
-from onnx import ModelProto
+from onnx import GraphProto, ModelProto
 from onnx.defs import (
     get_all_schemas_with_history,
     onnx_opset_version,
@@ -11,8 +10,8 @@ from onnx.defs import (
     SchemaError,
 )
 from onnx.reference import ReferenceEvaluator
-from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.light_api import start, OnnxGraph, Var
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
+from onnx_array_api.light_api import start, OnnxGraph, Var, g
 from onnx_array_api.light_api._op_var import OpsVar
 from onnx_array_api.light_api._op_vars import OpsVars
 
@@ -145,7 +144,7 @@ class TestLightApi(ExtTestCase):
                     f"{new_missing}\n{text}"
                 )
 
-    @unittest.skipIf(sys.platform == "win32", reason="unstable test on Windows")
+    @skipif_ci_windows("Unstable on Windows.")
     def test_list_ops_missing(self):
         self.list_ops_missing(1)
         self.list_ops_missing(2)
@@ -442,7 +441,38 @@ class TestLightApi(ExtTestCase):
         self.assertEqualArray(np.array([[0, 1], [6, 7]], dtype=np.float32), got[0])
         self.assertEqualArray(np.array([[0, 1], [3, 2]], dtype=np.int64), got[1])
 
+    def test_if(self):
+        gg = g().cst(np.array([0], dtype=np.int64)).rename("Z").vout()
+        onx = gg.to_onnx()
+        self.assertIsInstance(onx, GraphProto)
+        self.assertEqual(len(onx.input), 0)
+        self.assertEqual(len(onx.output), 1)
+        self.assertEqual([o.name for o in onx.output], ["Z"])
+        onx = (
+            start(opset=19)
+            .vin("X", np.float32)
+            .ReduceSum()
+            .rename("Xs")
+            .cst(np.array([0], dtype=np.float32))
+            .left_bring("Xs")
+            .Greater()
+            .If(
+                then_branch=g().cst(np.array([1], dtype=np.int64)).rename("Z").vout(),
+                else_branch=g().cst(np.array([0], dtype=np.int64)).rename("Z").vout(),
+            )
+            .rename("W")
+            .vout()
+            .to_onnx()
+        )
+        self.assertIsInstance(onx, ModelProto)
+        ref = ReferenceEvaluator(onx)
+        x = np.array([0, 1, 2, 3, 9, 8, 7, 6], dtype=np.float32)
+        got = ref.run(None, {"X": x})
+        self.assertEqualArray(np.array([1], dtype=np.int64), got[0])
+        got = ref.run(None, {"X": -x})
+        self.assertEqualArray(np.array([0], dtype=np.int64), got[0])
+
 
 if __name__ == "__main__":
-    # TestLightApi().test_topk()
+    TestLightApi().test_if()
     unittest.main(verbosity=2)
