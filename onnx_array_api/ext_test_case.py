@@ -226,9 +226,7 @@ class ExtTestCase(unittest.TestCase):
         raise AssertionError("No exception was raised.")
 
     def assertEmpty(self, value: Any):
-        if value is None:
-            return
-        if value:
+        if not value:
             return
         raise AssertionError(f"value is not empty: {value!r}.")
 
