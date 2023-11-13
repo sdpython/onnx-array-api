@@ -20,7 +20,7 @@ from onnx.helper import (
 from onnx.reference import ReferenceEvaluator
 from onnx.shape_inference import infer_shapes
 
-from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
+from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings, skipif_ci_windows
 from onnx_array_api.reference import ExtendedReferenceEvaluator
 from onnx_array_api.npx import ElemType, eager_onnx, jit_onnx
 from onnx_array_api.npx.npx_core_api import (
