@@ -120,6 +120,7 @@ epkg_dictionary = {
     "inner API": "https://onnx.ai/onnx/intro/python.html",
     "JIT": "https://en.wikipedia.org/wiki/Just-in-time_compilation",
     "onnx": "https://onnx.ai/onnx/",
+    "onnx-graphsurgeon": "https://docs.nvidia.com/deeplearning/tensorrt/onnx-graphsurgeon/docs/index.html",
     "onnx.helper": "https://onnx.ai/onnx/api/helper.html",
     "ONNX": "https://onnx.ai/",
     "ONNX Operators": "https://onnx.ai/onnx/operators/",
