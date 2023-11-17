@@ -14,7 +14,7 @@ onnx syntax. :epkg:`scikit-learn` is implemented with :epkg:`numpy` and there
 is no converter from numpy to onnx. Sometimes, it is needed to extend
 an existing onnx models or to merge models coming from different packages.
 Sometimes, they are just not available, only onnx is.
-Let's see how it looks like a very simply example.
+Let's see how it looks like with a very simply example.
 
 Euclidian distance
 ==================
@@ -263,12 +263,10 @@ A couple of examples.
 
     model = MyModel()
     kwargs = {"bias": 3.}
-    args = (torch.randn(2, 2, 2),)
+    inputs = (torch.randn(2, 2, 2),)
 
-    export_output = torch.onnx.dynamo_export(
-        model,
-        *args,
-        **kwargs).save("my_simple_model.onnx")    
+    export_output = torch.onnx.dynamo_export(model, inputs, **kwargs)
+    export_output.save("my_simple_model.onnx")    
 
 .. code-block:: python
 
@@ -462,6 +460,7 @@ onnxblocks
 `onnxblocks <https://onnxruntime.ai/docs/api/python/on_device_training/training_artifacts.html#prepare-for-training>`_
 was introduced in onnxruntime to define custom losses in order to train
 a model with :epkg:`onnxruntime-training`. It is mostly used for this usage.
+The syntax is similar to pytorch.
 
 .. code-block:: python
 
@@ -506,6 +505,84 @@ a model with :epkg:`onnxruntime-training`. It is mostly used for this usage.
 
     # Successful completion of the above call will generate 4 files in the current working directory,
     # one for each of the artifacts mentioned above (training_model.onnx, eval_model.onnx, checkpoint, op)
+
+ONNX GraphSurgeon
++++++++++++++++++
+
+:epkg:`onnx-graphsurgeon` implements main class `Graph` which provides
+all the necessary method to add nodes, import existing onnx files.
+The following example is taken from `onnx-graphsurgeon/examples
+<https://github.com/NVIDIA/TensorRT/tree/master/tools/onnx-graphsurgeon/examples>`_.
+The first part generates a graph.
+
+.. code-block:: python
+
+    import onnx_graphsurgeon as gs
+    import numpy as np
+    import onnx
+
+    # Computes Y = x0 + (a * x1 + b)
+
+    shape = (1, 3, 224, 224)
+    # Inputs
+    x0 = gs.Variable(name="x0", dtype=np.float32, shape=shape)
+    x1 = gs.Variable(name="x1", dtype=np.float32, shape=shape)
+
+    # Intermediate tensors
+    a = gs.Constant("a", values=np.ones(shape=shape, dtype=np.float32))
+    b = gs.Constant("b", values=np.ones(shape=shape, dtype=np.float32))
+    mul_out = gs.Variable(name="mul_out")
+    add_out = gs.Variable(name="add_out")
+
+    # Outputs
+    Y = gs.Variable(name="Y", dtype=np.float32, shape=shape)
+
+    nodes = [
+        # mul_out = a * x1
+        gs.Node(op="Mul", inputs=[a, x1], outputs=[mul_out]),
+        # add_out = mul_out + b
+        gs.Node(op="Add", inputs=[mul_out, b], outputs=[add_out]),
+        # Y = x0 + add
+        gs.Node(op="Add", inputs=[x0, add_out], outputs=[Y]),
+    ]
+
+    graph = gs.Graph(nodes=nodes, inputs=[x0, x1], outputs=[Y])
+    onnx.save(gs.export_onnx(graph), "model.onnx")
+
+The second part modifies it.
+
+.. code-block:: python
+
+    import onnx_graphsurgeon as gs
+    import numpy as np
+    import onnx
+
+    graph = gs.import_onnx(onnx.load("model.onnx"))
+
+    # 1. Remove the `b` input of the add node
+    first_add = [node for node in graph.nodes if node.op == "Add"][0]
+    first_add.inputs = [inp for inp in first_add.inputs if inp.name != "b"]
+
+    # 2. Change the Add to a LeakyRelu
+    first_add.op = "LeakyRelu"
+    first_add.attrs["alpha"] = 0.02
+
+    # 3. Add an identity after the add node
+    identity_out = gs.Variable("identity_out", dtype=np.float32)
+    identity = gs.Node(op="Identity", inputs=first_add.outputs, outputs=[identity_out])
+    graph.nodes.append(identity)
+
+    # 4. Modify the graph output to be the identity output
+    graph.outputs = [identity_out]
+
+    # 5. Remove unused nodes/tensors, and topologically sort the graph
+    # ONNX requires nodes to be topologically sorted to be considered valid.
+    # Therefore, you should only need to sort the graph when you have added new nodes out-of-order.
+    # In this case, the identity node is already in the correct spot (it is the last node,
+    # and was appended to the end of the list), but to be on the safer side, we can sort anyway.
+    graph.cleanup().toposort()
+
+    onnx.save(gs.export_onnx(graph), "modified.onnx")
 
 numpy API for onnx
 ++++++++++++++++++
