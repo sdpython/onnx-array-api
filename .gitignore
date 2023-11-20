@@ -3,6 +3,7 @@
 *.dylib
 *.so
 *.whl
+*.xlsx
 coverage.html/*
 _cache/*
 .coverage
