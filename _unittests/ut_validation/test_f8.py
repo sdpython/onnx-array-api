@@ -1246,6 +1246,21 @@ class TestF8(ExtTestCase):
                 f8 = float32_to_fe4m3(x)
                 self.assertEqual(e, f8)
 
+    def test_negative_zero_uz(self):
+        self.assertEqual(numpy.float32(-0.0), numpy.float32(0.0))
+        self.assertEqual(float32_to_fe4m3(-0.00000001, fn=True, uz=False), 128)
+        self.assertEqual(float32_to_fe4m3(0.00000001, fn=True, uz=True), 0)
+        self.assertEqual(float32_to_fe4m3(-0.00000001, fn=True, uz=True), 0)
+        self.assertEqual(float32_to_fe5m2(-0.00000001, fn=False, uz=False), 128)
+        self.assertEqual(float32_to_fe5m2(0.00000001, fn=True, uz=True), 0)
+        self.assertEqual(float32_to_fe5m2(-0.00000001, fn=True, uz=True), 0)
+        self.assertEqual(float32_to_fe4m3(-0.0001, fn=True, uz=False), 128)
+        self.assertEqual(float32_to_fe4m3(-0.0001, fn=True, uz=True), 0)
+        self.assertEqual(search_float32_into_fe4m3(-0.0001, fn=True, uz=False), 128)
+        self.assertEqual(search_float32_into_fe4m3(-0.0001, fn=True, uz=True), 0)
+        self.assertEqual(search_float32_into_fe5m2(-0.000001, fn=False, uz=False), 128)
+        self.assertEqual(search_float32_into_fe5m2(-0.000001, fn=True, uz=True), 0)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
