@@ -1,3 +1,4 @@
+import inspect
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import TensorProto
@@ -16,6 +17,26 @@ from ._op_var import OpsVar
 from ._op_vars import OpsVars
 
 
+class SubDomain:
+    """
+    Declares a domain or a piece of it (if it contains '.' in its name).
+    """
+
+    def __init__(self, var: "BaseVar"):
+        if not isinstance(var, BaseVar):
+            raise TypeError(f"Unexpected type {type(var)}.")
+        self.parent = var
+
+
+def _getclassattr_(self, name):
+    if not hasattr(self.__class__, name):
+        raise TypeError(
+            f"Unable to find {name!r} in class {self.__class__.__name__!r}, "
+            f"available {dir(self.__class__)}."
+        )
+    return getattr(self.__class__, name)
+
+
 class BaseVar:
     """
     Represents an input, an initializer, a node, an output,
@@ -23,6 +44,83 @@ class BaseVar:
 
     :param parent: the graph containing the Variable
     """
+
+    def __new__(cls, *args, **kwargs):
+        res = super().__new__(cls)
+        res.__init__(*args, **kwargs)
+        if getattr(cls, "__incomplete", True):
+            for k in dir(cls):
+                att = getattr(cls, k, None)
+                if not att:
+                    continue
+                name = getattr(att, "__name__", None)
+                if not name or name[0] != "[":
+                    continue
+
+                # A function with a domain name
+                if not inspect.isfunction(att):
+                    raise RuntimeError(f"{cls.__name__}.{k} is not a function.")
+                domain, op_type = name[1:].split("]")
+                if "." in domain:
+                    spl = domain.split(".", maxsplit=1)
+                    dname = f"_{spl[0]}"
+                    if not hasattr(cls, dname):
+                        d = type(
+                            f"{cls.__name__}{dname}", (SubDomain,), {"name": dname[1:]}
+                        )
+                        setattr(cls, dname, d)
+                        setattr(
+                            cls,
+                            spl[0],
+                            property(
+                                lambda self, _name_=dname: _getclassattr_(self, _name_)(
+                                    self
+                                )
+                            ),
+                        )
+                    else:
+                        d = getattr(cls, dname)
+                    suffix = spl[0]
+                    for p in spl[1].split("."):
+                        dname = f"_{p}"
+                        suffix += dname
+                        if not hasattr(d, dname):
+                            sd = type(
+                                f"{cls.__name__}_{suffix}",
+                                (SubDomain,),
+                                {"name": suffix},
+                            )
+                            setattr(d, dname, sd)
+                            setattr(
+                                d,
+                                p,
+                                property(
+                                    lambda self, _name_=dname: _getclassattr_(
+                                        self, _name_
+                                    )(self.parent)
+                                ),
+                            )
+                            d = sd
+                        else:
+                            d = getattr(d, dname)
+                elif not hasattr(cls, domain):
+                    dname = f"_{domain}"
+                    d = type(f"{cls.__name__}{dname}", (SubDomain,), {"name": domain})
+                    setattr(cls, dname, d)
+                    setattr(
+                        cls,
+                        domain,
+                        property(
+                            lambda self, _name_=dname: _getclassattr_(self, _name_)(
+                                self
+                            )
+                        ),
+                    )
+
+                setattr(d, op_type, att)
+                setattr(cls, "__incomplete", False)
+
+        return res
 
     def __init__(
         self,

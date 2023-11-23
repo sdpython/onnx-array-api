@@ -37,6 +37,12 @@ BaseVar
 .. autoclass:: onnx_array_api.light_api.var.BaseVar
     :members:
 
+SubDomain
++++++++++
+
+.. autoclass:: onnx_array_api.light_api.var.BaseVar
+    :members:
+
 Var
 +++
 

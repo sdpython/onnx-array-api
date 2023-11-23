@@ -26,15 +26,18 @@ def domain(domain: str, op_type: Optional[str] = None) -> Callable:
     """
     Registers one operator into a sub domain.
     """
-    pieces = domain.split(".")
-    sub = pieces[0]
+    names = [op_type]
 
     def decorate(op_method: Callable) -> Callable:
-        def wrapper(self, *args: List[Any], **kwargs: Dict[str, Any]) -> Any:
-            if not self.hasattr(sub):
-                raise RuntimeError(f"Class has not registered subdomain {sub!r}.")
-            return op_method(self, *args, **kwargs)
+        if names[0] is None:
+            names[0] = op_method.__name__
 
+        def wrapper(self, *args: List[Any], **kwargs: Dict[str, Any]) -> Any:
+            return op_method(self.parent, *args, **kwargs)
+
+        wrapper.__qual__name__ = f"[{domain}]{names[0]}"
+        wrapper.__name__ = f"[{domain}]{names[0]}"
+        wrapper.__domain__ = domain
         return wrapper
 
     return decorate

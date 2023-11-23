@@ -1,3 +1,4 @@
+import inspect
 import unittest
 from typing import Callable, Optional
 import numpy as np
@@ -12,6 +13,7 @@ from onnx.defs import (
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.light_api import start, OnnxGraph, Var, g
+from onnx_array_api.light_api.var import SubDomain
 from onnx_array_api.light_api._op_var import OpsVar
 from onnx_array_api.light_api._op_vars import OpsVars
 
@@ -473,21 +475,40 @@ class TestLightApi(ExtTestCase):
         self.assertEqualArray(np.array([0], dtype=np.int64), got[0])
 
     def test_domain(self):
-        onx = (
-            start()
-            .vin("X")
-            .reshape((-1, 1))
-            .ai.onnx.ml.Normalizer(norm="L1")
-            .rename("Y")
-            .vout()
-            .to_onnx()
-        )
+        onx = start(opsets={"ai.onnx.ml": 3}).vin("X").reshape((-1, 1)).rename("USE")
+
+        class A:
+            def g(self):
+                return True
+
+        def ah(self):
+            return True
+
+        setattr(A, "h", ah)
+
+        self.assertTrue(A().h())
+        self.assertIn("(self)", str(inspect.signature(A.h)))
+        self.assertTrue(issubclass(onx._ai, SubDomain))
+        self.assertIsInstance(onx.ai, SubDomain)
+        self.assertIsInstance(onx.ai.parent, Var)
+        self.assertTrue(issubclass(onx._ai._onnx, SubDomain))
+        self.assertIsInstance(onx.ai.onnx, SubDomain)
+        self.assertIsInstance(onx.ai.onnx.parent, Var)
+        self.assertTrue(issubclass(onx._ai._onnx._ml, SubDomain))
+        self.assertIsInstance(onx.ai.onnx.ml, SubDomain)
+        self.assertIsInstance(onx.ai.onnx.ml.parent, Var)
+        self.assertIn("(self,", str(inspect.signature(onx._ai._onnx._ml.Normalizer)))
+        onx = onx.ai.onnx.ml.Normalizer(norm="MAX")
+        onx = onx.rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
-        self.assertIn("Transpose", str(onx))
+        self.assertIn("Normalizer", str(onx))
+        self.assertIn('domain: "ai.onnx.ml"', str(onx))
+        self.assertIn('input: "USE"', str(onx))
         ref = ReferenceEvaluator(onx)
         a = np.arange(10).astype(np.float32)
         got = ref.run(None, {"X": a})[0]
-        self.assertEqualArray(a.reshape((-1, 1)).T, got)
+        expected = (a > 0).astype(int).astype(np.float32).reshape((-1, 1))
+        self.assertEqualArray(expected, got)
 
 
 if __name__ == "__main__":
