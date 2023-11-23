@@ -472,6 +472,23 @@ class TestLightApi(ExtTestCase):
         got = ref.run(None, {"X": -x})
         self.assertEqualArray(np.array([0], dtype=np.int64), got[0])
 
+    def test_domain(self):
+        onx = (
+            start()
+            .vin("X")
+            .reshape((-1, 1))
+            .dom["ai.onnx.ml"].Normalizer(norm="L1")
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        self.assertIsInstance(onx, ModelProto)
+        self.assertIn("Transpose", str(onx))
+        ref = ReferenceEvaluator(onx)
+        a = np.arange(10).astype(np.float32)
+        got = ref.run(None, {"X": a})[0]
+        self.assertEqualArray(a.reshape((-1, 1)).T, got)
+
 
 if __name__ == "__main__":
     TestLightApi().test_if()
