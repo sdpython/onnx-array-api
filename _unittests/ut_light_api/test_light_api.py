@@ -477,7 +477,7 @@ class TestLightApi(ExtTestCase):
             start()
             .vin("X")
             .reshape((-1, 1))
-            .dom["ai.onnx.ml"].Normalizer(norm="L1")
+            .ai.onnx.ml.Normalizer(norm="L1")
             .rename("Y")
             .vout()
             .to_onnx()
@@ -491,5 +491,5 @@ class TestLightApi(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestLightApi().test_if()
+    TestLightApi().test_domain()
     unittest.main(verbosity=2)

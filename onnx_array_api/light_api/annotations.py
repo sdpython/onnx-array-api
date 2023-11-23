@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import FunctionProto, GraphProto, ModelProto, TensorProto, TensorShapeProto
 from onnx.helper import np_dtype_to_tensor_dtype
@@ -9,11 +9,36 @@ SHAPE_TYPE = Tuple[int, ...]
 VAR_CONSTANT_TYPE = Union["Var", TensorProto, np.ndarray]
 GRAPH_PROTO = Union[FunctionProto, GraphProto, ModelProto]
 
+AI_ONNX_ML = "ai.onnx.ml"
+
 ELEMENT_TYPE_NAME = {
     getattr(TensorProto, k): k
     for k in dir(TensorProto)
     if isinstance(getattr(TensorProto, k), int) and "_" not in k
 }
+
+
+class SubDomain:
+    pass
+
+
+def domain(domain: str, op_type: Optional[str] = None) -> Callable:
+    """
+    Registers one operator into a sub domain.
+    """
+    pieces = domain.split(".")
+    sub = pieces[0]
+
+    def decorate(op_method: Callable) -> Callable:
+        def wrapper(self, *args: List[Any], **kwargs: Dict[str, Any]) -> Any:
+            if not self.hasattr(sub):
+                raise RuntimeError(f"Class has not registered subdomain {sub!r}.")
+            return op_method(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorate
+
 
 _type_numpy = {
     np.float32: TensorProto.FLOAT,

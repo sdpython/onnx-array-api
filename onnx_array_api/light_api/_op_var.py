@@ -1,4 +1,5 @@
 from typing import List, Optional, Union
+from .annotations import AI_ONNX_ML, domain
 
 
 class OpsVar:
@@ -318,6 +319,10 @@ class OpsVar:
     def Transpose(self, perm: Optional[List[int]] = None) -> "Var":
         perm = perm or []
         return self.make_node("Transpose", self, perm=perm)
+
+    @domain(AI_ONNX_ML)
+    def Normalizer(self, norm: str = "MAX"):
+        return self.make_node("Normalizer", self, norm=norm, domain=AI_ONNX_ML)
 
 
 def _complete():
