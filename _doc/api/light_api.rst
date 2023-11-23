@@ -19,10 +19,15 @@ translate
 Classes for the Light API
 =========================
 
-ProtoType
-+++++++++
+domain
+++++++
 
-.. autoclass:: onnx_array_api.light_api.model.ProtoType
+..autofunction:: onnx_array_api.light_api.domain
+
+BaseVar
++++++++
+
+.. autoclass:: onnx_array_api.light_api.var.BaseVar
     :members:
 
 OnnxGraph
@@ -31,16 +36,16 @@ OnnxGraph
 .. autoclass:: onnx_array_api.light_api.OnnxGraph
     :members:
 
-BaseVar
-+++++++
+ProtoType
++++++++++
 
-.. autoclass:: onnx_array_api.light_api.var.BaseVar
+.. autoclass:: onnx_array_api.light_api.model.ProtoType
     :members:
 
 SubDomain
 +++++++++
 
-.. autoclass:: onnx_array_api.light_api.var.BaseVar
+.. autoclass:: onnx_array_api.light_api.var.SubDomain
     :members:
 
 Var

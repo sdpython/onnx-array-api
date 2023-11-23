@@ -24,7 +24,14 @@ class SubDomain:
 
 def domain(domain: str, op_type: Optional[str] = None) -> Callable:
     """
-    Registers one operator into a sub domain.
+    Registers one operator into a sub domain. It should be used as a
+    decorator. One example:
+
+    .. code-block:: python
+
+        @domain("ai.onnx.ml")
+        def Normalizer(self, norm: str = "MAX"):
+            return self.make_node("Normalizer", self, norm=norm, domain="ai.onnx.ml")
     """
     names = [op_type]
 

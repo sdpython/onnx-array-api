@@ -46,6 +46,11 @@ class BaseVar:
     """
 
     def __new__(cls, *args, **kwargs):
+        """
+        If called for the first instantiation of a BaseVar, it process
+        all methods declared with decorator :func:`onnx_array_api.light_api.domain`
+        so that it can be called with a syntax `v.<domain>.<op_type>`.
+        """
         res = super().__new__(cls)
         res.__init__(*args, **kwargs)
         if getattr(cls, "__incomplete", True):
