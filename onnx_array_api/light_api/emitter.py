@@ -241,7 +241,7 @@ class Emitter(BaseEmitter):
         outputs = kwargs["outputs"]
         if kwargs.get("domain", "") != "":
             domain = kwargs["domain"]
-            raise NotImplementedError(f"domain={domain!r} not supported yet.")
+            op_type = f"{domain}.{op_type}"
         atts = kwargs.get("atts", {})
         args = []
         for k, v in atts.items():
