@@ -120,7 +120,6 @@ class InnerEmitter(BaseEmitter):
         outputs = kwargs["outputs"]
         if kwargs.get("domain", "") != "":
             domain = kwargs["domain"]
-            raise NotImplementedError(f"domain={domain!r} not supported yet.")
 
         before_lines = []
         lines = [

@@ -185,6 +185,39 @@ class TestTranslate(ExtTestCase):
         self.maxDiff = None
         self.assertEqual(expected, code)
 
+    def test_aionnxml(self):
+        onx = (
+            start(opset=19, opsets={"ai.onnx.ml": 3})
+            .vin("X")
+            .reshape((-1, 1))
+            .rename("USE")
+            .ai.onnx.ml.Normalizer(norm="MAX")
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        code = translate(onx)
+        expected = dedent(
+            """
+            (
+                start(opset=19, opsets={'ai.onnx.ml': 3})
+                .cst(np.array([-1, 1], dtype=np.int64))
+                .rename('r')
+                .vin('X', elem_type=TensorProto.FLOAT)
+                .bring('X', 'r')
+                .Reshape()
+                .rename('USE')
+                .bring('USE')
+                .ai.onnx.ml.Normalizer(norm='MAX')
+                .rename('Y')
+                .bring('Y')
+                .vout(elem_type=TensorProto.FLOAT)
+                .to_onnx()
+            )"""
+        ).strip("\n")
+        self.maxDiff = None
+        self.assertEqual(expected, code)
+
 
 if __name__ == "__main__":
     TestTranslate().test_export_if()

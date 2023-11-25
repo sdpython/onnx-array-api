@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from onnx import ModelProto
+from .annotations import domain
 from .model import OnnxGraph, ProtoType
 from .translate import Translater
 from .var import Var, Vars

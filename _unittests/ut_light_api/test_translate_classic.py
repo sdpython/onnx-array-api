@@ -252,6 +252,72 @@ class TestTranslateClassic(ExtTestCase):
             )
             raise AssertionError(f"ERROR {e}\n{new_code}")
 
+    def test_aionnxml(self):
+        onx = (
+            start(opset=19, opsets={"ai.onnx.ml": 3})
+            .vin("X")
+            .reshape((-1, 1))
+            .rename("USE")
+            .ai.onnx.ml.Normalizer(norm="MAX")
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        code = translate(onx, api="onnx")
+        print(code)
+        expected = dedent(
+            """
+            opset_imports = [
+                make_opsetid('', 19),
+                make_opsetid('ai.onnx.ml', 3),
+            ]
+            inputs = []
+            outputs = []
+            nodes = []
+            initializers = []
+            sparse_initializers = []
+            functions = []
+            initializers.append(
+                from_array(
+                    np.array([-1, 1], dtype=np.int64),
+                    name='r'
+                )
+            )
+            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            nodes.append(
+                make_node(
+                    'Reshape',
+                    ['X', 'r'],
+                    ['USE']
+                )
+            )
+            nodes.append(
+                make_node(
+                    'Normalizer',
+                    ['USE'],
+                    ['Y'],
+                    domain='ai.onnx.ml',
+                    norm='MAX'
+                )
+            )
+            outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            graph = make_graph(
+                nodes,
+                'light_api',
+                inputs,
+                outputs,
+                initializers,
+                sparse_initializer=sparse_initializers,
+            )
+            model = make_model(
+                graph,
+                functions=functions,
+                opset_imports=opset_imports
+            )"""
+        ).strip("\n")
+        self.maxDiff = None
+        self.assertEqual(expected, code)
+
 
 if __name__ == "__main__":
     # TestLightApi().test_topk()

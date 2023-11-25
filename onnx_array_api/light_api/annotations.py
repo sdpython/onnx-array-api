@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import FunctionProto, GraphProto, ModelProto, TensorProto, TensorShapeProto
 from onnx.helper import np_dtype_to_tensor_dtype
@@ -9,11 +9,46 @@ SHAPE_TYPE = Tuple[int, ...]
 VAR_CONSTANT_TYPE = Union["Var", TensorProto, np.ndarray]
 GRAPH_PROTO = Union[FunctionProto, GraphProto, ModelProto]
 
+AI_ONNX_ML = "ai.onnx.ml"
+
 ELEMENT_TYPE_NAME = {
     getattr(TensorProto, k): k
     for k in dir(TensorProto)
     if isinstance(getattr(TensorProto, k), int) and "_" not in k
 }
+
+
+class SubDomain:
+    pass
+
+
+def domain(domain: str, op_type: Optional[str] = None) -> Callable:
+    """
+    Registers one operator into a sub domain. It should be used as a
+    decorator. One example:
+
+    .. code-block:: python
+
+        @domain("ai.onnx.ml")
+        def Normalizer(self, norm: str = "MAX"):
+            return self.make_node("Normalizer", self, norm=norm, domain="ai.onnx.ml")
+    """
+    names = [op_type]
+
+    def decorate(op_method: Callable) -> Callable:
+        if names[0] is None:
+            names[0] = op_method.__name__
+
+        def wrapper(self, *args: List[Any], **kwargs: Dict[str, Any]) -> Any:
+            return op_method(self.parent, *args, **kwargs)
+
+        wrapper.__qual__name__ = f"[{domain}]{names[0]}"
+        wrapper.__name__ = f"[{domain}]{names[0]}"
+        wrapper.__domain__ = domain
+        return wrapper
+
+    return decorate
+
 
 _type_numpy = {
     np.float32: TensorProto.FLOAT,

@@ -248,6 +248,9 @@ class OnnxGraph:
 
         node = make_node(op_type, input_names, output_names, domain=domain, **kwargs)
         self.nodes.append(node)
+        if domain != "":
+            if not self.opsets or domain not in self.opsets:
+                raise RuntimeError(f"No opset value was given for domain {domain!r}.")
         return node
 
     def cst(self, value: np.ndarray, name: Optional[str] = None) -> "Var":

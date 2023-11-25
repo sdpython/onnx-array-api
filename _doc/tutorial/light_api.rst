@@ -76,3 +76,32 @@ operator `+` to be available as well and that the case. They are
 defined in class :class:`Var <onnx_array_api.light_api.Var>` or
 :class:`Vars <onnx_array_api.light_api.Vars>` depending on the number of
 inputs they require. Their name starts with a lower letter.
+
+Other domains
+=============
+
+The following example uses operator *Normalizer* from domain
+*ai.onnx.ml*. The operator name is called with the syntax
+`<domain>.<operator name>`. The domain may have dots in its name
+but it must follow the python definition of a variable.
+The operator *Normalizer* becomes `ai.onnx.ml.Normalizer`.
+
+.. runpython::
+    :showcode:
+
+    import numpy as np
+    from onnx_array_api.light_api import start
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    model = (
+        start(opset=19, opsets={"ai.onnx.ml": 3})
+        .vin("X")
+        .reshape((-1, 1))
+        .rename("USE")
+        .ai.onnx.ml.Normalizer(norm="MAX")
+        .rename("Y")
+        .vout()
+        .to_onnx()
+    )
+
+    print(onnx_simple_text_plot(model))
