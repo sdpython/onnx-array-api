@@ -142,4 +142,5 @@ Light API
 Older versions
 ++++++++++++++
 
+* `0.1.3 <../v0.1.3/index.html>`_
 * `0.1.2 <../v0.1.2/index.html>`_
