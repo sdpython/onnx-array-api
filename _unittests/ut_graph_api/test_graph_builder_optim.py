@@ -1,3 +1,4 @@
+import os
 import unittest
 import onnx
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -52,6 +53,26 @@ class TestGraphSimplification(ExtTestCase):
         onx = self.call_optimizer(model)
         self.assertEqual(len(onx.graph.node), 2)
         self.assertEqual(onx.graph.node[0].op_type, "Split")
+
+    def test_check_files(self):
+        import onnxruntime
+
+        data = os.path.join(os.path.dirname(__file__), "data")
+        filename = [f for f in os.listdir(data) if f.endswith(".onnx")]
+        for f in filename:
+            with self.subTest(f=f):
+                onx = onnx.load(os.path.join(data, f))
+                sess = onnxruntime.InferenceSession(
+                    os.path.join(data, f), providers=["CPUExecutionProvider"]
+                )
+                assert sess
+                g = GraphBuilder(onx)
+                g.optimize()
+                onx2 = g.to_onnx()
+                sess2 = onnxruntime.InferenceSession(
+                    onx2.SerializeToString(), providers=["CPUExecutionProvider"]
+                )
+                assert sess2
 
 
 if __name__ == "__main__":
