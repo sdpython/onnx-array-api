@@ -1,5 +1,4 @@
 from typing import Tuple, Union
-import array_api_compat.numpy as np_array_api
 import numpy as np
 from onnx import FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.helper import make_tensor, tensor_dtype_to_np_dtype
@@ -624,6 +623,8 @@ def isdtype(
     See :epkg:`BaseArrayAPI:isdtype`.
     This function is not converted into an onnx graph.
     """
+    import array_api_compat.numpy as np_array_api
+
     if isinstance(dtype, DType):
         dti = tensor_dtype_to_np_dtype(dtype.code)
         return np_array_api.isdtype(dti, kind)
