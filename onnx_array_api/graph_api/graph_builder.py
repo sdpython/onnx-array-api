@@ -173,6 +173,9 @@ class GraphBuilder:
                     return tuple(att.floats)
                 if att.name == "value_ints":
                     return (len(att.ints),)
+                if att.name == "value":
+                    t = onh.to_array(att.t)
+                    return t.shape
         raise TypeError(
             f"Unexpected or unsupported scenario type {type(proto)}: {proto}."
         )
@@ -190,6 +193,9 @@ class GraphBuilder:
                     return TensorProto.FLOAT
                 if att.name == "value_ints":
                     return TensorProto.INT64
+                if att.name == "value":
+                    t = onh.to_array(att.t)
+                    return oh.np_dtype_to_tensor_dtype(t.dtype)
         raise ValueError(f"Unexpected type or value {type(proto)}: {proto}.")
 
     def is_constant(self, name: str) -> bool:
