@@ -168,7 +168,7 @@ class GraphBuilder:
                 if att.name == "value_float":
                     return tuple()
                 if att.name == "value_int":
-                    return tuple(att.i)
+                    return tuple()
                 if att.name == "value_floats":
                     return tuple(att.floats)
                 if att.name == "value_ints":
