@@ -6,6 +6,8 @@ import onnx.numpy_helper as onh
 from onnx import AttributeProto, FunctionProto, ModelProto, NodeProto, TensorProto
 from onnx.reference import ReferenceEvaluator
 
+T = "TENSOR"
+
 
 class Opset:
     # defined for opset >= 18
@@ -78,8 +80,8 @@ class Opset:
 class OptimizationOptions:
     def __init__(
         self,
-        remove_unused: bool = False,
-        constant_folding: bool = True,
+        remove_unused: bool = True,
+        constant_folding: bool = False,
         constant_size: int = 1024,
     ):
         self.remove_unused = remove_unused
@@ -205,10 +207,6 @@ class GraphBuilder:
         if isinstance(value, np.ndarray):
             return value
 
-        import torch
-
-        if isinstance(value, torch.Tensor):
-            return value.detach().numpy()
         raise TypeError(f"Unable to convert type {type(value)} into numpy array.")
 
     def set_shape(self, name: str, shape: Tuple[int, ...]):
@@ -513,9 +511,7 @@ class GraphBuilder:
             return output_names[0]
         return output_names
 
-    def from_array(
-        self, arr: "torch.Tensor", name: str = None  # noqa: F821
-    ) -> TensorProto:
+    def from_array(self, arr: T, name: str = None) -> TensorProto:  # noqa: F821
         import sys
         import torch
 
@@ -552,15 +548,8 @@ class GraphBuilder:
         return tensor
 
     def _build_initializers(self) -> List[TensorProto]:
-        import torch
-
         res = []
         for k, v in sorted(self.initializers_dict.items()):
-            if isinstance(v, torch.Tensor):
-                # no string tensor
-                t = self.from_array(v, name=k)
-                res.append(t)
-                continue
             if isinstance(v, np.ndarray):
                 if self.verbose and np.prod(v.shape) > 100:
                     print(f"[GraphBuilder] onh.from_array:{k}:{v.dtype}[{v.shape}]")
@@ -575,7 +564,7 @@ class GraphBuilder:
 
     def process(
         self,
-        graph_module: "torch.f.GraphModule",  # noqa: F821
+        graph_module: Any,
         interpreter: "Interpreter",  # noqa: F821
     ):
         for node in graph_module.graph.nodes:
@@ -656,11 +645,7 @@ class GraphBuilder:
         self.constants_ = {k: v for k, v in self.constants_.items() if k in marked}
         self.nodes = [node for i, node in enumerate(self.nodes) if i not in removed]
 
-    def _apply_transpose(
-        self, node: NodeProto, feeds: Dict[str, "torch.Tensor"]  # noqa: F821
-    ) -> "torch.Tensor":  # noqa: F821
-        import torch
-
+    def _apply_transpose(self, node: NodeProto, feeds: Dict[str, T]) -> T:  # noqa: F821
         perm = None
         for att in node.attribute:
             if att.name == "perm":
@@ -668,7 +653,7 @@ class GraphBuilder:
                 break
         assert perm, f"perm not here in node {node}"
         assert len(perm) == 2, f"perm={perm} is not supported with torch"
-        return [torch.transpose(feeds[node.input[0]], *perm)]
+        return [np.transpose(feeds[node.input[0]], *perm)]
 
     def constant_folding(self):
         """
