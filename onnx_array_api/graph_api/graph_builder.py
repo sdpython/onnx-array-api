@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import onnx.helper as oh
 import onnx.numpy_helper as onh
@@ -604,14 +604,56 @@ class GraphBuilder:
         model = oh.make_model(graph, opset_imports=opsets)
         return model
 
-    def optimize(self):
+    def _check_order_node(self, ind: int, node: NodeProto, existing: Set[str]):
+        for i in node.input:
+            if i not in existing:
+                raise RuntimeError(
+                    f"Unknown input {i!r} from node {ind}:{node.op_type}:{node.name}. "
+                    f"Known: {existing}."
+                )
+        for att in node.attribute:
+            if att.type == AttributeProto.GRAPH and att.g:
+                g_existing = existing.copy()
+                for i in att.g.input:
+                    g_existing.add(i.name)
+                for ind2, node2 in enumerate(att.g.node):
+                    self._check_order_node((ind, ind2), node2, g_existing)
+                for o in att.g.output:
+                    if o.name not in g_existing:
+                        raise RuntimeError(
+                            f"Unknown output {o.name!r}. Known: {g_existing}."
+                        )
+        for o in node.output:
+            existing.add(o)
+
+    def check_order(self):
+        existing = set(self.initializers_dict)
+        for i in self.inputs:
+            existing.add(i.name)
+        for ind, node in enumerate(self.nodes):
+            self._check_order_node(ind, node, existing)
+        for o in self.outputs:
+            if o.name not in existing:
+                raise RuntimeError(f"Unknown output {o.name!r}. Known: {existing}.")
+
+    def optimize(self, check_order: bool = False):
+        if check_order:
+            self.check_order()
         self.remove_identity_nodes()
+        if check_order:
+            self.check_order()
         if self.optimization_options.remove_unused:
             self.remove_unused()
+            if check_order:
+                self.check_order()
         if self.optimization_options.constant_folding:
             self.constant_folding()
+            if check_order:
+                self.check_order()
             if self.optimization_options.remove_unused:
                 self.remove_unused()
+                if check_order:
+                    self.check_order()
 
     def remove_unused(self):
         """
