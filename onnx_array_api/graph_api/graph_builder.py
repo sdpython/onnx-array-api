@@ -3,7 +3,14 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import onnx.helper as oh
 import onnx.numpy_helper as onh
-from onnx import AttributeProto, FunctionProto, ModelProto, NodeProto, TensorProto
+from onnx import (
+    AttributeProto,
+    FunctionProto,
+    GraphProto,
+    ModelProto,
+    NodeProto,
+    TensorProto,
+)
 from onnx.reference import ReferenceEvaluator
 
 T = "TENSOR"
@@ -655,6 +662,22 @@ class GraphBuilder:
                 if check_order:
                     self.check_order()
 
+    def hidden_inputs_graph(self, graph: GraphProto) -> Set[str]:
+        hidden = set()
+        memo = set(i.name for i in graph.initializer)
+        memo |= set(i.name for i in graph.sparse_initializer)
+        for node in graph.node:
+            for i in node.input:
+                if i not in memo:
+                    hidden.add(i)
+            for att in node.attribute:
+                if att.type == AttributeProto.GRAPH and att.g:
+                    hid = self.hidden_inputs_graph(att.g)
+                    less = set(h for h in hid if h not in memo)
+                    hidden |= less
+            memo |= set(node.output)
+        return hidden
+
     def remove_unused(self):
         """
         Simple function to remove unused nodes.
@@ -671,6 +694,11 @@ class GraphBuilder:
                     for i in node.input:
                         marked[o].add(i)
                         used = True
+            for att in node.attribute:
+                if att.type == AttributeProto.GRAPH and att.g:
+                    hidden_inputs = self.hidden_inputs_graph(att.g)
+                    for i in hidden_inputs:
+                        marked[i] = set()
             if used:
                 for i in node.input:
                     marked[i] = set()
