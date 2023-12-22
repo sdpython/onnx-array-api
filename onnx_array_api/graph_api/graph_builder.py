@@ -18,6 +18,18 @@ from onnx.reference import ReferenceEvaluator
 T = "TENSOR"
 
 
+class OptimizationOptions:
+    def __init__(
+        self,
+        remove_unused: bool = True,
+        constant_folding: bool = False,
+        constant_size: int = 1024,
+    ):
+        self.remove_unused = remove_unused
+        self.constant_folding = constant_folding
+        self.constant_size = constant_size
+
+
 class Opset:
     # defined for opset >= 18
     # name: number of expected outputs
@@ -76,7 +88,7 @@ class Opset:
         for i in inputs:
             if not isinstance(i, str):
                 name = self.builder.unique_name("cst")
-                self.builder.make_initializer(i, name=name)
+                self.builder.make_initializer(i, name=name, exists=True)
                 new_inputs.append(name)
             else:
                 new_inputs.append(i)
@@ -84,18 +96,6 @@ class Opset:
         return self.builder.make_node(
             op_type, new_inputs, outputs=outputs, domain=domain, **kwargs
         )
-
-
-class OptimizationOptions:
-    def __init__(
-        self,
-        remove_unused: bool = True,
-        constant_folding: bool = False,
-        constant_size: int = 1024,
-    ):
-        self.remove_unused = remove_unused
-        self.constant_folding = constant_folding
-        self.constant_size = constant_size
 
 
 class GraphBuilder:
@@ -304,12 +304,18 @@ class GraphBuilder:
         return elem_type
 
     def make_initializer(
-        self, value: Any, name: str = "", external: bool = False
+        self, value: Any, name: str = "", external: bool = False, exists: bool = False
     ) -> str:
         if external:
             raise NotImplementedError("External initializers are not implemented yet.")
         if name == "":
+            if exists:
+                raise ValueError("Undefined name cannot exist.")
             name = self.unique_name("cst")
+        elif not exists:
+            if name in self._unique_names:
+                raise ValueError(f"{name!r} is already assigned.")
+            self._unique_names.add(name)
         self.set_shape(name, value.shape)
         self.set_type(name, self._get_type(value.dtype))
         self.initializers_dict[name] = value
@@ -330,6 +336,9 @@ class GraphBuilder:
         else:
             self.input_names.append(name)
             input_name = name
+            if name in self._unique_names:
+                raise ValueError(f"{name!r} is already assigned.")
+            self._unique_names.add(name)
         self.current_input += 1
         elem_type = self._get_type(elem_type)
         self.inputs.append(oh.make_tensor_value_info(input_name, elem_type, shape))
@@ -397,15 +406,11 @@ class GraphBuilder:
         try:
             node = oh.make_node(op_type, inputs, output_names, domain=domain, **kwargs)
         except TypeError as e:
-            iti = [type(i) for i in inputs]
-            ito = (
-                [type(o) for o in outputs]
-                if isinstance(outputs, (tuple, list))
-                else outputs
-            )
             raise TypeError(
                 f"A node {op_type!r} cannot be created with "
-                f"inputs={inputs} (types={iti}), outputs={outputs} (types={ito}), "
+                f"inputs={inputs} (types={[type(i) for i in inputs]}), "
+                f"outputs={outputs} "
+                f"(types={[type(o) for o in outputs] if isinstance(outputs, (tuple, list)) else outputs}), "
                 f"domain={domain!r}, kwargs={kwargs}."
             ) from e
         if attributes:
@@ -474,14 +479,18 @@ class GraphBuilder:
             self.set_shape(name, builder._known_shapes[init])
             self.set_type(name, builder._known_types[init])
 
-        assert len(input_names) == len(
-            builder.inputs
-        ), f"Inconsistency between input_names={input_names} and inputs={builder.inputs}."
+        assert len(input_names) == len(builder.inputs), (
+            f"Inconsistency between input_names={input_names} "
+            f"and the other builder inputs={builder.inputs}."
+        )
+
         for name, inp in zip(input_names, builder.inputs):
             new_name = self.unique_name(f"{prefix}{inp.name}")
-            self.set_shape(new_name, builder.get_shape(inp.name))
-            self.set_type(new_name, builder.get_type(inp.name))
             renaming[inp.name] = new_name
+            if builder.has_shape(inp.name):
+                self.set_shape(new_name, builder.get_shape(inp.name))
+            if builder.has_type(inp.name):
+                self.set_type(new_name, builder.get_type(inp.name))
             self.make_node("Identity", [name], [new_name])
 
         for node in builder.nodes:

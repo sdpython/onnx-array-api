@@ -3,9 +3,12 @@ import io
 import unittest
 import numpy as np
 import onnx
-from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.graph_api.graph_builder import GraphBuilder
+from onnx_array_api.graph_api.graph_builder import GraphBuilder, OptimizationOptions
+from onnx_array_api.reference import (
+    from_array_extended,
+    ExtendedReferenceEvaluator as ReferenceEvaluator,
+)
 
 
 class TestGraphBuilder(ExtTestCase):
@@ -130,6 +133,35 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
+    def test_constant_folding2(self):
+        g = GraphBuilder(
+            optimization_options=OptimizationOptions(constant_folding=True)
+        )
+
+        shape = (10, 4)
+        w = np.random.randn(*shape).astype(np.float32)
+        x = g.make_tensor_input("X", np.float32, shape)
+        weight = g.make_initializer(w)
+        cst = g.get_constant(weight)
+        self.assertEqualArray(w, cst)
+        one = g.make_initializer(np.array([-1, 1], dtype=np.int64))
+        transposed = g.make_node("Transpose", [weight], perm=[1, 0])
+        res = g.op.MatMul(x, transposed)
+        g.op.Reshape(res, one, outputs="y")
+        g.make_tensor_output("y", np.float32, (10, 1))
+
+        g.optimize()
+
+        onx = g.to_onnx()
+        node_types = [n.op_type for n in onx.graph.node]
+        self.assertNotIn("Transpose", node_types)
+        ref = ReferenceEvaluator(onx)
+        x = np.random.randn(*shape).astype(np.float32)
+        expected = (x @ w.T).reshape((-1, 1))
+        feeds = {"X": x}
+        got = ref.run(None, feeds)
+        self.assertEqualArray(expected, got[0])
+
     def test_remove_identity(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
@@ -237,6 +269,112 @@ class TestGraphBuilder(ExtTestCase):
             feeds = {"X": x}
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
+
+    def test_constant_array(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            g = GraphBuilder(verbose=10)
+
+            shape = (10, 4)
+            w = np.random.randn(*shape).astype(np.float32)
+
+            x = g.make_tensor_input("X", np.float32, shape)
+            one = g.make_initializer(np.array([-1, 1], dtype=np.int64))
+            res = g.op.MatMul(x, w.T)
+            g.op.Reshape(res, one, outputs="y")
+            g.make_tensor_output("y", np.float32, (10, 1))
+            onx = g.to_onnx()
+            ref = ReferenceEvaluator(onx)
+            x = np.random.randn(*shape).astype(np.float32)
+            expected = (x @ w.T).reshape((-1, 1))
+            feeds = {"X": x}
+            got = ref.run(None, feeds)
+            self.assertEqualArray(expected, got[0])
+
+    def test_constant_array_2(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            g = GraphBuilder(verbose=10)
+
+            shape = (10, 4)
+            w = np.random.randn(*shape).astype(np.float32)
+
+            x = g.make_tensor_input("X", np.float32, shape)
+            one = g.make_initializer(np.array([-1, 1], dtype=np.int64))
+            opc = g.op.Constant(value=from_array_extended(w.T))
+            res = g.op.MatMul(x, opc)
+            g.op.Reshape(res, one, outputs="y")
+            g.make_tensor_output("y", np.float32, (10, 1))
+            self.assertTrue(g.has_shape("X"))
+            self.assertTrue(g.has_type("X"))
+            self.assertEqual(g.get_type("X"), 1)
+            self.assertEqual(g.get_shape("X"), (10, 4))
+            self.assertEqual(g.rank("X"), 2)
+            onx = g.to_onnx()
+            ref = ReferenceEvaluator(onx)
+            x = np.random.randn(*shape).astype(np.float32)
+            expected = (x @ w.T).reshape((-1, 1))
+            feeds = {"X": x}
+            got = ref.run(None, feeds)
+            self.assertEqualArray(expected, got[0])
+
+    def test_get_type(self):
+        g = GraphBuilder()
+        self.assertEqual(g._get_type(np.float32), onnx.TensorProto.FLOAT)
+        self.assertEqual(g._get_type(np.int64), onnx.TensorProto.INT64)
+        self.assertEqual(g._get_type(None), onnx.TensorProto.UNDEFINED)
+
+    def test_make_nodes_prefix(self):
+        g1 = GraphBuilder()
+        g1.make_tensor_input("X", np.float32, shape=None)
+        g1.op.Add("X", np.array([1], dtype=np.float32), outputs=["y"])
+        g1.make_tensor_output("y", np.float32, shape=None)
+
+        g = GraphBuilder()
+
+        shape = (10, 4)
+        w = np.random.randn(*shape).astype(np.float32)
+
+        x = g.make_tensor_input("X", np.float32, shape)
+        weight = g.make_initializer(w)
+        one = g.make_initializer(np.array([-1, 1], dtype=np.int64))
+        transposed = g.make_node("Transpose", [weight], perm=[1, 0])
+        res = g.op.MatMul(x, transposed)
+        res2 = g.make_nodes(g1, [res], ["k"], prefix="J")
+        g.op.Reshape(res2, one, outputs="y")
+        g.make_tensor_output("y", np.float32, (10, 1))
+        onx = g.to_onnx()
+        ref = ReferenceEvaluator(onx)
+        x = np.random.randn(*shape).astype(np.float32)
+        expected = (x @ w.T).reshape((-1, 1)) + 1
+        feeds = {"X": x}
+        got = ref.run(None, feeds)
+        self.assertEqualArray(expected, got[0])
+
+    def test_make_nodes_noprefix(self):
+        g1 = GraphBuilder()
+        g1.make_tensor_input("X", np.float32, shape=None)
+        g1.op.Add("X", np.array([1], dtype=np.float32), outputs=["y"])
+        g1.make_tensor_output("y", np.float32, shape=None)
+
+        g = GraphBuilder()
+
+        shape = (10, 4)
+        w = np.random.randn(*shape).astype(np.float32)
+
+        x = g.make_tensor_input("X", np.float32, shape)
+        weight = g.make_initializer(w)
+        one = g.make_initializer(np.array([-1, 1], dtype=np.int64))
+        transposed = g.make_node("Transpose", [weight], perm=[1, 0])
+        res = g.op.MatMul(x, transposed)
+        res2 = g.make_nodes(g1, [res], ["k"])
+        g.op.Reshape(res2, one, outputs="y")
+        g.make_tensor_output("y", np.float32, (10, 1))
+        onx = g.to_onnx()
+        ref = ReferenceEvaluator(onx)
+        x = np.random.randn(*shape).astype(np.float32)
+        expected = (x @ w.T).reshape((-1, 1)) + 1
+        feeds = {"X": x}
+        got = ref.run(None, feeds)
+        self.assertEqualArray(expected, got[0])
 
 
 if __name__ == "__main__":
