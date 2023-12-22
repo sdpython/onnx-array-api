@@ -1,6 +1,8 @@
+import sys
 from functools import partial
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
+from onnx.defs import onnx_opset_version
 import onnx.helper as oh
 import onnx.numpy_helper as onh
 from onnx import (
@@ -37,7 +39,7 @@ class Opset:
         "Log": 1,
         "Or": 1,
         "Relu": 1,
-        "Reshape": 2,
+        "Reshape": 1,
         "Shape": 1,
         "Slice": 1,
         "Squeeze": 1,
@@ -74,7 +76,7 @@ class Opset:
         for i in inputs:
             if not isinstance(i, str):
                 name = self.builder.unique_name("cst")
-                self.builder.make_initializer(name, i)
+                self.builder.make_initializer(i, name=name)
                 new_inputs.append(name)
             else:
                 new_inputs.append(i)
@@ -99,9 +101,9 @@ class OptimizationOptions:
 class GraphBuilder:
     def __init__(
         self,
-        target_opset_or_existing_proto: Union[
-            int, Dict[str, int], ModelProto, FunctionProto
-        ],
+        target_opset_or_existing_proto: Optional[
+            Union[int, Dict[str, int], ModelProto, FunctionProto]
+        ] = None,
         input_names: Optional[Sequence[str]] = None,
         as_function: bool = False,
         optimization_options: Optional[OptimizationOptions] = None,
@@ -113,6 +115,8 @@ class GraphBuilder:
         self.input_args = args
         self.verbose = verbose
 
+        if target_opset_or_existing_proto is None:
+            target_opset_or_existing_proto = onnx_opset_version() - 1
         if isinstance(target_opset_or_existing_proto, (int, dict)):
             self.opsets = (
                 {"": target_opset_or_existing_proto}
@@ -130,10 +134,9 @@ class GraphBuilder:
             self._known_types = {}
             self.constants_ = {}
         elif isinstance(target_opset_or_existing_proto, ModelProto):
-            if input_names:
-                raise ValueError(
-                    "input_names must be empty if the input is an existing model."
-                )
+            assert (
+                not input_names
+            ), "input_names must be empty if the input is an existing model."
             proto = target_opset_or_existing_proto
             self.opsets = {d.domain: d.version for d in proto.opset_import}
             self.nodes = list(proto.graph.node)
@@ -164,6 +167,7 @@ class GraphBuilder:
             )
 
         self.op = Opset(self, self.opsets[""])
+        self._cache_array = []
 
     def _get_tensor_shape(
         self, proto: Union[NodeProto, TensorProto]
@@ -210,12 +214,10 @@ class GraphBuilder:
         return name in self.constants_
 
     def get_constant(self, name: str) -> np.ndarray:
-        if not self.is_constant(name):
-            raise ValueError(f"Result {name!r} is not a constant.")
-        if name not in self.initializers_dict:
-            raise ValueError(
-                f"Result {name!r} was never evaluated within method 'constant_folding'."
-            )
+        assert self.is_constant(name), f"Result {name!r} is not a constant."
+        assert (
+            name in self.initializers_dict
+        ), f"Result {name!r} was never evaluated within method 'constant_folding'."
         value = self.initializers_dict[name]
         if isinstance(value, np.ndarray):
             return value
@@ -223,32 +225,28 @@ class GraphBuilder:
         raise TypeError(f"Unable to convert type {type(value)} into numpy array.")
 
     def set_shape(self, name: str, shape: Tuple[int, ...]):
-        if not isinstance(name, str):
-            raise TypeError(f"Unexpected type {type(name)} for name.")
+        assert isinstance(
+            name, str
+        ), f"Unexpected type {type(name)} for name, it should be a string."
         if name in self._known_shapes:
-            if shape != self._known_shapes[name]:
-                raise RuntimeError(
-                    f"Name {name!r} already exists and it is different "
-                    f"{self._known_shapes[name]} != {shape}"
-                )
+            assert shape == self._known_shapes[name], (
+                f"Name {name!r} already exists and it is different "
+                f"{self._known_shapes[name]} != {shape}"
+            )
             return
-        if not isinstance(shape, tuple):
-            raise TypeError(f"Unexpected shape type {type(shape)}.")
+        assert isinstance(
+            shape, tuple
+        ), f"Unexpected shape type {type(shape)}, it should be a tuple."
         self._known_shapes[name] = shape
 
     def set_type(self, name: str, dtype: int):
-        if not isinstance(name, str):
-            raise TypeError(f"Unexpected type {type(name)} for name.")
-        if isinstance(dtype, int):
-            int_type = dtype
-        else:
-            int_type = self._get_type(dtype)
+        assert isinstance(name, str), f"Unexpected type {type(name)} for name."
+        int_type = dtype if isinstance(dtype, int) else self._get_type(dtype)
         if name in self._known_types:
-            if int_type != self._known_types[name]:
-                raise RuntimeError(
-                    f"Name {name!r} already exists and it is different "
-                    f"{self._known_types[name]} != {int_type}."
-                )
+            assert int_type == self._known_types[name], (
+                f"Name {name!r} already exists and it is different "
+                f"{self._known_types[name]} != {int_type}."
+            )
         self._known_types[name] = int_type
 
     def rank(self, name: str) -> int:
@@ -305,7 +303,9 @@ class GraphBuilder:
                 raise ValueError(f"Unable to interpret elem_type {elem_type!r}.")
         return elem_type
 
-    def make_initializer(self, name: str, value: Any, external: bool = False) -> str:
+    def make_initializer(
+        self, value: Any, name: str = "", external: bool = False
+    ) -> str:
         if external:
             raise NotImplementedError("External initializers are not implemented yet.")
         if name == "":
@@ -354,8 +354,9 @@ class GraphBuilder:
             return res
 
         elem_type = self._get_type(elem_type, False)
-        if not self.as_function and elem_type == 0:
-            raise RuntimeError(f"Undefined element type for {name!r}.")
+        assert (
+            self.as_function or elem_type != 0
+        ), f"Undefined element type for {name!r}."
         self.outputs.append(oh.make_tensor_value_info(name, elem_type, shape))
         if self.verbose:
             print(f"[GraphBuilder] make_tensor_output:{name}[{elem_type}:{shape}]")
@@ -380,8 +381,7 @@ class GraphBuilder:
         if isinstance(inputs, tuple):
             inputs = list(inputs)
         if isinstance(outputs, int):
-            if outputs < 1:
-                raise ValueError(f"outputs={outputs} must be > 0.")
+            assert outputs > 0, f"outputs={outputs} must be > 0."
             lower = op_type.lower()
             output_names = [
                 self.unique_name(f"_onx_{lower}{i}") for i in range(outputs)
@@ -414,11 +414,10 @@ class GraphBuilder:
         # constant handling, shape, type
         if node.op_type == "Constant":
             size = len(node.SerializeToString())
-            if size >= self.optimization_options.constant_size:
-                raise ValueError(
-                    f"A node Constant holds a tensor bigger than "
-                    f"the constant: {size} >= {self.constant_size}."
-                )
+            assert size < self.optimization_options.constant_size, (
+                f"A node Constant holds a tensor bigger than "
+                f"the constant: {size} >= {self.constant_size}."
+            )
             k = node.output[0]
             self.constants_[k] = node
             shape = self._get_tensor_shape(node)
@@ -525,48 +524,55 @@ class GraphBuilder:
         return output_names
 
     def from_array(self, arr: T, name: str = None) -> TensorProto:  # noqa: F821
-        import sys
-        import torch
+        if isinstance(arr, np.ndarray):
+            return self.from_np_array(arr, name)
+        raise NotImplementedError(
+            f"{type(arr)} is not supported yet but initializer {name or ''!r} is."
+        )
 
-        if not isinstance(arr, torch.Tensor):
-            raise TypeError(f"Unexpected type {type(arr)}.")
-        if arr.is_sparse:
-            raise NotImplementedError(
-                f"Sparse tensor is not supported yet but initializer {name!r} is."
-            )
-
-        arr_cont = arr.contiguous() if not arr.is_contiguous() else arr
-        arr_cpu = arr_cont.cpu()
-        if arr_cpu.data_ptr() == arr.data_ptr():
-            copy = arr_cpu.clone().detach().requires_grad_(False)
-            assert arr_cpu.data_ptr() != copy.data_ptr()
-            np_arr = np.from_dlpack(copy)
+    def from_np_array(self, arr: np.ndarray, name: str = None) -> TensorProto:
+        arr_cpu = np.ascontiguousarray(arr) if not arr.flags["C_CONTIGUOUS"] else arr
+        if arr_cpu.ctypes.data == arr.ctypes.data:
+            if sys.byteorder == "big":
+                arr_cpu = arr_cpu.copy()
+                np.byteswap(
+                    np.frombuffer(arr_cpu.ctypes.data, dtype=arr_cpu.dtype),
+                    inplace=True,
+                )
         else:
-            np_arr = np.from_dlpack(arr_cpu.detach())
+            if sys.byteorder == "big":
+                np.byteswap(
+                    np.frombuffer(arr_cpu.ctypes.data, dtype=arr_cpu.dtype),
+                    inplace=True,
+                )
+        # let's the tensor until the builder is released
+        # so the pointer does not disappear
+        self._cache_array.append(arr_cpu)
 
         tensor = TensorProto()
         tensor.dims.extend(arr_cpu.shape)
         tensor.name = name
         tensor.data_type = self._get_type(arr_cpu.dtype)
-
+        # this does not work...
+        # tensor.raw_data = arr_cpu.ctypes.data
+        tensor.raw_data = arr_cpu.tobytes()
         if self.verbose and np.prod(arr_cpu.shape) > 100:
-            print(f"[GraphBuilder] from_array:{tensor.data_type}[{arr_cpu.shape}]")
-
-        raw = np_arr.tobytes()
-        tensor.raw_data = raw
-
-        if sys.byteorder == "big":
-            np_dtype = oh.tensor_dtype_to_np_dtype(tensor.data_type)
-            np.byteswap(np.frombuffer(tensor.raw_data, dtype=np_dtype), inplace=True)
+            print(
+                f"[GraphBuilder] from_array:{tensor.data_type}[{arr_cpu.shape}]:"
+                f"{'swapped' if sys.byteorder == 'big' else ''}"
+            )
         return tensor
 
     def _build_initializers(self) -> List[TensorProto]:
         res = []
         for k, v in sorted(self.initializers_dict.items()):
             if isinstance(v, np.ndarray):
-                if self.verbose and np.prod(v.shape) > 100:
-                    print(f"[GraphBuilder] onh.from_array:{k}:{v.dtype}[{v.shape}]")
-                t = onh.from_array(v, name=k)
+                if np.prod(v.shape) > 100:
+                    if self.verbose:
+                        print(f"[GraphBuilder] from_array:{k}:{v.dtype}[{v.shape}]")
+                    t = self.from_array(v, name=k)
+                else:
+                    t = onh.from_array(v, name=k)
                 res.append(t)
                 continue
             raise TypeError(
@@ -613,11 +619,10 @@ class GraphBuilder:
 
     def _check_order_node(self, ind: int, node: NodeProto, existing: Set[str]):
         for i in node.input:
-            if i not in existing:
-                raise RuntimeError(
-                    f"Unknown input {i!r} from node {ind}:{node.op_type}:{node.name}. "
-                    f"Known: {existing}."
-                )
+            assert i in existing, (
+                f"Unknown input {i!r} from node {ind}:{node.op_type}:{node.name}. "
+                f"Known: {existing}."
+            )
         for att in node.attribute:
             if att.type == AttributeProto.GRAPH and att.g:
                 g_existing = existing.copy()
@@ -626,10 +631,9 @@ class GraphBuilder:
                 for ind2, node2 in enumerate(att.g.node):
                     self._check_order_node((ind, ind2), node2, g_existing)
                 for o in att.g.output:
-                    if o.name not in g_existing:
-                        raise RuntimeError(
-                            f"Unknown output {o.name!r}. Known: {g_existing}."
-                        )
+                    assert (
+                        o.name in g_existing
+                    ), f"Unknown output {o.name!r}. Known: {g_existing}."
         for o in node.output:
             existing.add(o)
 
@@ -640,8 +644,7 @@ class GraphBuilder:
         for ind, node in enumerate(self.nodes):
             self._check_order_node(ind, node, existing)
         for o in self.outputs:
-            if o.name not in existing:
-                raise RuntimeError(f"Unknown output {o.name!r}. Known: {existing}.")
+            assert o.name in existing, f"Unknown output {o.name!r}. Known: {existing}."
 
     def optimize(self, check_order: bool = False):
         if check_order:
@@ -728,8 +731,7 @@ class GraphBuilder:
                 perm = tuple(att.ints)
                 break
         assert perm, f"perm not here in node {node}"
-        assert len(perm) == 2, f"perm={perm} is not supported with torch"
-        return [np.transpose(feeds[node.input[0]], *perm)]
+        return [np.transpose(feeds[node.input[0]], perm)]
 
     def constant_folding(self):
         """
