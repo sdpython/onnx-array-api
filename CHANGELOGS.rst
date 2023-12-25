@@ -4,6 +4,7 @@ Change Logs
 0.1.3
 +++++
 
+* :pr:`57`: implements GraphBuilder
 * :pr:`49`: adds command line to export a model into code
 * :pr:`48`: support for subgraph in light API
 * :pr:`47`: extends export onnx to code to support inner API

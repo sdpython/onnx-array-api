@@ -7,6 +7,7 @@ API
     :maxdepth: 1
 
     array_api
+    graph_api
     light_api
     npx_core_api
     npx_functions

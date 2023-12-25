@@ -14,6 +14,7 @@ build/*
 *egg-info/*
 onnxruntime_profile*
 prof
+_doc/sg_execution_times.rst
 _doc/auto_examples/*
 _doc/examples/_cache/*
 _doc/examples/onnxruntime_profile*
