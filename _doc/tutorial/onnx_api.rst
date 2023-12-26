@@ -584,37 +584,31 @@ The second part modifies it.
 
     onnx.save(gs.export_onnx(graph), "modified.onnx")
 
-numpy API for onnx
-++++++++++++++++++
+Graph Builder API
++++++++++++++++++
 
-See :ref:`l-numpy-api-onnx`. This API was introduced to create graphs
-by using numpy API. If a function is defined only with numpy,
-it should be possible to use the exact same code to create the
-corresponding onnx graph. That's what this API tries to achieve.
-It works with the exception of control flow. In that case, the function
-produces different onnx graphs depending on the execution path.
+See :ref:`l-graph-api`. This API is very similar to what *skl2onnx* implements.
+It is still about adding nodes to a graph but some tasks are automated such as
+naming the results or converting constants to onnx classes.
 
 .. runpython::
     :showcode:
 
     import numpy as np
-    from onnx_array_api.npx import jit_onnx
+    from onnx_array_api.graph_api  import GraphBuilder
     from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
-    def l2_loss(x, y):
-        return ((x - y) ** 2).sum(keepdims=1)
+    g = GraphBuilder()
+    g.make_tensor_input("X", np.float32, (None, None))
+    g.make_tensor_input("Y", np.float32, (None, None))
+    r1 = g.op.Sub("X", "Y")
+    r2 = g.op.Pow(r1, np.array([2], dtype=np.int64))
+    g.op.ReduceSum(r2, outputs=["Z"])
+    g.make_tensor_output("Z", np.float32, (None, None))
+    
+    onx = g.to_onnx()
 
-    jitted_myloss = jit_onnx(l2_loss)
-    dummy = np.array([0], dtype=np.float32)
-
-    # The function is executed. Only then a onnx graph is created.
-    # One is created depending on the input type.
-    jitted_myloss(dummy, dummy)
-
-    # get_onnx only works if it was executed once or at least with
-    # the same input type
-    model = jitted_myloss.get_onnx()
-    print(onnx_simple_text_plot(model))
+    print(onnx_simple_text_plot(onx))
 
 Light API
 +++++++++
@@ -646,4 +640,36 @@ There is no eager mode.
         .to_onnx()
     )
 
+    print(onnx_simple_text_plot(model))
+
+numpy API for onnx
+++++++++++++++++++
+
+See :ref:`l-numpy-api-onnx`. This API was introduced to create graphs
+by using numpy API. If a function is defined only with numpy,
+it should be possible to use the exact same code to create the
+corresponding onnx graph. That's what this API tries to achieve.
+It works with the exception of control flow. In that case, the function
+produces different onnx graphs depending on the execution path.
+
+.. runpython::
+    :showcode:
+
+    import numpy as np
+    from onnx_array_api.npx import jit_onnx
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    def l2_loss(x, y):
+        return ((x - y) ** 2).sum(keepdims=1)
+
+    jitted_myloss = jit_onnx(l2_loss)
+    dummy = np.array([0], dtype=np.float32)
+
+    # The function is executed. Only then a onnx graph is created.
+    # One is created depending on the input type.
+    jitted_myloss(dummy, dummy)
+
+    # get_onnx only works if it was executed once or at least with
+    # the same input type
+    model = jitted_myloss.get_onnx()
     print(onnx_simple_text_plot(model))
