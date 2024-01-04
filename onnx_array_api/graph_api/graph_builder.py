@@ -213,7 +213,7 @@ class GraphBuilder:
                 f"{type(target_opset_or_existing_proto)} is not supported."
             )
 
-        self.op = Opset(self, self.opsets[""])
+        self.op = Opset(self, self.opsets[""]) if "" in self.opsets else None
         self._cache_array = []
 
     def _get_tensor_shape(
@@ -891,7 +891,10 @@ class GraphBuilder:
         op_type: Optional[str] = None,
         name: Optional[str] = None,
     ) -> NodePattern:
-        "Returns an instance of :class:`NodePattern`."
+        """
+        Returns an instance of :class:`NodePattern
+        <onnx_array_api.graph_api.graph_builder.NodePattern>`.
+        """
         return NodePattern(index=index, op_type=op_type, name=name)
 
     def update_attribute(
