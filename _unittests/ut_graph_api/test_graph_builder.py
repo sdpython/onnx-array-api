@@ -376,6 +376,64 @@ class TestGraphBuilder(ExtTestCase):
         got = ref.run(None, feeds)
         self.assertEqualArray(expected, got[0])
 
+    def test_node_pattern(self):
+        model = onnx.parser.parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(x, four)
+            }"""
+        )
+        gr = GraphBuilder(model)
+        p = gr.np(index=0)
+        r = repr(p)
+        self.assertEqual("NodePattern(index=0, op_type=None, name=None)", r)
+
+    def test_update_node_attribute(self):
+        model = onnx.parser.parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(x, four)
+            }"""
+        )
+        gr = GraphBuilder(model)
+        self.assertEqual(len(gr.nodes), 3)
+        m = gr.update_attribute(gr.np(op_type="Constant"), value_float=float(1))
+        self.assertEqual(m, 1)
+        self.assertEqual(len(gr.nodes), 3)
+        onx = gr.to_onnx()
+        self.assertEqual(len(onx.graph.node), 3)
+        node = onx.graph.node[0]
+        self.assertIn("f: 1", str(node))
+
+    def test_delete_node_attribute(self):
+        model = onnx.parser.parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(x, four)
+            }"""
+        )
+        gr = GraphBuilder(model)
+        self.assertEqual(len(gr.nodes), 3)
+        m = gr.update_attribute(
+            gr.np(op_type="Constant"), value_float=gr.DELETE, value_int=1
+        )
+        self.assertEqual(m, 1)
+        self.assertEqual(len(gr.nodes), 3)
+        onx = gr.to_onnx()
+        self.assertEqual(len(onx.graph.node), 3)
+        node = onx.graph.node[0]
+        self.assertNotIn('name: "value_float"', str(node))
+        self.assertIn("i: 1", str(node))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
