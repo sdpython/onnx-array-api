@@ -1,6 +1,6 @@
 import sys
 from functools import partial
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 from onnx.defs import onnx_opset_version
 import onnx.helper as oh
@@ -28,6 +28,51 @@ class OptimizationOptions:
         self.remove_unused = remove_unused
         self.constant_folding = constant_folding
         self.constant_size = constant_size
+
+
+class NodePattern:
+    """
+    Class defining a matching pattern able to find nodes in a set of nodes.
+    """
+
+    def __init__(
+        self,
+        index: Optional[int] = None,
+        op_type: Optional[str] = None,
+        name: Optional[None] = None,
+    ):
+        self.index = index
+        self.op_type = op_type
+        self.name = name
+
+    def __repr__(self):
+        "usual"
+        args = ["index", "op_type", "name"]
+        sargs = []
+        for a in args:
+            if a:
+                sargs.append(f"{a}={getattr(self, a)!r}")
+        return f"{self.__class__.__name__}({', '.join(sargs)})"
+
+    def find(self, graph: "GraphBuilder") -> Iterator:
+        """
+        Iterates on nodes matching the pattern.
+        """
+        for index, node in enumerate(graph.nodes):
+            if self.match(index, node):
+                yield node
+
+    def match(self, index, node: NodeProto) -> bool:
+        """
+        Tells if a node is matching this pattern.
+        """
+        if self.index is not None and self.index != index:
+            return False
+        if self.op_type is not None and self.op_type != node.op_type:
+            return False
+        if self.name is not None and self.name != node.name:
+            return False
+        return True
 
 
 class Opset:
@@ -749,7 +794,6 @@ class GraphBuilder:
         Folds all constants. Constants are marked during the creation of the graph.
         There is no need to propagate this information.
         """
-
         updates = {}
         node_to_remove = set()
         for k, v in self.constants_.items():
@@ -840,3 +884,71 @@ class GraphBuilder:
                 self.nodes.append(new_node)
             else:
                 self.nodes.append(node)
+
+    def np(
+        self,
+        index: Optional[int] = None,
+        op_type: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> NodePattern:
+        "Returns an instance of :class:`NodePattern`."
+        return NodePattern(index=index, op_type=op_type, name=name)
+
+    def update_attribute(
+        self,
+        pat: NodePattern,
+        recursive: bool = False,
+        **kwargs: Dict[str, Any],
+    ) -> int:
+        """
+        Udates attributes for nodes matching the
+
+        :param pat: returned by method :meth:`GraphBuilder.np`
+        :param recursive: walk through subgraph
+        :param kwargs: attributes to modify
+        :return: number of modified nodes
+        """
+        assert not recursive, "recursive=True is not implemented."
+        modified = 0
+        for node in pat.find(self):
+            up = self.update_node(node, **kwargs)
+            if up:
+                modified += 1
+        return modified
+
+    DELETE = object()
+
+    def update_node(self, node: NodeProto, **kwargs) -> bool:
+        """
+        Updates attributes of a node proto.
+        Returns True if the node was updated.
+        """
+        processed = set()
+        modified = True
+        atts = []
+        for att in node.attribute:
+            if att.name in kwargs:
+                processed.add(att.name)
+                if kwargs[att.name] is GraphBuilder.DELETE:
+                    continue
+                new_att = oh.make_attribute(att.name, kwargs[att.name])
+                assert new_att.type == att.type, (
+                    f"Mismatch value for attribute {att.name!r} has type "
+                    f"{att.type} but the new value leads to "
+                    f"type={new_att.type}."
+                )
+                atts.append(new_att)
+                modified = True
+                continue
+            atts.append(att)
+        for k, v in kwargs.items():
+            if k in processed or v is GraphBuilder.DELETE:
+                continue
+            modified = True
+            new_att = oh.make_attribute(k, v)
+            atts.append(new_att)
+
+        if modified:
+            del node.attribute[:]
+            node.attribute.extend(atts)
+        return modified

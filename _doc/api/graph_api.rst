@@ -9,6 +9,12 @@ GraphBuilder
 .. autoclass:: onnx_array_api.graph_api.GraphBuilder
     :members:
 
+NodePattern
+===========
+
+.. autoclass:: onnx_array_api.graph_api.NodePattern
+    :members:
+
 OptimizationOptions
 ===================
 
