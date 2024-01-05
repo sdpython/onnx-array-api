@@ -220,5 +220,4 @@ class TestTranslate(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestTranslate().test_export_if()
     unittest.main(verbosity=2)

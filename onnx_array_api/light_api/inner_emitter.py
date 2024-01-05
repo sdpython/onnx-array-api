@@ -140,3 +140,44 @@ class InnerEmitter(BaseEmitter):
         lines[-1] = lines[-1][:-1]
         lines.extend(["    )", ")"])
         return before_lines + lines
+
+    def _emit_begin_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = [
+            "",
+            f"name_f = {kwargs['name']!r}",
+            f"domain_f = {kwargs['domain']!r}",
+            "nodes = []",
+            "inputs = []",
+            "outputs = []",
+            "atts = []",
+        ]
+        return lines
+
+    def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return [f"inputs.append({kwargs['name']!r})"]
+
+    def _emit_function_output(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return [f"outputs.append({kwargs['name']!r})"]
+
+    def _emit_function_attributes(self, **kwargs: Dict[str, Any]) -> List[str]:
+        atts = kwargs["attributes"]
+        if isinstance(atts, list) and all(map(lambda t: isinstance(t, str), atts)):
+            return [f"atts.extend({atts!r})"]
+        raise NotImplementedError(f"Unable to process function attributes {atts!r}.")
+
+    def _emit_end_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        lines = [
+            "functions.append(",
+            "    make_function(",
+            "        domain, ",
+            "        name, ",
+            "        inputs, ",
+            "        outputs, ",
+            "        nodes, ",
+            "        attributes=atts, ",
+            "        opset_imports=opset_imports,",
+            "   )",
+            ")",
+        ]
+        return lines
+

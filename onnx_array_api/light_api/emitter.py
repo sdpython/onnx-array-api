@@ -18,6 +18,9 @@ class EventType(IntEnum):
     END_FUNCTION = 8
     INITIALIZER = 9
     SPARSE_INITIALIZER = 10
+    FUNCTION_INPUT = 11
+    FUNCTION_OUTPUT = 12
+    FUNCTION_ATTRIBUTES = 13
 
     @classmethod
     def to_str(cls, self) -> str:
@@ -63,6 +66,21 @@ class BaseEmitter:
         if event == EventType.END_GRAPH:
             return self._emit_end_graph(**kwargs)
 
+        if event == EventType.BEGIN_FUNCTION:
+            return self._emit_begin_function(**kwargs)
+
+        if event == EventType.END_FUNCTION:
+            return self._emit_end_function(**kwargs)
+
+        if event == EventType.FUNCTION_INPUT:
+            return self._emit_function_input(**kwargs)
+
+        if event == EventType.FUNCTION_OUTPUT:
+            return self._emit_function_output(**kwargs)
+
+        if event == EventType.FUNCTION_ATTRIBUTES:
+            return self._emit_function_attributes(**kwargs)
+
         raise ValueError(f"Unexpected event {EventType.to_str(event)}.")
 
     def render_attribute_value(self, value: Any) -> Tuple[List[str], str]:
@@ -104,11 +122,21 @@ class BaseEmitter:
             srows = ".".join(rows[:-1])
             return [], f"g().{srows}"
 
+        if isinstance(value, tuple) and len(value) == 2 and value[1] is None:
+            # in a function, an attribute receiving a value from an attribute
+            v = value[0]
+            name = v.name
+            ref = v.ref_attr_name
+            dt = v.type
+            return [], f"(name={name!r}, ref_attr_name={ref!r}, dt={dt})"
+            
+
         raise ValueError(
             f"Unable to render an attribute {type(v)}, "
             f"attribute type={value[0].type}, "
             f"dtype={getattr(v, 'dtype', '-')}, "
-            f"shape={getattr(v, 'shape', '-')}, {value}."
+            f"shape={getattr(v, 'shape', '-')}, type(value)={type(value)}, "
+            f"value={value!r}."
         )
 
     def join(self, rows: List[str], single_line: bool = False) -> str:
@@ -157,6 +185,26 @@ class BaseEmitter:
         )
 
     def _emit_sparse_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
+
+    def _emit_begin_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
+
+    def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
+
+    def _emit_function_output(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
+
+    def _emit_function_attributes(self, **kwargs: Dict[str, Any]) -> List[str]:
         raise NotImplementedError(
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )

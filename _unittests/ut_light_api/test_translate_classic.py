@@ -264,7 +264,6 @@ class TestTranslateClassic(ExtTestCase):
             .to_onnx()
         )
         code = translate(onx, api="onnx")
-        print(code)
         expected = dedent(
             """
             opset_imports = [
@@ -317,6 +316,15 @@ class TestTranslateClassic(ExtTestCase):
         ).strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
+
+    def test_remove_nodes(self):
+        path = os.path.join(
+            os.path.dirname(__file__), "_data", "custom_ops_type_inference_fails_0.onnx"
+        )
+        onx = load(path)
+        text = translate(onx, api="onnx")
+        with open("debug_test_remove_nodes.py", "w") as f:
+            f.write(text)
 
 
 if __name__ == "__main__":

@@ -38,6 +38,7 @@ class Translater:
             nodes = self.proto_.graph.node
             initializers = self.proto_.graph.initializer
             sparse_initializers = self.proto_.graph.sparse_initializer
+            attributes = []
         elif isinstance(self.proto_, (FunctionProto, GraphProto)):
             inputs = self.proto_.input
             outputs = self.proto_.output
@@ -48,19 +49,19 @@ class Translater:
             else:
                 initializers = []
                 sparse_initializers = []
+            attributes = (
+                self.proto_.attribute if hasattr(self.proto_, "attribute") else []
+            )
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
         if sparse_initializers:
             raise NotImplementedError("Sparse initializer not supported yet.")
 
-        rows.extend(
-            self.emitter(
-                EventType.BEGIN_FUNCTION
-                if isinstance(self.proto_, FunctionProto)
-                else EventType.BEGIN_GRAPH
-            )
-        )
+        if isinstance(self.proto_, FunctionProto):
+            rows.extend(self.emitter(EventType.BEGIN_FUNCTION, name=self.proto_.name, domain=self.proto_.domain))
+        else:
+            rows.extend(self.emitter(EventType.BEGIN_GRAPH))
 
         for i in initializers:
             rows.extend(
@@ -71,7 +72,7 @@ class Translater:
 
         for i in inputs:
             if isinstance(i, str):
-                rows.extend(self.emitter(EventType.INPUT, name=i))
+                rows.extend(self.emitter(EventType.FUNCTION_INPUT, name=i))
             else:
                 rows.extend(
                     self.emitter(
@@ -84,6 +85,11 @@ class Translater:
                         ),
                     )
                 )
+
+        if attributes:
+            rows.extend(
+                self.emitter(EventType.FUNCTION_ATTRIBUTES, attributes=list(attributes))
+            )
 
         for node in nodes:
             atts = self.extract_attributes(node)
@@ -100,7 +106,7 @@ class Translater:
 
         for o in outputs:
             if isinstance(o, str):
-                rows.extend(self.emitter(EventType.INPUT, name=o))
+                rows.extend(self.emitter(EventType.FUNCTION_OUTPUT, name=o))
             else:
                 rows.extend(
                     self.emitter(
@@ -127,7 +133,11 @@ class Translater:
         )
 
         if isinstance(self.proto_, ModelProto) and len(self.proto_.functions) > 0:
-            raise NotImplementedError("Local functions are not yet implemented.")
+            for fu in self.proto_.functions:
+                
+                cl = self.__class__(fu, self.emitter)
+                text = cl.export(False, single_line=False)
+                rows.extend(text)
 
         rows.extend(self.emitter(EventType.TO_ONNX))
         if as_str:
