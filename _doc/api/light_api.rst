@@ -93,7 +93,7 @@ InnerEmitter
 LightEmitter
 ++++++++++++
 
-.. autoclass:: onnx_array_api.light_api.emitter.LightEmitter
+.. autoclass:: onnx_array_api.light_api.light_emitter.LightEmitter
     :members:
 
 Translater
