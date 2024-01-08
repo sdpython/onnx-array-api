@@ -1,3 +1,4 @@
+import sys
 import unittest
 from typing import Any, Dict, List, Optional
 from difflib import unified_diff
@@ -25,6 +26,8 @@ from onnx_array_api.light_api.make_helper import make_node_extended
 from onnx_array_api.light_api import translate
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
+verbosity = 10 if "-v" in sys.argv or "--verbose" in sys.argv else 0
+
 
 class ReferenceImplementationError(RuntimeError):
     "Fails, export cannot be compared."
@@ -36,7 +39,7 @@ class ExportWrapper:
 
     def __init__(self, model):
         self.model = model
-        self.expected_sess = ExtendedReferenceEvaluator(self.model)
+        self.expected_sess = ExtendedReferenceEvaluator(self.model, verbose=verbosity)
 
     @property
     def input_names(self):
@@ -109,7 +112,7 @@ class ExportWrapper:
                     f"Unable to executed code for api {api!r}\n{new_code}"
                 ) from e
             export_model = locs["model"]
-            ref = ExtendedReferenceEvaluator(export_model)
+            ref = ExtendedReferenceEvaluator(export_model, verbose=verbosity)
             try:
                 got = ref.run(names, feeds)
             except (TypeError, AttributeError) as e:

@@ -34,19 +34,15 @@ def make_node_extended(
     """
     Constructs a NodeProto.
 
-    Args:
-        op_type: The name of the operator to construct
-        inputs: list of input names
-        outputs: list of output names
-        name: optional unique identifier for NodeProto
-        doc_string: optional documentation string for NodeProto
-        domain: optional domain for NodeProto.
-            If it's None, we will just use default domain (which is empty)
-        **kwargs (dict): the attributes of the node.  The acceptable values
-            are documented in :func:`make_attribute`.
-
-    Returns:
-        NodeProto
+    :param op_type: The name of the operator to construct
+    :param inputs: list of input names
+    :param outputs: list of output names
+    :param name: optional unique identifier for NodeProto
+    :param doc_string: optional documentation string for NodeProto
+    :param domain: optional domain for NodeProto.
+        If it's None, we will just use default domain (which is empty)
+    :param kwargs: the attributes of the node.
+    :return: node proto
     """
     node = NodeProto()
     node.op_type = op_type
