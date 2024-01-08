@@ -1,9 +1,8 @@
 import inspect
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from enum import IntEnum
 import numpy as np
 from onnx import AttributeProto
-from .annotations import ELEMENT_TYPE_NAME
 
 
 class EventType(IntEnum):
@@ -11,13 +10,17 @@ class EventType(IntEnum):
     INPUT = 1
     OUTPUT = 2
     NODE = 3
-    TO_ONNX = 4
+    TO_ONNX_MODEL = 4
     BEGIN_GRAPH = 5
     END_GRAPH = 6
     BEGIN_FUNCTION = 7
     END_FUNCTION = 8
     INITIALIZER = 9
     SPARSE_INITIALIZER = 10
+    FUNCTION_INPUT = 11
+    FUNCTION_OUTPUT = 12
+    FUNCTION_ATTRIBUTES = 13
+    TO_ONNX_FUNCTION = 14
 
     @classmethod
     def to_str(cls, self) -> str:
@@ -54,14 +57,32 @@ class BaseEmitter:
         if event == EventType.START:
             return self._emit_start(**kwargs)
 
-        if event == EventType.TO_ONNX:
-            return self._emit_to_onnx(**kwargs)
+        if event == EventType.TO_ONNX_MODEL:
+            return self._emit_to_onnx_model(**kwargs)
+
+        if event == EventType.TO_ONNX_FUNCTION:
+            return self._emit_to_onnx_function(**kwargs)
 
         if event == EventType.BEGIN_GRAPH:
             return self._emit_begin_graph(**kwargs)
 
         if event == EventType.END_GRAPH:
             return self._emit_end_graph(**kwargs)
+
+        if event == EventType.BEGIN_FUNCTION:
+            return self._emit_begin_function(**kwargs)
+
+        if event == EventType.END_FUNCTION:
+            return self._emit_end_function(**kwargs)
+
+        if event == EventType.FUNCTION_INPUT:
+            return self._emit_function_input(**kwargs)
+
+        if event == EventType.FUNCTION_OUTPUT:
+            return self._emit_function_output(**kwargs)
+
+        if event == EventType.FUNCTION_ATTRIBUTES:
+            return self._emit_function_attributes(**kwargs)
 
         raise ValueError(f"Unexpected event {EventType.to_str(event)}.")
 
@@ -104,11 +125,27 @@ class BaseEmitter:
             srows = ".".join(rows[:-1])
             return [], f"g().{srows}"
 
+        if isinstance(value, tuple) and len(value) == 2 and value[1] is None:
+            # in a function, an attribute receiving a value from an attribute
+            v = value[0]
+            name = v.name
+            ref = v.ref_attr_name
+            dt = v.type
+            return [], self._make_attribute(name=name, ref_attr_name=ref, attr_type=dt)
+
         raise ValueError(
             f"Unable to render an attribute {type(v)}, "
             f"attribute type={value[0].type}, "
             f"dtype={getattr(v, 'dtype', '-')}, "
-            f"shape={getattr(v, 'shape', '-')}, {value}."
+            f"shape={getattr(v, 'shape', '-')}, type(value)={type(value)}, "
+            f"value={value!r}."
+        )
+
+    def _make_attribute(
+        self, name: str, attr_type: int, ref_attr_name: Optional[str] = None
+    ) -> str:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
 
     def join(self, rows: List[str], single_line: bool = False) -> str:
@@ -121,7 +158,12 @@ class BaseEmitter:
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
 
-    def _emit_to_onnx(self, **kwargs: Dict[str, Any]) -> List[str]:
+    def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
+
+    def _emit_to_onnx_function(self, **kwargs: Dict[str, Any]) -> List[str]:
         raise NotImplementedError(
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
@@ -161,100 +203,22 @@ class BaseEmitter:
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
 
+    def _emit_begin_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
 
-class Emitter(BaseEmitter):
-    """
-    Converts event into proper code.
-    """
+    def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
 
-    def join(self, rows: List[str], single_line: bool = False) -> str:
-        "Join the rows"
-        if single_line:
-            return ".".join(rows)
-        return "".join(["(\n    ", "\n    .".join(rows), "\n)"])
+    def _emit_function_output(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )
 
-    def _emit_start(self, **kwargs: Dict[str, Any]) -> List[str]:
-        opsets = kwargs.get("opsets", {})
-        opset = opsets.get("", None)
-        if opset is not None:
-            del opsets[""]
-        args = []
-        if opset:
-            args.append(f"opset={opset}")
-        if opsets:
-            args.append(f"opsets={opsets}")
-        return [f"start({', '.join(args)})"]
-
-    def _emit_to_onnx(self, **kwargs: Dict[str, Any]) -> List[str]:
-        return ["to_onnx()"]
-
-    def _emit_begin_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
-        return []
-
-    def _emit_end_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
-        return []
-
-    def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
-        name = kwargs["name"]
-        value = kwargs["value"]
-        repl = {"bool": "bool_", "object": "object_", "str": "str_"}
-        sdtype = repl.get(str(value.dtype), str(str(value.dtype)))
-        return [
-            f"cst(np.array({value.tolist()}, dtype=np.{sdtype}))",
-            f"rename({name!r})",
-        ]
-
-    def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
-        name = kwargs["name"]
-        elem_type = kwargs.get("elem_type", None)
-        shape = kwargs.get("shape", None)
-        if elem_type and shape:
-            return [
-                f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r})"
-            ]
-        if elem_type:
-            return [
-                f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})"
-            ]
-        return [f"vin({name!r})"]
-
-    def _emit_output(self, **kwargs: Dict[str, Any]) -> List[str]:
-        inst = []
-        if "name" in kwargs:
-            name = kwargs["name"]
-            inst.append(f"bring({name!r})")
-        elem_type = kwargs.get("elem_type", None)
-        shape = kwargs.get("shape", None)
-        if elem_type and shape:
-            inst.append(
-                f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r})"
-            )
-        elif elem_type:
-            inst.append(f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})")
-        else:
-            inst.append("vout()")
-        return inst
-
-    def _emit_node(self, **kwargs: Dict[str, Any]) -> List[str]:
-        op_type = kwargs["op_type"]
-        inputs = kwargs["inputs"]
-        outputs = kwargs["outputs"]
-        if kwargs.get("domain", "") != "":
-            domain = kwargs["domain"]
-            op_type = f"{domain}.{op_type}"
-        atts = kwargs.get("atts", {})
-        args = []
-        for k, v in atts.items():
-            before, vatt = self.render_attribute_value(v)
-            if before:
-                raise NotImplementedError("Graph attribute not supported yet.")
-            args.append(f"{k}={vatt}")
-
-        str_inputs = ", ".join([f"{i!r}" for i in inputs])
-        inst = [f"bring({str_inputs})", f"{op_type}({', '.join(args)})"]
-        if len(outputs) == 1:
-            inst.append(f"rename({outputs[0]!r})")
-        else:
-            str_outputs = ", ".join([f"{o!r}" for o in outputs])
-            inst.append(f"rename({str_outputs})")
-        return inst
+    def _emit_function_attributes(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError(
+            f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
+        )

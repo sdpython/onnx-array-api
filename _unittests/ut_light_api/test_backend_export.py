@@ -1,3 +1,4 @@
+import sys
 import unittest
 from typing import Any, Dict, List, Optional
 from difflib import unified_diff
@@ -17,11 +18,15 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
+from onnx.reference.op_run import to_array_extended
 from onnx.numpy_helper import from_array, to_array
 from onnx.backend.base import Device, DeviceType
 from onnx_array_api.reference import ExtendedReferenceEvaluator
+from onnx_array_api.light_api.make_helper import make_node_extended
 from onnx_array_api.light_api import translate
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+verbosity = 10 if "-v" in sys.argv or "--verbose" in sys.argv else 0
 
 
 class ReferenceImplementationError(RuntimeError):
@@ -34,7 +39,7 @@ class ExportWrapper:
 
     def __init__(self, model):
         self.model = model
-        self.expected_sess = ExtendedReferenceEvaluator(self.model)
+        self.expected_sess = ExtendedReferenceEvaluator(self.model, verbose=verbosity)
 
     @property
     def input_names(self):
@@ -85,6 +90,7 @@ class ExportWrapper:
             locs = {
                 "np": numpy,
                 "to_array": to_array,
+                "to_array_extended": to_array_extended,
                 "from_array": from_array,
                 "TensorProto": TensorProto,
                 "make_function": make_function,
@@ -92,6 +98,7 @@ class ExportWrapper:
                 "make_model": make_model,
                 "make_graph": make_graph,
                 "make_node": make_node,
+                "make_node_extended": make_node_extended,
                 "make_tensor_value_info": make_tensor_value_info,
             }
             globs = locs.copy()
@@ -105,7 +112,7 @@ class ExportWrapper:
                     f"Unable to executed code for api {api!r}\n{new_code}"
                 ) from e
             export_model = locs["model"]
-            ref = ExtendedReferenceEvaluator(export_model)
+            ref = ExtendedReferenceEvaluator(export_model, verbose=verbosity)
             try:
                 got = ref.run(names, feeds)
             except (TypeError, AttributeError) as e:

@@ -5,6 +5,7 @@ import numpy as np
 from onnx import ModelProto, TensorProto, load
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
+from onnx.reference.op_run import OpRun
 from onnx.helper import (
     make_tensor_value_info,
     make_node,
@@ -68,7 +69,7 @@ class TestTranslateClassic(ExtTestCase):
         functions = []
         inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
         nodes.append(
-            make_node(
+            make_node_extended(
                 'Exp',
                 ['X'],
                 ['Y']
@@ -144,14 +145,14 @@ class TestTranslateClassic(ExtTestCase):
             )
             inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
-                make_node(
+                make_node_extended(
                     'Reshape',
                     ['X', 'r'],
                     ['r0_0']
                 )
             )
             nodes.append(
-                make_node(
+                make_node_extended(
                     'Transpose',
                     ['r0_0'],
                     ['Y'],
@@ -210,7 +211,7 @@ class TestTranslateClassic(ExtTestCase):
             inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             inputs.append(make_tensor_value_info('K', TensorProto.INT64, shape=[]))
             nodes.append(
-                make_node(
+                make_node_extended(
                     'TopK',
                     ['X', 'K'],
                     ['Values', 'Indices'],
@@ -264,7 +265,6 @@ class TestTranslateClassic(ExtTestCase):
             .to_onnx()
         )
         code = translate(onx, api="onnx")
-        print(code)
         expected = dedent(
             """
             opset_imports = [
@@ -285,14 +285,14 @@ class TestTranslateClassic(ExtTestCase):
             )
             inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
-                make_node(
+                make_node_extended(
                     'Reshape',
                     ['X', 'r'],
                     ['USE']
                 )
             )
             nodes.append(
-                make_node(
+                make_node_extended(
                     'Normalizer',
                     ['USE'],
                     ['Y'],
@@ -318,7 +318,115 @@ class TestTranslateClassic(ExtTestCase):
         self.maxDiff = None
         self.assertEqual(expected, code)
 
+    @classmethod
+    def _code_line(cls, code):
+        lines = code.split("\n")
+        return "\n".join(f"{i+1:03d} {line}" for i, line in enumerate(lines))
+
+    @classmethod
+    def _run(cls, code):
+        try:
+            code_compiled = compile(code, "<string>", mode="exec")
+        except Exception as e:
+            raise AssertionError(
+                f"Compilation failed due to {e}\n---\n{cls._code_line(code)}\n---\n{e}"
+            ) from e
+
+        import onnx
+        import onnx.helper
+        import onnx.numpy_helper
+        import onnx_array_api.light_api.make_helper
+        import onnx.reference.custom_element_types
+
+        def from_array_extended(tensor, name=None):
+            dt = tensor.dtype
+            if (
+                dt == onnx.reference.custom_element_types.float8e4m3fn
+                and dt.descr[0][0] == "e4m3fn"
+            ):
+                to = TensorProto.FLOAT8E4M3FN
+                dt_to = np.uint8
+            elif (
+                dt == onnx.reference.custom_element_types.bfloat16
+                and dt.descr[0][0] == "bfloat16"
+            ):
+                to = TensorProto.BFLOAT16
+                dt_to = np.uint16
+            else:
+                return onnx.numpy_helper.from_array(tensor, name)
+
+            t = onnx.numpy_helper.from_array(tensor.astype(dt_to), name)
+            t.data_type = to
+            return t
+
+        globs = onnx.__dict__.copy()
+        globs.update(onnx.helper.__dict__)
+        globs.update(onnx.numpy_helper.__dict__)
+        globs.update(onnx_array_api.light_api.make_helper.__dict__)
+        globs.update(onnx.reference.custom_element_types.__dict__)
+        globs["from_array_extended"] = from_array_extended
+        locs = {}
+        try:
+            exec(code_compiled, globs, locs)
+        except Exception as e:
+            raise AssertionError(
+                f"Execution failed due to {e}\n---\n{cls._code_line(code)}\n---\n{e}"
+            ) from e
+        return globs, locs
+
+    def test_remove_nodes(self):
+        path = os.path.join(
+            os.path.dirname(__file__), "_data", "custom_ops_type_inference_fails_0.onnx"
+        )
+        onx = load(path)
+        code = translate(onx, api="onnx")
+        _, locs = self._run(code)
+        self.assertIn("model", locs)
+        model = locs["model"]
+        x = np.arange(4).reshape((-1, 2)).astype(np.float32)
+        feeds = {"X": x}
+
+        class CustomGemmFloat8E4M3FN(OpRun):
+            op_domain = "onnx_extented.ortops.tutorial.cpu"
+
+            def _run(
+                self,
+                x,
+                y,
+                bias=None,
+                scale_x=None,
+                scale_y=None,
+                scale_z=None,
+                transA=False,
+                transB=False,
+                dtype=None,
+                rowMajor=None,
+                computeType=None,
+            ):
+                if scale_x is not None:
+                    x = x * scale_x
+                if transA:
+                    x = x.T
+                if scale_y is not None:
+                    y = y * scale_y
+                if transB:
+                    y = y.T
+                z = x @ y
+                if bias is not None:
+                    z += bias
+                if scale_z is not None:
+                    z = z / scale_z
+                return (z,)
+
+        ref = ReferenceEvaluator(onx, new_ops=[CustomGemmFloat8E4M3FN])
+        expected = ref.run(None, feeds)[0]
+        ref2 = ReferenceEvaluator(model, new_ops=[CustomGemmFloat8E4M3FN])
+        got = ref2.run(None, feeds)[0]
+        self.assertEqualArray(expected, got)
+
+        # with open("debug_test_remove_nodes.py", "w") as f:
+        #     f.write(code)
+
 
 if __name__ == "__main__":
-    # TestLightApi().test_topk()
     unittest.main(verbosity=2)

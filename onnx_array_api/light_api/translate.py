@@ -2,7 +2,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProto
 from onnx.numpy_helper import to_array
-from .emitter import EventType, Emitter
+from ..reference import to_array_extended
+from .base_emitter import EventType
+from .light_emitter import LightEmitter
 
 
 class Translater:
@@ -13,10 +15,10 @@ class Translater:
     def __init__(
         self,
         proto: Union[ModelProto, FunctionProto, GraphProto],
-        emitter: Optional[Emitter] = None,
+        emitter: Optional[LightEmitter] = None,
     ):
         self.proto_ = proto
-        self.emitter = emitter or Emitter()
+        self.emitter = emitter or LightEmitter()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(<{type(self.proto_)})"
@@ -30,6 +32,7 @@ class Translater:
         :return: list of instructions
         """
         rows = []
+        last_event = None
         if isinstance(self.proto_, ModelProto):
             opsets = {d.domain: d.version for d in self.proto_.opset_import}
             rows.extend(self.emitter(EventType.START, opsets=opsets))
@@ -38,6 +41,9 @@ class Translater:
             nodes = self.proto_.graph.node
             initializers = self.proto_.graph.initializer
             sparse_initializers = self.proto_.graph.sparse_initializer
+            attributes = []
+            last_event = EventType.TO_ONNX_MODEL
+            is_function = False
         elif isinstance(self.proto_, (FunctionProto, GraphProto)):
             inputs = self.proto_.input
             outputs = self.proto_.output
@@ -48,30 +54,43 @@ class Translater:
             else:
                 initializers = []
                 sparse_initializers = []
+            attributes = (
+                self.proto_.attribute if hasattr(self.proto_, "attribute") else []
+            )
+            is_function = isinstance(self.proto_, FunctionProto)
+            last_event = (
+                EventType.TO_ONNX_FUNCTION if is_function else EventType.TO_ONNX_MODEL
+            )
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
         if sparse_initializers:
             raise NotImplementedError("Sparse initializer not supported yet.")
 
-        rows.extend(
-            self.emitter(
-                EventType.BEGIN_FUNCTION
-                if isinstance(self.proto_, FunctionProto)
-                else EventType.BEGIN_GRAPH
+        if is_function:
+            rows.extend(
+                self.emitter(
+                    EventType.BEGIN_FUNCTION,
+                    name=self.proto_.name,
+                    domain=self.proto_.domain,
+                )
             )
-        )
+        else:
+            rows.extend(self.emitter(EventType.BEGIN_GRAPH))
 
         for i in initializers:
             rows.extend(
                 self.emitter(
-                    EventType.INITIALIZER, name=i.name, init=i, value=to_array(i)
+                    EventType.INITIALIZER,
+                    name=i.name,
+                    init=i,
+                    value=to_array_extended(i),
                 )
             )
 
         for i in inputs:
-            if isinstance(i, str):
-                rows.extend(self.emitter(EventType.INPUT, name=i))
+            if is_function:
+                rows.extend(self.emitter(EventType.FUNCTION_INPUT, name=i))
             else:
                 rows.extend(
                     self.emitter(
@@ -84,6 +103,11 @@ class Translater:
                         ),
                     )
                 )
+
+        if is_function and attributes:
+            rows.extend(
+                self.emitter(EventType.FUNCTION_ATTRIBUTES, attributes=list(attributes))
+            )
 
         for node in nodes:
             atts = self.extract_attributes(node)
@@ -99,8 +123,8 @@ class Translater:
             )
 
         for o in outputs:
-            if isinstance(o, str):
-                rows.extend(self.emitter(EventType.INPUT, name=o))
+            if is_function:
+                rows.extend(self.emitter(EventType.FUNCTION_OUTPUT, name=o))
             else:
                 rows.extend(
                     self.emitter(
@@ -117,19 +141,21 @@ class Translater:
             name = self.proto_.name
         else:
             name = self.proto_.graph.name
+
         rows.extend(
             self.emitter(
-                EventType.END_FUNCTION
-                if isinstance(self.proto_, FunctionProto)
-                else EventType.END_GRAPH,
+                EventType.END_FUNCTION if is_function else EventType.END_GRAPH,
                 name=name,
             )
         )
 
         if isinstance(self.proto_, ModelProto) and len(self.proto_.functions) > 0:
-            raise NotImplementedError("Local functions are not yet implemented.")
+            for fu in self.proto_.functions:
+                cl = self.__class__(fu, self.emitter)
+                text = cl.export(False, single_line=False)
+                rows.extend(text)
 
-        rows.extend(self.emitter(EventType.TO_ONNX))
+        rows.extend(self.emitter(last_event))
         if as_str:
             return self.emitter.join(rows, single_line=single_line)
         return rows

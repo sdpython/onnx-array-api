@@ -67,7 +67,7 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
     :param single_line: as a single line or not
     :param api: API to export into,
         default is `"light"` and this is handle by class
-        :class:`onnx_array_api.light_api.emitter.Emitter`,
+        :class:`onnx_array_api.light_api.light_emitter.LightEmitter`,
         another value is `"onnx"` which is the inner API implemented
         in onnx package.
     :return: code

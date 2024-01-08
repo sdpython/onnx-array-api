@@ -16,6 +16,13 @@ translate
 
 .. autofunction:: onnx_array_api.light_api.translate
 
+make_helper
++++++++++++
+
+.. autofunction:: onnx_array_api.light_api.make_helper.make_node_extended
+
+.. autofunction:: onnx_array_api.light_api.make_helper.make_ref_attribute
+
 Classes for the Light API
 =========================
 
@@ -68,25 +75,25 @@ Classes for the Translater
 BaseEmitter
 +++++++++++
 
-.. autoclass:: onnx_array_api.light_api.emitter.BaseEmitter
-    :members:
-
-Emitter
-+++++++
-
-.. autoclass:: onnx_array_api.light_api.emitter.Emitter
+.. autoclass:: onnx_array_api.light_api.base_emitter.BaseEmitter
     :members:
 
 EventType
 +++++++++
 
-.. autoclass:: onnx_array_api.light_api.translate.EventType
+.. autoclass:: onnx_array_api.light_api.base_emitter.EventType
     :members:
 
 InnerEmitter
 ++++++++++++
 
 .. autoclass:: onnx_array_api.light_api.inner_emitter.InnerEmitter
+    :members:
+
+LightEmitter
+++++++++++++
+
+.. autoclass:: onnx_array_api.light_api.light_emitter.LightEmitter
     :members:
 
 Translater
