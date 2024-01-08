@@ -17,9 +17,11 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
+from onnx.reference.op_run import to_array_extended
 from onnx.numpy_helper import from_array, to_array
 from onnx.backend.base import Device, DeviceType
 from onnx_array_api.reference import ExtendedReferenceEvaluator
+from onnx_array_api.light_api.make_helper import make_node_extended
 from onnx_array_api.light_api import translate
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
@@ -85,6 +87,7 @@ class ExportWrapper:
             locs = {
                 "np": numpy,
                 "to_array": to_array,
+                "to_array_extended": to_array_extended,
                 "from_array": from_array,
                 "TensorProto": TensorProto,
                 "make_function": make_function,
@@ -92,6 +95,7 @@ class ExportWrapper:
                 "make_model": make_model,
                 "make_graph": make_graph,
                 "make_node": make_node,
+                "make_node_extended": make_node_extended,
                 "make_tensor_value_info": make_tensor_value_info,
             }
             globs = locs.copy()
