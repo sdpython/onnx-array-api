@@ -19,6 +19,10 @@ def is_windows() -> bool:
     return sys.platform == "win32"
 
 
+def is_apple() -> bool:
+    return sys.platform == "darwin"
+
+
 def skipif_ci_windows(msg) -> Callable:
     """
     Skips a unit test if it runs on :epkg:`azure pipeline` on :epkg:`Windows`.
