@@ -2,7 +2,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProto
 from onnx.numpy_helper import to_array
-from .emitter import EventType, Emitter
+from ..reference import to_array_extended
+from .base_emitter import EventType
+from .emitter import Emitter
 
 
 class Translater:
@@ -30,6 +32,7 @@ class Translater:
         :return: list of instructions
         """
         rows = []
+        last_event = None
         if isinstance(self.proto_, ModelProto):
             opsets = {d.domain: d.version for d in self.proto_.opset_import}
             rows.extend(self.emitter(EventType.START, opsets=opsets))
@@ -39,6 +42,7 @@ class Translater:
             initializers = self.proto_.graph.initializer
             sparse_initializers = self.proto_.graph.sparse_initializer
             attributes = []
+            last_event = EventType.TO_ONNX_MODEL
         elif isinstance(self.proto_, (FunctionProto, GraphProto)):
             inputs = self.proto_.input
             outputs = self.proto_.output
@@ -52,6 +56,7 @@ class Translater:
             attributes = (
                 self.proto_.attribute if hasattr(self.proto_, "attribute") else []
             )
+            last_event = EventType.TO_ONNX_FUNCTION
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
@@ -59,14 +64,23 @@ class Translater:
             raise NotImplementedError("Sparse initializer not supported yet.")
 
         if isinstance(self.proto_, FunctionProto):
-            rows.extend(self.emitter(EventType.BEGIN_FUNCTION, name=self.proto_.name, domain=self.proto_.domain))
+            rows.extend(
+                self.emitter(
+                    EventType.BEGIN_FUNCTION,
+                    name=self.proto_.name,
+                    domain=self.proto_.domain,
+                )
+            )
         else:
             rows.extend(self.emitter(EventType.BEGIN_GRAPH))
 
         for i in initializers:
             rows.extend(
                 self.emitter(
-                    EventType.INITIALIZER, name=i.name, init=i, value=to_array(i)
+                    EventType.INITIALIZER,
+                    name=i.name,
+                    init=i,
+                    value=to_array_extended(i),
                 )
             )
 
@@ -134,12 +148,11 @@ class Translater:
 
         if isinstance(self.proto_, ModelProto) and len(self.proto_.functions) > 0:
             for fu in self.proto_.functions:
-                
                 cl = self.__class__(fu, self.emitter)
                 text = cl.export(False, single_line=False)
                 rows.extend(text)
 
-        rows.extend(self.emitter(EventType.TO_ONNX))
+        rows.extend(self.emitter(last_event))
         if as_str:
             return self.emitter.join(rows, single_line=single_line)
         return rows

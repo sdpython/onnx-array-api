@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from onnx import AttributeProto
 from .annotations import ELEMENT_TYPE_NAME
 from .emitter import BaseEmitter
@@ -31,6 +31,15 @@ class InnerEmitter(BaseEmitter):
 
         return super().render_attribute_value(value)
 
+    def _make_attribute(
+        self, name: str, attr_type: int, ref_attr_name: Optional[str] = None
+    ) -> str:
+        if ref_attr_name is None:
+            raise NotImplementedError(
+                f"Cannot create attribute with name={name!r}, attr_type={attr_type}."
+            )
+        return f"make_ref_attribute(key={name!r}, attr_type={attr_type}, ref_attr_name={ref_attr_name!r})"
+
     def join(self, rows: List[str], single_line: bool = False) -> str:
         "Returns the separators. `single_line` is unused."
         return "\n".join(rows)
@@ -43,7 +52,7 @@ class InnerEmitter(BaseEmitter):
         lines.append("]")
         return lines
 
-    def _emit_to_onnx(self, **kwargs: Dict[str, Any]) -> List[str]:
+    def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
         lines = [
             "model = make_model(",
             "    graph,",
@@ -82,11 +91,22 @@ class InnerEmitter(BaseEmitter):
         name = kwargs["name"]
         value = kwargs["value"]
         repl = {"bool": "bool_", "object": "object_", "str": "str_"}
-        sdtype = repl.get(str(value.dtype), str(str(value.dtype)))
+        fra = "from_array"
+        sdtype = repl.get(str(value.dtype), str(value.dtype))
+        if sdtype.startswith("("):
+            from onnx.reference.custom_element_types import float8e4m3fn
+
+            if sdtype == str(float8e4m3fn):
+                sdtype = "float8e4m3fn"
+                fra = "from_array_extended"
+            else:
+                raise NotImplementedError(f"Unexpected dtype={sdtype}.")
+        else:
+            sdtype = f"np.{sdtype}"
         return [
             "initializers.append(",
-            "    from_array(",
-            f"        np.array({value.tolist()}, dtype=np.{sdtype}),",
+            f"    {fra}(",
+            f"        np.array({value.tolist()}, dtype={sdtype}),",
             f"        name={name!r}",
             "    )",
             ")",
@@ -124,7 +144,7 @@ class InnerEmitter(BaseEmitter):
         before_lines = []
         lines = [
             "nodes.append(",
-            "    make_node(",
+            "    make_node_extended(",
             f"        {op_type!r},",
             f"        {inputs},",
             f"        {outputs},",
@@ -153,6 +173,9 @@ class InnerEmitter(BaseEmitter):
         ]
         return lines
 
+    def _emit_to_onnx_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
     def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
         return [f"inputs.append({kwargs['name']!r})"]
 
@@ -169,8 +192,8 @@ class InnerEmitter(BaseEmitter):
         lines = [
             "functions.append(",
             "    make_function(",
-            "        domain, ",
-            "        name, ",
+            "        domain_f, ",
+            "        name_f, ",
             "        inputs, ",
             "        outputs, ",
             "        nodes, ",
@@ -180,4 +203,3 @@ class InnerEmitter(BaseEmitter):
             ")",
         ]
         return lines
-
