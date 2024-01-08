@@ -192,6 +192,23 @@ def plot_dot(
     :param figsize: figsize of ax is None
     :return: :epkg:`Graphviz` output or
         the dot text if *image* is None
+
+    .. plot::
+
+        import matplotlib.pyplot as plt
+        import onnx.parser
+
+        model = onnx.parser.parse_model(
+                    '''
+                    <ir_version: 8, opset_import: [ "": 18]>
+                    agraph (float[N] x) => (float[N] z) {
+                        two = Constant <value_float=2.0> ()
+                        four = Add(two, two)
+                        z = Mul(four, four)
+                    }''')
+        ax = plot_dot(dot)
+        ax.set_title("Dummy graph")
+        plt.show()
     """
     if ax is None:
         import matplotlib.pyplot as plt

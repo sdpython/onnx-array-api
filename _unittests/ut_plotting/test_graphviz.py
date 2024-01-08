@@ -3,7 +3,6 @@ import unittest
 import onnx.parser
 from onnx_array_api.ext_test_case import (
     ExtTestCase,
-    skipci_apple,
     skipif_ci_windows,
     skipif_ci_apple,
 )
