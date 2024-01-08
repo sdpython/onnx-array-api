@@ -230,6 +230,10 @@ class ExtTestCase(unittest.TestCase):
             return
         raise AssertionError(f"value is not empty: {value!r}.")
 
+    def assertExists(self, name):
+        if not os.path.exists(name):
+            raise AssertionError(f"File or folder {name!r} does not exists.")
+
     def assertHasAttr(self, cls: type, name: str):
         if not hasattr(cls, name):
             raise AssertionError(f"Class {cls} has no attribute {name!r}.")
