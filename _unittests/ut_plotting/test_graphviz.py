@@ -25,6 +25,12 @@ class TestGraphviz(ExtTestCase):
         draw_graph_graphviz(dot, image=fout)
         self.assertExists(os.path.exists(fout))
 
+    def test_draw_graph_graphviz_proto(self):
+        fout = "test_draw_graph_graphviz_proto.png"
+        dot = self._get_graph()
+        draw_graph_graphviz(dot, image=fout)
+        self.assertExists(os.path.exists(fout))
+
     def test_plot_dot(self):
         dot = to_dot(self._get_graph())
         ax = plot_dot(dot)

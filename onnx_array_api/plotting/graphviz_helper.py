@@ -2,8 +2,9 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 import numpy as np
+from onnx import ModelProto
 
 
 def _find_in_PATH(prog: str) -> Optional[str]:
@@ -139,14 +140,14 @@ def _run_graphviz(filename: str, image: str, engine: str = "dot") -> str:
 
 
 def draw_graph_graphviz(
-    dot: str,
+    dot: Union[str, ModelProto],
     image: str,
     engine: str = "dot",
 ) -> str:
     """
     Draws a graph using :epkg:`Graphviz`.
 
-    :param dot: dot graph
+    :param dot: dot graph or ModelProto
     :param image: output image, None, just returns the output
     :param engine: *dot* or *neato*
     :return: :epkg:`Graphviz` output or
@@ -154,9 +155,14 @@ def draw_graph_graphviz(
 
     The function creates a temporary file to store the dot file if *image* is not None.
     """
+    if isinstance(dot, ModelProto):
+        from .dot_plot import to_dot
+
+        sdot = to_dot(dot)
+    else:
+        sdot = dot
     with tempfile.NamedTemporaryFile(delete=False) as fp:
-        fp.write(dot.encode("utf-8"))
-        fp.seek(0)
+        fp.write(sdot.encode("utf-8"))
         fp.close()
 
         filename = fp.name
@@ -172,7 +178,7 @@ def draw_graph_graphviz(
 
 
 def plot_dot(
-    dot: str,
+    dot: Union[str, ModelProto],
     ax: Optional["matplotlib.axis.Axis"] = None,  # noqa: F821
     engine: str = "dot",
     figsize: Optional[Tuple[int, int]] = None,
@@ -180,7 +186,7 @@ def plot_dot(
     """
     Draws a dot graph into a matplotlib graph.
 
-    :param dot: dot graph
+    :param dot: dot graph or ModelProto
     :param image: output image, None, just returns the output
     :param engine: *dot* or *neato*
     :param figsize: figsize of ax is None
