@@ -29,6 +29,16 @@ def skipif_ci_windows(msg) -> Callable:
     return lambda x: x
 
 
+def skipif_ci_apple(msg) -> Callable:
+    """
+    Skips a unit test if it runs on :epkg:`azure pipeline` on :epkg:`Windows`.
+    """
+    if is_apple() and is_azure():
+        msg = f"Test does not work on azure pipeline (Apple). {msg}"
+        return unittest.skip(msg)
+    return lambda x: x
+
+
 def ignore_warnings(warns: List[Warning]) -> Callable:
     """
     Catches warnings.
