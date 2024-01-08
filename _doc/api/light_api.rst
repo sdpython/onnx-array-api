@@ -78,12 +78,6 @@ BaseEmitter
 .. autoclass:: onnx_array_api.light_api.base_emitter.BaseEmitter
     :members:
 
-Emitter
-+++++++
-
-.. autoclass:: onnx_array_api.light_api.emitter.Emitter
-    :members:
-
 EventType
 +++++++++
 
@@ -94,6 +88,12 @@ InnerEmitter
 ++++++++++++
 
 .. autoclass:: onnx_array_api.light_api.inner_emitter.InnerEmitter
+    :members:
+
+LightEmitter
+++++++++++++
+
+.. autoclass:: onnx_array_api.light_api.emitter.LightEmitter
     :members:
 
 Translater

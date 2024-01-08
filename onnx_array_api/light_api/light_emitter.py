@@ -3,7 +3,7 @@ from .annotations import ELEMENT_TYPE_NAME
 from .base_emitter import BaseEmitter
 
 
-class Emitter(BaseEmitter):
+class LightEmitter(BaseEmitter):
     """
     Converts event into proper code.
     """
@@ -28,6 +28,9 @@ class Emitter(BaseEmitter):
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
         return ["to_onnx()"]
+
+    def _emit_to_onnx_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
 
     def _emit_begin_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
         return []

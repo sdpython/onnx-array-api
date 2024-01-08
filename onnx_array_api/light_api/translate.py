@@ -4,7 +4,7 @@ from onnx import AttributeProto, FunctionProto, GraphProto, ModelProto, NodeProt
 from onnx.numpy_helper import to_array
 from ..reference import to_array_extended
 from .base_emitter import EventType
-from .emitter import Emitter
+from .light_emitter import LightEmitter
 
 
 class Translater:
@@ -15,10 +15,10 @@ class Translater:
     def __init__(
         self,
         proto: Union[ModelProto, FunctionProto, GraphProto],
-        emitter: Optional[Emitter] = None,
+        emitter: Optional[LightEmitter] = None,
     ):
         self.proto_ = proto
-        self.emitter = emitter or Emitter()
+        self.emitter = emitter or LightEmitter()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(<{type(self.proto_)})"
@@ -43,6 +43,7 @@ class Translater:
             sparse_initializers = self.proto_.graph.sparse_initializer
             attributes = []
             last_event = EventType.TO_ONNX_MODEL
+            is_function = False
         elif isinstance(self.proto_, (FunctionProto, GraphProto)):
             inputs = self.proto_.input
             outputs = self.proto_.output
@@ -56,14 +57,17 @@ class Translater:
             attributes = (
                 self.proto_.attribute if hasattr(self.proto_, "attribute") else []
             )
-            last_event = EventType.TO_ONNX_FUNCTION
+            is_function = isinstance(self.proto_, FunctionProto)
+            last_event = (
+                EventType.TO_ONNX_FUNCTION if is_function else EventType.TO_ONNX_MODEL
+            )
         else:
             raise ValueError(f"Unexpected type {type(self.proto_)} for proto.")
 
         if sparse_initializers:
             raise NotImplementedError("Sparse initializer not supported yet.")
 
-        if isinstance(self.proto_, FunctionProto):
+        if is_function:
             rows.extend(
                 self.emitter(
                     EventType.BEGIN_FUNCTION,
@@ -85,7 +89,7 @@ class Translater:
             )
 
         for i in inputs:
-            if isinstance(i, str):
+            if is_function:
                 rows.extend(self.emitter(EventType.FUNCTION_INPUT, name=i))
             else:
                 rows.extend(
@@ -100,7 +104,7 @@ class Translater:
                     )
                 )
 
-        if attributes:
+        if is_function and attributes:
             rows.extend(
                 self.emitter(EventType.FUNCTION_ATTRIBUTES, attributes=list(attributes))
             )
@@ -119,7 +123,7 @@ class Translater:
             )
 
         for o in outputs:
-            if isinstance(o, str):
+            if is_function:
                 rows.extend(self.emitter(EventType.FUNCTION_OUTPUT, name=o))
             else:
                 rows.extend(
@@ -137,11 +141,10 @@ class Translater:
             name = self.proto_.name
         else:
             name = self.proto_.graph.name
+
         rows.extend(
             self.emitter(
-                EventType.END_FUNCTION
-                if isinstance(self.proto_, FunctionProto)
-                else EventType.END_GRAPH,
+                EventType.END_FUNCTION if is_function else EventType.END_GRAPH,
                 name=name,
             )
         )
