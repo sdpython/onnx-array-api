@@ -211,7 +211,7 @@ class TestLightApi(ExtTestCase):
         self.assertIsInstance(v, Var)
         self.assertEqual(["X"], v.parent.input_names)
         s = str(v)
-        self.assertEqual("X:FLOAT", s)
+        self.assertEqual("X:FLOAT:[]", s)
         onx = start().vin("X").Neg().rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
         ref = ReferenceEvaluator(onx)
@@ -520,7 +520,7 @@ class TestLightApi(ExtTestCase):
             .bring("X", "W")
             .Conv(pads=[1, 1, 1, 1])
             .rename("Y")
-            .vout()
+            .vout(shape=[])
             .to_onnx()
         )
         i = str(model.graph.input[0]).replace("\n", "").replace(" ", "")
@@ -528,5 +528,5 @@ class TestLightApi(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestLightApi().test_input_shape()
+    TestLightApi().test_add()
     unittest.main(verbosity=2)

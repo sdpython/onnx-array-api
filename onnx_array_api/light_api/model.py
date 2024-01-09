@@ -180,6 +180,8 @@ class OnnxGraph:
         :param elem_type: element type (the input is assumed to be a tensor)
         :param shape: shape
         :return: an instance of ValueInfoProto
+
+        If the checker fails, try `shape=[]`.
         """
         if not self.has_name(name):
             raise ValueError(f"Name {name!r} does not exist.")
@@ -332,7 +334,7 @@ class OnnxGraph:
     ) -> Union[TensorProto, SparseTensorProto, ValueInfoProto]:
         obj = self._fix_name_tensor(obj)
         shape = make_shape(obj.type.tensor_type.shape)
-        if shape is None:
+        if not shape:
             tensor_type_proto = make_tensor_type_proto(
                 obj.type.tensor_type.elem_type, []
             )
@@ -344,7 +346,7 @@ class OnnxGraph:
     ) -> Union[TensorProto, SparseTensorProto, ValueInfoProto]:
         obj = self._fix_name_tensor(obj)
         shape = make_shape(obj.type.tensor_type.shape)
-        if shape is None:
+        if not shape:
             tensor_type_proto = make_tensor_type_proto(
                 obj.type.tensor_type.elem_type, []
             )
