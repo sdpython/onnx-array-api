@@ -56,7 +56,7 @@ def get_parser_translate() -> ArgumentParser:
 
 
 def _cmd_translate(argv: List[Any]):
-    from .light_api import translate
+    from .translate_api import translate
 
     parser = get_parser_translate()
     args = parser.parse_args(argv[1:])

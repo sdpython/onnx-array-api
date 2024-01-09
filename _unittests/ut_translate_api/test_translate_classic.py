@@ -15,7 +15,8 @@ from onnx.helper import (
 )
 from onnx.checker import check_model
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.light_api import start, translate
+from onnx_array_api.light_api import start
+from onnx_array_api.translate_api import translate
 
 OPSET_API = min(19, onnx_opset_version() - 1)
 
