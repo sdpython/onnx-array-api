@@ -9,6 +9,7 @@ API
     array_api
     graph_api
     light_api
+    translate_api
     npx_core_api
     npx_functions
     npx_jit_eager
