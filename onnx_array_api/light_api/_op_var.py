@@ -1,5 +1,5 @@
 from typing import List, Optional, Union
-from .annotations import AI_ONNX_ML, domain
+from ..annotations import AI_ONNX_ML, domain
 
 
 class OpsVar:

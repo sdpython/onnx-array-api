@@ -81,9 +81,17 @@ def elem_type_int(elem_type: ELEMENT_TYPE) -> int:
     return np_dtype_to_tensor_dtype(elem_type)
 
 
-def make_shape(shape: TensorShapeProto) -> SHAPE_TYPE:
+def _pick_dim(d, empty_dim):
+    if d.dim_value:
+        return d.dim_value
+    if d.dim_param:
+        return d.dim_param
+    return empty_dim
+
+
+def make_shape(shape: TensorShapeProto, empty_dim: Optional[Any] = None) -> SHAPE_TYPE:
     "Extracts a shape from a tensor type."
-    if hasattr(shape, "dims"):
-        res = [(d.dim_value if d.dim_value else d.dim_param) for d in shape.dims]
+    if hasattr(shape, "dim"):
+        res = [_pick_dim(d, empty_dim=empty_dim) for i, d in enumerate(shape.dim)]
         return tuple(res)
     return None

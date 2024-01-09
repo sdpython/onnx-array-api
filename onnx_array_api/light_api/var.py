@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import TensorProto
 from onnx.defs import get_schema
-from .annotations import (
+from ..annotations import (
     elem_type_int,
     make_shape,
     ELEMENT_TYPE,
@@ -318,6 +318,8 @@ class Var(BaseVar, OpsVar):
         :param elem_type: element_type
         :param shape: shape
         :return: instance of :class:`onnx_array_api.light_api.Var`
+
+        If the checker fails, try `shape=[]`.
         """
         output = self.parent.make_output(self.name, elem_type=elem_type, shape=shape)
         return Var(
@@ -461,6 +463,8 @@ class Vars(BaseVar, OpsVars):
 
         :param elem_type_shape: list of tuple(element_type, shape)
         :return: instance of :class:`onnx_array_api.light_api.Vars`
+
+        If the checker fails, try `shape=[]`.
         """
         vars = []
         for i, v in enumerate(self.vars_):

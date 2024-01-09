@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from .annotations import ELEMENT_TYPE_NAME
+from ..annotations import ELEMENT_TYPE_NAME
 from .base_emitter import BaseEmitter
 
 

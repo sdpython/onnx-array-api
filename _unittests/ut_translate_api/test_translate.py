@@ -5,8 +5,9 @@ from onnx import ModelProto, TensorProto
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.light_api import start, translate, g
-from onnx_array_api.light_api.base_emitter import EventType
+from onnx_array_api.light_api import start, g
+from onnx_array_api.translate_api import translate
+from onnx_array_api.translate_api.base_emitter import EventType
 
 OPSET_API = min(19, onnx_opset_version() - 1)
 
