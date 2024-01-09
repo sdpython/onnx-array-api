@@ -49,19 +49,17 @@ class OpsVars:
         pads: Optional[List[int]] = None,
         strides: Optional[List[int]] = None,
     ) -> "Var":
-        dilations = dilations or []
-        kernel_shape = kernel_shape or []
-        pads = pads or []
-        strides = strides or []
+        kwargs = {}
+        if dilations is not None:
+            kwargs["dilations"] = dilations
+        if kernel_shape is not None:
+            kwargs["kernel_shape"] = kernel_shape
+        if pads is not None:
+            kwargs["pads"] = pads
+        if strides is not None:
+            kwargs["strides"] = strides
         return self.make_node(
-            "Conv",
-            *self.vars_,
-            auto_pad=auto_pad,
-            dilations=dilations,
-            group=group,
-            kernel_shape=kernel_shape,
-            pads=pads,
-            strides=strides,
+            "Conv", *self.vars_, auto_pad=auto_pad, group=group, **kwargs
         )
 
     def ConvInteger(

@@ -631,6 +631,9 @@ class GraphBuilder:
                     t = onh.from_array(v, name=k)
                 res.append(t)
                 continue
+            if isinstance(v, TensorProto):
+                res.append(v)
+                continue
             raise TypeError(
                 f"Unable to convert initializer {k!r} with type "
                 f"{type(v)} into a TensorProto."

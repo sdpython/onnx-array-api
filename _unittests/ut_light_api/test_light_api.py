@@ -510,6 +510,22 @@ class TestLightApi(ExtTestCase):
         expected = (a > 0).astype(int).astype(np.float32).reshape((-1, 1))
         self.assertEqualArray(expected, got)
 
+    def test_input_shape(self):
+        kernel = (np.arange(9) + 1).reshape(3, 3).astype(np.float32)
+        model = (
+            start()
+            .vin("X", shape=[None, None])
+            .cst(kernel[np.newaxis, np.newaxis, ...])
+            .rename("W")
+            .bring("X", "W")
+            .Conv(pads=[1, 1, 1, 1])
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        i = str(model.graph.input[0]).replace("\n", "").replace(" ", "")
+        self.assertNotIn("shape{}", i)
+
 
 if __name__ == "__main__":
     TestLightApi().test_domain()
