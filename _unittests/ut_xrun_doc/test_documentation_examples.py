@@ -65,14 +65,15 @@ class TestDocumentationExamples(ExtTestCase):
         fold = os.path.normpath(os.path.join(this, "..", "..", "_doc", "examples"))
         found = os.listdir(fold)
         for name in found:
-            if name.startswith("plot_") and name.endswith(".py"):
-                short_name = os.path.split(os.path.splitext(name)[0])[-1]
+            if not name.startswith("plot_") or not name.endswith(".py"):
+                continue
+            short_name = os.path.split(os.path.splitext(name)[0])[-1]
 
-                def _test_(self, name=name):
-                    res = self.run_test(fold, name, verbose=VERBOSE)
-                    self.assertTrue(res)
+            def _test_(self, name=name):
+                res = self.run_test(fold, name, verbose=VERBOSE)
+                self.assertTrue(res)
 
-                setattr(cls, f"test_{short_name}", _test_)
+            setattr(cls, f"test_{short_name}", _test_)
 
 
 TestDocumentationExamples.add_test_methods()
