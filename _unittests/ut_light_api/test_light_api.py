@@ -528,5 +528,5 @@ class TestLightApi(ExtTestCase):
 
 
 if __name__ == "__main__":
-    TestLightApi().test_domain()
+    TestLightApi().test_input_shape()
     unittest.main(verbosity=2)

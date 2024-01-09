@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from onnx import TensorProto
 from onnx.defs import get_schema
-from .annotations import (
+from ..annotations import (
     elem_type_int,
     make_shape,
     ELEMENT_TYPE,

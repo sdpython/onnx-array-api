@@ -23,7 +23,7 @@ from onnx.numpy_helper import from_array, to_array
 from onnx.backend.base import Device, DeviceType
 from onnx_array_api.reference import ExtendedReferenceEvaluator
 from onnx_array_api.light_api.make_helper import make_node_extended
-from onnx_array_api.light_api import translate
+from onnx_array_api.translate_api import translate
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
 verbosity = 10 if "-v" in sys.argv or "--verbose" in sys.argv else 0

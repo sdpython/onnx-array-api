@@ -14,7 +14,7 @@ from onnx.helper import (
 )
 from onnx.numpy_helper import from_array
 from ..ext_test_case import is_azure, is_windows
-from .annotations import (
+from ..annotations import (
     elem_type_int,
     make_shape,
     GRAPH_PROTO,

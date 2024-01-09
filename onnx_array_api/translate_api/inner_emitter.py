@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple
 from onnx import AttributeProto
-from .annotations import ELEMENT_TYPE_NAME
+from ..annotations import ELEMENT_TYPE_NAME
 from .base_emitter import BaseEmitter
 from .translate import Translater
 
