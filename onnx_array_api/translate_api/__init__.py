@@ -20,7 +20,8 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
     .. runpython::
         :showcode:
 
-        from onnx_array_api.light_api import start, translate
+        from onnx_array_api.light_api import start
+        from onnx_array_api.translate_api import translate
 
         onx = (
             start()
@@ -39,7 +40,8 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
     .. runpython::
         :showcode:
 
-        from onnx_array_api.light_api import start, translate
+        from onnx_array_api.light_api import start
+        from onnx_array_api.translate_api import translate
 
         onx = (
             start()
