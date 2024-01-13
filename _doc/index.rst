@@ -45,11 +45,83 @@ The objective is to speed up the implementation of converter libraries.
     CHANGELOGS
     license
 
+Sources available on
+`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
+
+GraphBuilder API
+++++++++++++++++
+
+Almost every converting library (converting a machine learned model to ONNX) is implementing
+its own graph builder and customizes it for its needs.
+It handles some frequent tasks such as giving names to intermediate
+results, loading, saving onnx models. It can be used as well to extend an existing graph.
+See :ref:`l-graph-api`.
+
+.. runpython::
+    :showcode:
+
+    import numpy as np
+    from onnx_array_api.graph_api  import GraphBuilder
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    g = GraphBuilder()
+    g.make_tensor_input("X", np.float32, (None, None))
+    g.make_tensor_input("Y", np.float32, (None, None))
+    r1 = g.make_node("Sub", ["X", "Y"])  # the name given to the output is given by the class,
+                                         # it ensures the name is unique
+    init = g.make_initializer(np.array([2], dtype=np.int64))  # the class automatically
+                                                              # converts the array to a tensor
+    r2 = g.make_node("Pow", [r1, init])
+    g.make_node("ReduceSum", [r2], outputs=["Z"])  # the output name is given because
+                                                   # the user wants to choose the name
+    g.make_tensor_output("Z", np.float32, (None, None))
+
+    onx = g.to_onnx()  # final conversion to onnx
+
+    print(onnx_simple_text_plot(onx))
+
+Light API
++++++++++
+
+The syntax is inspired from the
+`Reverse Polish Notation <https://en.wikipedia.org/wiki/Reverse_Polish_notation>`_.
+This kind of API is easy to use to build new graphs,
+less easy to extend an existing graph. See :ref:`l-light-api`.
+
+.. runpython::
+    :showcode:
+
+    import numpy as np
+    from onnx_array_api.light_api import start
+    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
+
+    model = (
+        start()
+        .vin("X")
+        .vin("Y")
+        .bring("X", "Y")
+        .Sub()
+        .rename("dxy")
+        .cst(np.array([2], dtype=np.int64), "two")
+        .bring("dxy", "two")
+        .Pow()
+        .ReduceSum()
+        .rename("Z")
+        .vout()
+        .to_onnx()
+    )
+
+    print(onnx_simple_text_plot(model))
+
 Numpy API
 +++++++++
 
-Sources available on
-`github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
+Writing ONNX graphs requires to know ONNX syntax unless
+it is possible to reuse an existing syntax such as :epkg:`numpy`.
+This is what this API is doing.
+This kind of API is easy to use to build new graphs,
+almost impossible to use to extend new graphs as it usually requires
+to know onnx for that. See :ref:`l-numpy-api-onnx`.
 
 .. runpython::
     :showcode:
@@ -109,35 +181,6 @@ Sources available on
     y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
     res = jitted_myloss(x, y)
     print(to_dot(jitted_myloss.get_onnx()))
-
-Light API
-+++++++++
-
-.. runpython::
-    :showcode:
-
-    import numpy as np
-    from onnx_array_api.light_api import start
-    from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
-
-    model = (
-        start()
-        .vin("X")
-        .vin("Y")
-        .bring("X", "Y")
-        .Sub()
-        .rename("dxy")
-        .cst(np.array([2], dtype=np.int64), "two")
-        .bring("dxy", "two")
-        .Pow()
-        .ReduceSum()
-        .rename("Z")
-        .vout()
-        .to_onnx()
-    )
-
-    print(onnx_simple_text_plot(model))
-
 
 Older versions
 ++++++++++++++
