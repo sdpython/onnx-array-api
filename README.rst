@@ -31,6 +31,10 @@ onnx-array-api: APIs to create ONNX Graphs
 
 **onnx-array-api** implements APIs to create custom ONNX graphs.
 The objective is to speed up the implementation of converter libraries.
+
+Numpy API
++++++++++
+
 The first one matches **numpy API**.
 It gives the user the ability to convert functions written
 following the numpy API to convert that function into ONNX as
@@ -113,10 +117,15 @@ It supports eager mode as well:
     l2_loss=[0.002]
     [0.042]
 
+Light API
++++++++++
+
 The second API or **Light API** tends to do every thing in one line.
+It is inspired from the `Reverse Polish Notation
+<https://en.wikipedia.org/wiki/Reverse_Polish_notation>`_.
 The euclidean distance looks like the following:
 
-::
+.. code-block:: python
 
     import numpy as np
     from onnx_array_api.light_api import start
@@ -142,3 +151,30 @@ The library is released on
 `pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
 and its documentation is published at
 `APIs to create ONNX Graphs <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.
+
+GraphBuilder API
+++++++++++++++++
+
+Almost every converting library (converting a machine learned model to ONNX) is implementing
+its own graph builder and customizes it for its needs.
+It handles some frequent tasks such as giving names to intermediate
+results, loading, saving onnx models. It can be used as well to extend an existing graph.
+
+.. code-block:: python
+
+    import numpy as np
+    from onnx_array_api.graph_api  import GraphBuilder
+
+    g = GraphBuilder()
+    g.make_tensor_input("X", np.float32, (None, None))
+    g.make_tensor_input("Y", np.float32, (None, None))
+    r1 = g.make_node("Sub", ["X", "Y"])  # the name given to the output is given by the class,
+                                         # it ensures the name is unique
+    init = g.make_initializer(np.array([2], dtype=np.int64))  # the class automatically
+                                                              # converts the array to a tensor
+    r2 = g.make_node("Pow", [r1, init])
+    g.make_node("ReduceSum", [r2], outputs=["Z"])  # the output name is given because
+                                                   # the user wants to choose the name
+    g.make_tensor_output("Z", np.float32, (None, None))
+
+    onx = g.to_onnx()  # final conversion to onnx
