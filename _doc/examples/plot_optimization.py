@@ -15,6 +15,7 @@ This example looks into the differences of two models.
 Optimize a model with onnxruntime
 +++++++++++++++++++++++++++++++++
 """
+
 import os
 from pprint import pprint
 import numpy
