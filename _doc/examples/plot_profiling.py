@@ -15,6 +15,7 @@ This example profiles the two models.
 Optimize a model with onnxruntime
 +++++++++++++++++++++++++++++++++
 """
+
 import os
 import numpy
 import matplotlib.pyplot as plt
