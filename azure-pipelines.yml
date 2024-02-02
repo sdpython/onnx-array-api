@@ -4,8 +4,8 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python311-Linux:
-        python.version: '3.11'
+      Python312-Linux:
+        python.version: '3.12'
     maxParallel: 3
 
   steps:

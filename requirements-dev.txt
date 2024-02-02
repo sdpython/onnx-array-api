@@ -11,7 +11,7 @@ lightgbm
 matplotlib
 ml-dtypes
 git+https://github.com/onnx/onnxmltools.git
-onnxruntime>=1.16.1
+onnxruntime>=1.17.0
 openpyxl
 packaging
 pandas
