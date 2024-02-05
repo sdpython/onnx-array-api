@@ -1,3 +1,4 @@
+import numpy as np
 from onnx.reference.op_run import OpRun
 
 
@@ -26,4 +27,5 @@ class FusedMatMul(OpRun):
         if transB:
             dim = len(B.shape)
             B = B.transpose(axes=(dim - 2, dim - 1))
-        return (A @ B,)
+        a = np.array(alpha, dtype=A.dtype)
+        return (A @ B * a,)
