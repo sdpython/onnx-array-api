@@ -10,7 +10,7 @@ from onnx.helper import (
     make_tensor_value_info,
 )
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.reference import YieldEvaluator, ResultType
+from onnx_array_api.reference import YieldEvaluator, ResultType, DistanceExecution
 
 
 class TestArrayTensor(ExtTestCase):
@@ -147,18 +147,19 @@ class TestArrayTensor(ExtTestCase):
             yield_eval.enumerate_summarized(None, {"A": cst, "B": cst, "X": cst})
         )
         expected = [
-            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
-            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
-            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
             (
                 ResultType.RESULT,
                 np.dtype("float32"),
                 (2, 2),
                 "CEIO",
                 "LinearRegression",
+                "Y1",
             ),
-            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs"),
-            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
         ]
         self.assertEqual(len(expected), len(results))
         for a, b in zip(expected, results):
@@ -168,6 +169,191 @@ class TestArrayTensor(ExtTestCase):
             self.assertEqual(a[2], b[2])
             self.assertEqual(a[3], b[3])
             self.assertEqual(a[4], b[4])
+            self.assertEqual(a[5], b[5])
+
+    def test_distance_pair(self):
+        el1 = (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None)
+        el2 = el1
+        dc = DistanceExecution()
+        self.assertEqual(dc.distance_pair(el1, el2), 0)
+        el2 = (ResultType.INPUT, np.dtype("float16"), (2, 2), "ABCD", None)
+        self.assertEqual(dc.distance_pair(el1, el2), 2)
+        el2 = (ResultType.OUTPUT, np.dtype("float16"), (2, 2, 4), "GBCD", "Abs")
+        self.assertEqual(dc.distance_pair(el1, el2), 1130)
+        el2 = (ResultType.OUTPUT, np.dtype("float16"), (2, 3), "GBCD", "Abs")
+        self.assertEqual(dc.distance_pair(el1, el2), 1021)
+
+    def test_distance_sequence_0(self):
+        expected = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(expected, expected)
+        self.assertEqual(d, 0)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+
+    def test_distance_sequence_ins(self):
+        s1 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+        s2 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(s1, s2)
+        self.assertEqual(d, dc.insert_cost)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3)])
+        d, align = dc.distance_sequence(s2, s1)
+        self.assertEqual(d, dc.insert_cost)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (3, 4)])
+
+    def test_distance_sequence_equal(self):
+        s1 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+        s2 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Z"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(s1, s2)
+        self.assertEqual(d, 0)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+
+    def test_distance_sequence_diff(self):
+        s1 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+        s2 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIP", "Abs", "Z"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(s1, s2)
+        self.assertEqual(d, 1)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+
+    def test_distance_sequence_diff2(self):
+        s1 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+        s2 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 3), "CEIP", "Abs", "Z"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIP", None, "Y"),
+        ]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(s1, s2)
+        self.assertEqual(d, 5)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
 
 
 if __name__ == "__main__":

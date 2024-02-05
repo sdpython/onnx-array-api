@@ -15,3 +15,10 @@ YieldEvaluator
 
 .. autoclass:: onnx_array_api.reference.YieldEvaluator
     :members:
+
+DistanceExecution
++++++++++++++++++
+
+.. autoclass:: onnx_array_api.reference.DistanceExecution
+    :members:
+

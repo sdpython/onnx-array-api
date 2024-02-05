@@ -16,11 +16,14 @@ class ResultType(IntEnum):
         return f"{self.__class__.__name__}.{self._name_}"
 
 
+RESULT_TYPE = Tuple[ResultType, "np.dtype", Tuple[int, ...], str, str, str]
+
+
 class YieldEvaluator:
     """
     This class implements method `enumerate_results` which iterates on
     intermediates results. By default, it uses
-    :class:`onnx_array_api.evaluator.ExtendedReferenceEvaluator`.
+    :class:`onnx_array_api.reference.ExtendedReferenceEvaluator`.
 
     :param onnx_model: model to run
     :param recursive: dig into subgraph and functions as well
@@ -102,7 +105,7 @@ class YieldEvaluator:
         self,
         output_names: Optional[List[str]] = None,
         feed_inputs: Optional[Dict[str, Any]] = None,
-    ) -> Iterator[Tuple[ResultType, str, Any]]:
+    ) -> Iterator[RESULT_TYPE]:
         """
         Executes the onnx model and enumerate intermediate results without their names.
 
@@ -111,13 +114,13 @@ class YieldEvaluator:
             feed_inputs: dictionary `{ input name: input value }`
 
         Returns:
-            iterator on tuple(result kind, node.type, dtype, shape, value)
+            iterator on tuple(result kind, node.type, dtype, shape, value, result name)
         """
         for kind, name, value, op_type in self.enumerate_results(
             output_names, feed_inputs
         ):
             summary = self.make_summary(value)
-            yield kind, value.dtype, value.shape, summary, op_type
+            yield kind, value.dtype, value.shape, summary, op_type, name
 
     def make_summary(self, value: Any, length: int = 4, modulo: int = 26) -> str:
         """
@@ -143,3 +146,115 @@ class YieldEvaluator:
         value4i = value4.astype(np.int64) % modulo
         s = "".join([chr(65 + i) for i in value4i])
         return s
+
+
+class DistanceExecution:
+    """
+    Computes a distance between two results.
+    """
+
+    float_types = {
+        np.float16,
+        np.float32,
+        np.float64,
+        np.dtype("float16"),
+        np.dtype("float32"),
+        np.dtype("float64"),
+    }
+
+    def __init__(self, max_lag: int = 50):
+        self.kind_cost = 1000
+        self.type_cost = 10
+        self.rank_cost = 100
+        self.op_type_cost = 10
+        self.max_lag = max_lag
+        self.insert_cost = 1000
+
+    def distance_pair(self, r1: RESULT_TYPE, r2: RESULT_TYPE) -> float:
+        """
+        (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs"),
+
+        :param r1: first result
+        :param r2: second result
+        :return: distance
+        """
+        d = 0
+        if r1[0] != r2[0]:
+            # difference type
+            d += self.kind_cost
+        if r1[1] != r2[1]:
+            d += self._cost_type(r1[1], r2[1]) * self.type_cost
+        if r1[2] != r2[2]:
+            d += self._cost_shape(r1[2], r2[2])
+        if r1[3] != r2[3]:
+            d += self._cost_summary(r1[3], r2[3])
+        if r1[4] != r2[4]:
+            d += self.op_type_cost
+        return d
+
+    def _cost_type(self, t1: "np.dtype", t2: "np.dtype") -> float:
+        if t1 in self.float_types and t2 in self.float_types:
+            return 0.2
+        return 1
+
+    def _cost_shape(self, s1: Tuple[int, ...], s2: Tuple[int, ...]) -> float:
+        d = abs(np.prod(s1) - np.prod(s2))
+        if len(s1) != len(s2):
+            return self.rank_cost + d
+        for i, j in zip(s1, s2):
+            d += abs(i - j)
+        return d
+
+    def _cost_summary(self, s1: str, s2: str) -> float:
+        if len(s1) != len(s2):
+            return 1e6
+        d = 0
+        for a, b in zip(s1, s2):
+            d += abs(ord(a) - ord(b))
+        return d
+
+    def distance_sequence(
+        self, s1: List[RESULT_TYPE], s2: List[RESULT_TYPE]
+    ) -> Tuple[float, List[Tuple[int, int]]]:
+        """
+        Computes the distance between two sequences of results.
+
+        :param s1: first sequence
+        :param s2: second sequence
+        :return: distance and alignment
+        """
+        delay = self.max_lag
+        distance = {(-1, -1): 0}
+        predecessor = {(-1, -1): None}
+        for i in range(len(s1)):
+            for j in range(max(0, i - delay), min(len(s2), i + delay)):
+                best = 1e100
+                pred = None
+                ki, kj = i - 1, j - 1
+                if (ki, kj) in distance:
+                    d = distance[ki, kj] + self.distance_pair(s1[i], s2[j])
+                    if d < best:
+                        best = d
+                        pred = (ki, kj)
+                ki, kj = i - 1, j
+                if (ki, kj) in distance:
+                    d = distance[ki, kj] + self.insert_cost
+                    if d < best:
+                        best = d
+                        pred = (ki, kj)
+                ki, kj = i, j - 1
+                if (ki, kj) in distance:
+                    d = distance[ki, kj] + self.insert_cost
+                    if d < best:
+                        best = d
+                        pred = (ki, kj)
+                distance[i, j] = best
+                predecessor[i, j] = pred
+
+        # reverse
+        way = []
+        last = predecessor[len(s1) - 1, len(s2) - 1]
+        while last is not None:
+            way.append(last)
+            last = predecessor[last]
+        return distance[len(s1) - 1, len(s2) - 1], list(reversed(way))[1:]
