@@ -62,31 +62,37 @@ class TestArrayTensor(ExtTestCase):
                 ResultType.INPUT,
                 "A",
                 np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+                None,
             ),
             (
                 ResultType.INPUT,
                 "B",
                 np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+                None,
             ),
             (
                 ResultType.INPUT,
                 "X",
                 np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+                None,
             ),
             (
                 ResultType.RESULT,
                 "Y1",
                 np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+                "LinearRegression",
             ),
             (
                 ResultType.RESULT,
                 "Y",
                 np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+                "Abs",
             ),
             (
                 ResultType.OUTPUT,
                 "Y",
                 np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+                None,
             ),
         ]
         self.assertEqual(len(expected), len(results))
@@ -95,6 +101,73 @@ class TestArrayTensor(ExtTestCase):
             self.assertEqual(a[0], b[0])
             self.assertEqual(a[1], b[1])
             self.assertEqual(a[2].tolist(), b[2].tolist())
+            self.assertEqual(a[3], b[3])
+
+    def test_evaluator_yield_summary(self):
+        new_domain = "custom_domain"
+        opset_imports = [make_opsetid("", 14), make_opsetid(new_domain, 1)]
+
+        node1 = make_node("MatMul", ["X", "A"], ["XA"])
+        node2 = make_node("Add", ["XA", "B"], ["Y"])
+
+        linear_regression = make_function(
+            new_domain,
+            "LinearRegression",
+            ["X", "A", "B"],
+            ["Y"],
+            [node1, node2],
+            opset_imports,
+            [],
+        )
+
+        X = make_tensor_value_info("X", TensorProto.FLOAT, [None, None])
+        A = make_tensor_value_info("A", TensorProto.FLOAT, [None, None])
+        B = make_tensor_value_info("B", TensorProto.FLOAT, [None, None])
+        Y = make_tensor_value_info("Y", TensorProto.FLOAT, None)
+
+        graph = make_graph(
+            [
+                make_node(
+                    "LinearRegression", ["X", "A", "B"], ["Y1"], domain=new_domain
+                ),
+                make_node("Abs", ["Y1"], ["Y"]),
+            ],
+            "example",
+            [X, A, B],
+            [Y],
+        )
+
+        onnx_model = make_model(
+            graph, opset_imports=opset_imports, functions=[linear_regression]
+        )
+
+        cst = np.arange(4).reshape((-1, 2)).astype(np.float32)
+        yield_eval = YieldEvaluator(onnx_model)
+        results = list(
+            yield_eval.enumerate_summarized(None, {"A": cst, "B": cst, "X": cst})
+        )
+        expected = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None),
+        ]
+        self.assertEqual(len(expected), len(results))
+        for a, b in zip(expected, results):
+            self.assertEqual(len(a), len(b))
+            self.assertEqual(a[0], b[0])
+            self.assertEqual(a[1], b[1])
+            self.assertEqual(a[2], b[2])
+            self.assertEqual(a[3], b[3])
+            self.assertEqual(a[4], b[4])
 
 
 if __name__ == "__main__":

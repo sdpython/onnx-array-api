@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Iterator, Optional, Tuple
 from enum import IntEnum
+import numpy as np
 from onnx import ModelProto
 from .evaluator import ExtendedReferenceEvaluator
 
@@ -41,14 +42,14 @@ class YieldEvaluator:
         feed_inputs: Optional[Dict[str, Any]] = None,
     ) -> Iterator[Tuple[ResultType, str, Any]]:
         """
-        Executes the onnx model.
+        Executes the onnx model and enumerate all the intermediate results.
 
         Args:
             output_names: requested outputs by names, None for all
             feed_inputs: dictionary `{ input name: input value }`
 
         Returns:
-            iterator on tuple(result kind, name, value)
+            iterator on tuple(result kind, name, value, node.op_type or None)
         """
         assert isinstance(self.evaluator, ExtendedReferenceEvaluator), (
             f"This implementation only works with "
@@ -63,10 +64,10 @@ class YieldEvaluator:
         results.update(feed_inputs)
         # step 0: initializer
         for k, v in self.evaluator.rt_inits_.items():
-            yield ResultType.INITIALIZER, k, v
+            yield ResultType.INITIALIZER, k, v, None
         # step 1: inputs
         for k, v in feed_inputs.items():
-            yield ResultType.INPUT, k, v
+            yield ResultType.INPUT, k, v, None
 
         # step 2: execute nodes
         for node in self.evaluator.rt_nodes_:
@@ -86,7 +87,7 @@ class YieldEvaluator:
             else:
                 outputs = node.run(*inputs, **linked_attributes)
             for name, value in zip(node.output, outputs):
-                yield ResultType.RESULT, name, value
+                yield ResultType.RESULT, name, value, node.op_type
                 results[name] = value
 
         # step 3: outputs
@@ -95,4 +96,50 @@ class YieldEvaluator:
                 raise RuntimeError(
                     f"Unable to find output name {name!r} in {sorted(results)}, proto is\n{self.proto_}"
                 )
-            yield ResultType.OUTPUT, name, results[name]
+            yield ResultType.OUTPUT, name, results[name], None
+
+    def enumerate_summarized(
+        self,
+        output_names: Optional[List[str]] = None,
+        feed_inputs: Optional[Dict[str, Any]] = None,
+    ) -> Iterator[Tuple[ResultType, str, Any]]:
+        """
+        Executes the onnx model and enumerate intermediate results without their names.
+
+        Args:
+            output_names: requested outputs by names, None for all
+            feed_inputs: dictionary `{ input name: input value }`
+
+        Returns:
+            iterator on tuple(result kind, node.type, dtype, shape, value)
+        """
+        for kind, name, value, op_type in self.enumerate_results(
+            output_names, feed_inputs
+        ):
+            summary = self.make_summary(value)
+            yield kind, value.dtype, value.shape, summary, op_type
+
+    def make_summary(self, value: Any, length: int = 4, modulo: int = 26) -> str:
+        """
+        Create a short string summarizing the value (discretization).
+
+        :param value: array
+        :param length: number of value to produce
+        :param module: discretization parameter
+        :return: short string
+        """
+        value4 = np.zeros(4, dtype=np.float64)
+        if value.size <= length:
+            value4[: value.size] = value.flatten().astype(np.float64)
+        else:
+            if value.size % length != 2:
+                value2 = np.zeros(
+                    value.size + length - value.size % length, dtype=np.float64
+                )
+                value2[: value.size] = value.flatten().astype(np.float64)
+            else:
+                value2 = value.flatten().astype(np.float64)
+            value4 = value2.reshape((4, -1)).mean(axis=1)
+        value4i = value4.astype(np.int64) % modulo
+        s = "".join([chr(65 + i) for i in value4i])
+        return s
