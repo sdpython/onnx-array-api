@@ -16,6 +16,7 @@ from .evaluator_yield import (
     ResultExecution,
     ResultType,
     YieldEvaluator,
+    compare_onnx_execution,
 )
 
 

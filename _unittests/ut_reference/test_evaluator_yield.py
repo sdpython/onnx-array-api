@@ -9,12 +9,14 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
+from onnx.parser import parse_model
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.reference import (
     YieldEvaluator,
     ResultType,
     DistanceExecution,
     ResultExecution,
+    compare_onnx_execution,
 )
 
 
@@ -413,6 +415,29 @@ class TestArrayTensor(ExtTestCase):
             "\n "
         )
         self.assertEqual(expected, text.replace(" ", "").strip("\n"))
+
+    def test_compare_execution(self):
+        m1 = parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(x, x)
+            }"""
+        )
+        m2 = parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                z = Mul(x, x)
+            }"""
+        )
+        res1, res2, align, dc = compare_onnx_execution(m1, m2)
+        text = dc.to_str(res1, res2, align)
+        self.assertIn("CAAA Constant", text)
+        self.assertEqual(len(align), 4)
 
 
 if __name__ == "__main__":

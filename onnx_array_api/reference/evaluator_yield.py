@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Iterator, Optional, Tuple
 from enum import IntEnum
 import numpy as np
-from onnx import ModelProto
+from onnx import ModelProto, TensorProto, ValueInfoProto
 from .evaluator import ExtendedReferenceEvaluator
 
 
@@ -352,3 +352,90 @@ class DistanceExecution:
                 )
             last = i, j
         return "\n".join(rows)
+
+
+def generate_input(info: ValueInfoProto) -> np.ndarray:
+    """
+    Generates one input.
+    """
+    elem_type = info.type.tensor_type.elem_type
+    shape = [
+        (getattr(d, "dim_value", None) or getattr(d, "dim_param"))
+        for d in info.type.tensor_type.shape.dim
+    ]
+    new_shape = []
+    for sh in shape:
+        if isinstance(sh, str):
+            if len(new_shape) == 0:
+                new_shape.append(1)
+            else:
+                new_shape.append(16)
+        else:
+            new_shape.append(sh)
+    new_shape = tuple(new_shape)
+    p = np.prod(new_shape)
+    value = np.arange(p)
+    if elem_type == TensorProto.INT32:
+        return value.astype(np.int32).reshape(new_shape)
+    if elem_type == TensorProto.INT64:
+        return value.astype(np.int64).reshape(new_shape)
+    if elem_type == TensorProto.FLOAT:
+        return (value.astype(np.float32) / p).astype(np.float32).reshape(new_shape)
+    if elem_type == TensorProto.FLOAT16:
+        return (value.astype(np.float16) / p).astype(np.float16).reshape(new_shape)
+    if elem_type == TensorProto.FLOAT64:
+        return (value.astype(np.float64) / p).astype(np.float64).reshape(new_shape)
+    raise RuntimeError(f"Unexpected element_type {elem_type} for info={info}")
+
+
+def generate_inputs(model: ModelProto) -> List[np.ndarray]:
+    """
+    Generates inputs for a specific model.
+
+    :param model: ModelProto
+    :return: list of inputs
+    """
+    inputs = []
+    inits = set(i.name for i in model.graph.initializer)
+    for inp in model.graph.input:
+        if inp.name in inits:
+            break
+        inputs.append(generate_input(inp))
+    return inputs
+
+
+def compare_onnx_execution(
+    model1: ModelProto, model2: ModelProto, verbose: int = 0
+) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
+    """
+    Compares the execution of two onnx models.
+    The function assumes both models takes the same inputs.
+
+    :param model1: first model
+    :param model2: second model
+    :param verbose: verbosity
+    :return: four results, a sequence of results for the first model and the second model,
+        the alignment between the two, DistanceExecution
+    """
+    if verbose:
+        print("[compare_onnx_execution] generate inputs")
+    inputs = generate_inputs(model1)
+    feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
+    feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+    if verbose:
+        print(f"[compare_onnx_execution] got {len(inputs)} inputs")
+        print("[compare_onnx_execution] execute first model")
+    res1 = list(YieldEvaluator(model1).enumerate_summarized(None, feeds1))
+    if verbose:
+        print(f"[compare_onnx_execution] got {len(res1)} results")
+        print("[compare_onnx_execution] execute second model")
+    res2 = list(YieldEvaluator(model2).enumerate_summarized(None, feeds2))
+    if verbose:
+        print(f"[compare_onnx_execution] got {len(res2)} results")
+        print("[compare_onnx_execution] compute edit distance")
+    dc = DistanceExecution()
+    _, align = dc.distance_sequence(res1, res2)
+    if verbose:
+        print(f"[compare_onnx_execution] got {len(align)} pairs")
+        print("[compare_onnx_execution] done")
+    return res1, res2, align, dc
