@@ -58,12 +58,36 @@ class TestArrayTensor(ExtTestCase):
             yield_eval.enumerate_results(None, {"A": cst, "B": cst, "X": cst})
         )
         expected = [
-            (ResultType.INPUT, "A", np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32)),
-            (ResultType.INPUT, "B", np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32)),
-            (ResultType.INPUT, "X", np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32)),
-            (ResultType.RESULT, "Y1", np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32)),
-            (ResultType.RESULT, "Y", np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32)),
-            (ResultType.OUTPUT, "Y", np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32)),
+            (
+                ResultType.INPUT,
+                "A",
+                np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+            ),
+            (
+                ResultType.INPUT,
+                "B",
+                np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+            ),
+            (
+                ResultType.INPUT,
+                "X",
+                np.array([[0.0, 1.0], [2.0, 3.0]], dtype=np.float32),
+            ),
+            (
+                ResultType.RESULT,
+                "Y1",
+                np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+            ),
+            (
+                ResultType.RESULT,
+                "Y",
+                np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+            ),
+            (
+                ResultType.OUTPUT,
+                "Y",
+                np.array([[2.0, 4.0], [8.0, 14.0]], dtype=np.float32),
+            ),
         ]
         self.assertEqual(len(expected), len(results))
         for a, b in zip(expected, results):
