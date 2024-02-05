@@ -18,9 +18,25 @@ from onnx_array_api.reference import (
     ResultExecution,
     compare_onnx_execution,
 )
+from onnx_array_api.reference.evaluator_yield import make_summary
 
 
 class TestArrayTensor(ExtTestCase):
+    def test_make_summary(self):
+        a = np.arange(12).reshape(3, 4)
+        v = make_summary(a)
+        self.assertEqual(v, "DMVE")
+        a = np.arange(12)
+        v = make_summary(a)
+        self.assertEqual(v, "DMVE")
+        a = np.arange(12).astype(np.float32)
+        v = make_summary(a)
+        self.assertEqual(v, "DMVE")
+        a = np.arange(13)
+        a[-1] = 0
+        v = make_summary(a)
+        self.assertEqual(v, "GWMA")
+
     def test_evaluator_yield(self):
         new_domain = "custom_domain"
         opset_imports = [make_opsetid("", 14), make_opsetid(new_domain, 1)]
@@ -210,7 +226,7 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(expected, expected)
         self.assertEqual(d, 0)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)])
 
     def test_distance_sequence_ins(self):
         s1 = [
@@ -246,10 +262,10 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, dc.insert_cost)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 4)])
         d, align = dc.distance_sequence(s2, s1)
         self.assertEqual(d, dc.insert_cost)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (3, 4)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (3, 4), (4, 5)])
 
     def test_distance_sequence_equal(self):
         s1 = [
@@ -286,7 +302,7 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, 0)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)])
 
     def test_distance_sequence_diff(self):
         s1 = [
@@ -323,7 +339,7 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, 1)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)])
 
     def test_distance_sequence_diff2(self):
         s1 = [
@@ -360,7 +376,7 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, 5)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)])
 
     def test_distance_sequence_str(self):
         s1 = [
@@ -400,8 +416,11 @@ class TestArrayTensor(ExtTestCase):
         dc = DistanceExecution()
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, 1008)
-        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 2), (4, 3), (5, 4)])
+        self.assertEqual(
+            align, [(0, 0), (1, 1), (2, 2), (3, 2), (4, 3), (5, 4), (6, 5)]
+        )
         text = dc.to_str(s1, s2, align)
+        self.assertIn("OUTPUT", text)
         expected = """
             =|INPUTfloat322x2ABCDA|INPUTfloat322x2ABCDA
             =|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
@@ -409,6 +428,7 @@ class TestArrayTensor(ExtTestCase):
             -|RESULTfloat322x2CEIOExpH|
             =|RESULTfloat322x2CEIOLinearReY1|RESULTfloat322x2CEIOLinearReY1
             ~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
+            ~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
         """.replace(
             "            ", ""
         ).strip(
@@ -437,7 +457,7 @@ class TestArrayTensor(ExtTestCase):
         res1, res2, align, dc = compare_onnx_execution(m1, m2)
         text = dc.to_str(res1, res2, align)
         self.assertIn("CAAA Constant", text)
-        self.assertEqual(len(align), 4)
+        self.assertEqual(len(align), 5)
 
 
 if __name__ == "__main__":

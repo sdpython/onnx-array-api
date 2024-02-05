@@ -68,6 +68,32 @@ class ResultExecution:
         return " ".join(els)
 
 
+def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
+    """
+    Create a short string summarizing the value (discretization).
+
+    :param value: array
+    :param length: number of value to produce
+    :param module: discretization parameter
+    :return: short string
+    """
+    value4 = np.zeros(length, dtype=np.float64)
+    if value.size <= length:
+        value4[: value.size] = value.flatten().astype(np.float64)
+    else:
+        if value.size % length != 0:
+            value2 = np.zeros(
+                value.size + length - value.size % length, dtype=np.float64
+            )
+            value2[: value.size] = value.flatten().astype(np.float64)
+        else:
+            value2 = value.flatten().astype(np.float64)
+        value4 = value2.reshape((4, -1)).sum(axis=1)
+    value4i = value4.astype(np.int64) % modulo
+    s = "".join([chr(65 + i) for i in value4i])
+    return s
+
+
 class YieldEvaluator:
     """
     This class implements method `enumerate_results` which iterates on
@@ -150,31 +176,6 @@ class YieldEvaluator:
                 )
             yield ResultType.OUTPUT, name, results[name], None
 
-    def make_summary(self, value: Any, length: int = 4, modulo: int = 26) -> str:
-        """
-        Create a short string summarizing the value (discretization).
-
-        :param value: array
-        :param length: number of value to produce
-        :param module: discretization parameter
-        :return: short string
-        """
-        value4 = np.zeros(4, dtype=np.float64)
-        if value.size <= length:
-            value4[: value.size] = value.flatten().astype(np.float64)
-        else:
-            if value.size % length != 2:
-                value2 = np.zeros(
-                    value.size + length - value.size % length, dtype=np.float64
-                )
-                value2[: value.size] = value.flatten().astype(np.float64)
-            else:
-                value2 = value.flatten().astype(np.float64)
-            value4 = value2.reshape((4, -1)).mean(axis=1)
-        value4i = value4.astype(np.int64) % modulo
-        s = "".join([chr(65 + i) for i in value4i])
-        return s
-
     def enumerate_summarized(
         self,
         output_names: Optional[List[str]] = None,
@@ -193,7 +194,7 @@ class YieldEvaluator:
         for kind, name, value, op_type in self.enumerate_results(
             output_names, feed_inputs
         ):
-            summary = self.make_summary(value)
+            summary = make_summary(value)
             yield ResultExecution(
                 kind, value.dtype, value.shape, summary, op_type, name
             )
@@ -304,7 +305,7 @@ class DistanceExecution:
 
         # reverse
         way = []
-        last = predecessor[len(s1) - 1, len(s2) - 1]
+        last = len(s1) - 1, len(s2) - 1
         while last is not None:
             way.append(last)
             last = predecessor[last]
@@ -405,7 +406,10 @@ def generate_inputs(model: ModelProto) -> List[np.ndarray]:
 
 
 def compare_onnx_execution(
-    model1: ModelProto, model2: ModelProto, verbose: int = 0
+    model1: ModelProto,
+    model2: ModelProto,
+    inputs: Optional[List[Any]] = None,
+    verbose: int = 0,
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
     """
     Compares the execution of two onnx models.
@@ -413,13 +417,15 @@ def compare_onnx_execution(
 
     :param model1: first model
     :param model2: second model
+    :param inputs: inputs to use
     :param verbose: verbosity
     :return: four results, a sequence of results for the first model and the second model,
         the alignment between the two, DistanceExecution
     """
     if verbose:
         print("[compare_onnx_execution] generate inputs")
-    inputs = generate_inputs(model1)
+    if inputs is None:
+        inputs = generate_inputs(model1)
     feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
     feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
     if verbose:
