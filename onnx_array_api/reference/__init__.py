@@ -11,7 +11,12 @@ from onnx.reference.ops.op_cast import (
 )
 from onnx.reference.op_run import to_array_extended
 from .evaluator import ExtendedReferenceEvaluator
-from .evaluator_yield import DistanceExecution, ResultType, YieldEvaluator
+from .evaluator_yield import (
+    DistanceExecution,
+    ResultExecution,
+    ResultType,
+    YieldEvaluator,
+)
 
 
 def from_array_extended(tensor: np.array, name: Optional[str] = None) -> TensorProto:

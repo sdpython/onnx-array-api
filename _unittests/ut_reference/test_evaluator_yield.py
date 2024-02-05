@@ -10,7 +10,12 @@ from onnx.helper import (
     make_tensor_value_info,
 )
 from onnx_array_api.ext_test_case import ExtTestCase
-from onnx_array_api.reference import YieldEvaluator, ResultType, DistanceExecution
+from onnx_array_api.reference import (
+    YieldEvaluator,
+    ResultType,
+    DistanceExecution,
+    ResultExecution,
+)
 
 
 class TestArrayTensor(ExtTestCase):
@@ -354,6 +359,60 @@ class TestArrayTensor(ExtTestCase):
         d, align = dc.distance_sequence(s1, s2)
         self.assertEqual(d, 5)
         self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)])
+
+    def test_distance_sequence_str(self):
+        s1 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 3), "ABCD", None, "X"),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Exp", "H"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs", "Y"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIO", None, "Y"),
+        ]
+        s2 = [
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "A"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "B"),
+            (ResultType.INPUT, np.dtype("float32"), (2, 2), "ABCD", None, "X"),
+            (
+                ResultType.RESULT,
+                np.dtype("float32"),
+                (2, 2),
+                "CEIO",
+                "LinearRegression",
+                "Y1",
+            ),
+            (ResultType.RESULT, np.dtype("float32"), (2, 3), "CEIP", "Abs", "Z"),
+            (ResultType.OUTPUT, np.dtype("float32"), (2, 2), "CEIP", None, "Y"),
+        ]
+        s1 = [ResultExecution(*s) for s in s1]
+        s2 = [ResultExecution(*s) for s in s2]
+
+        dc = DistanceExecution()
+        d, align = dc.distance_sequence(s1, s2)
+        self.assertEqual(d, 1008)
+        self.assertEqual(align, [(0, 0), (1, 1), (2, 2), (3, 2), (4, 3), (5, 4)])
+        text = dc.to_str(s1, s2, align)
+        expected = """
+            =|INPUTfloat322x2ABCDA|INPUTfloat322x2ABCDA
+            =|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
+            ~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
+            -|RESULTfloat322x2CEIOExpH|
+            =|RESULTfloat322x2CEIOLinearReY1|RESULTfloat322x2CEIOLinearReY1
+            ~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
+        """.replace(
+            "            ", ""
+        ).strip(
+            "\n "
+        )
+        self.assertEqual(expected, text.replace(" ", "").strip("\n"))
 
 
 if __name__ == "__main__":

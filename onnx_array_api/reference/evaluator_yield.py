@@ -1,8 +1,17 @@
+from dataclasses import dataclass
 from typing import Any, Dict, List, Iterator, Optional, Tuple
 from enum import IntEnum
 import numpy as np
 from onnx import ModelProto
 from .evaluator import ExtendedReferenceEvaluator
+
+
+def _align(res: str, limit: int) -> str:
+    if len(res) == limit:
+        return res
+    if len(res) > limit:
+        return res[:limit]
+    return res + " " * (limit - len(res))
 
 
 class ResultType(IntEnum):
@@ -16,7 +25,47 @@ class ResultType(IntEnum):
         return f"{self.__class__.__name__}.{self._name_}"
 
 
-RESULT_TYPE = Tuple[ResultType, "np.dtype", Tuple[int, ...], str, str, str]
+@dataclass
+class ResultExecution:
+    """
+    The description of a result.
+    """
+
+    kind: ResultType
+    dtype: object
+    shape: tuple
+    summary: str
+    op_type: str
+    name: str
+
+    def __len__(self) -> int:
+        return 6
+
+    def __getitem__(self, i: int) -> Any:
+        if i == 0:
+            return self.kind
+        if i == 1:
+            return self.dtype
+        if i == 2:
+            return self.shape
+        if i == 3:
+            return self.summary
+        if i == 4:
+            return self.op_type
+        if i == 5:
+            return self.name
+        raise IndexError(f"i={i} out of boundary")
+
+    def __str__(self):
+        els = [
+            _align(self.kind._name_, 6),
+            _align(str(self.dtype).replace("dtype(", "").replace(")", ""), 8),
+            _align("x".join(map(str, self.shape)), 15),
+            self.summary,
+            _align(self.op_type or "", 8),
+            self.name or "",
+        ]
+        return " ".join(els)
 
 
 class YieldEvaluator:
@@ -101,27 +150,6 @@ class YieldEvaluator:
                 )
             yield ResultType.OUTPUT, name, results[name], None
 
-    def enumerate_summarized(
-        self,
-        output_names: Optional[List[str]] = None,
-        feed_inputs: Optional[Dict[str, Any]] = None,
-    ) -> Iterator[RESULT_TYPE]:
-        """
-        Executes the onnx model and enumerate intermediate results without their names.
-
-        Args:
-            output_names: requested outputs by names, None for all
-            feed_inputs: dictionary `{ input name: input value }`
-
-        Returns:
-            iterator on tuple(result kind, node.type, dtype, shape, value, result name)
-        """
-        for kind, name, value, op_type in self.enumerate_results(
-            output_names, feed_inputs
-        ):
-            summary = self.make_summary(value)
-            yield kind, value.dtype, value.shape, summary, op_type, name
-
     def make_summary(self, value: Any, length: int = 4, modulo: int = 26) -> str:
         """
         Create a short string summarizing the value (discretization).
@@ -147,6 +175,29 @@ class YieldEvaluator:
         s = "".join([chr(65 + i) for i in value4i])
         return s
 
+    def enumerate_summarized(
+        self,
+        output_names: Optional[List[str]] = None,
+        feed_inputs: Optional[Dict[str, Any]] = None,
+    ) -> Iterator[ResultExecution]:
+        """
+        Executes the onnx model and enumerate intermediate results without their names.
+
+        Args:
+            output_names: requested outputs by names, None for all
+            feed_inputs: dictionary `{ input name: input value }`
+
+        Returns:
+            iterator on tuple(result kind, node.type, dtype, shape, value, result name)
+        """
+        for kind, name, value, op_type in self.enumerate_results(
+            output_names, feed_inputs
+        ):
+            summary = self.make_summary(value)
+            yield ResultExecution(
+                kind, value.dtype, value.shape, summary, op_type, name
+            )
+
 
 class DistanceExecution:
     """
@@ -170,7 +221,7 @@ class DistanceExecution:
         self.max_lag = max_lag
         self.insert_cost = 1000
 
-    def distance_pair(self, r1: RESULT_TYPE, r2: RESULT_TYPE) -> float:
+    def distance_pair(self, r1: ResultExecution, r2: ResultExecution) -> float:
         """
         (ResultType.RESULT, np.dtype("float32"), (2, 2), "CEIO", "Abs"),
 
@@ -214,7 +265,7 @@ class DistanceExecution:
         return d
 
     def distance_sequence(
-        self, s1: List[RESULT_TYPE], s2: List[RESULT_TYPE]
+        self, s1: List[ResultExecution], s2: List[ResultExecution]
     ) -> Tuple[float, List[Tuple[int, int]]]:
         """
         Computes the distance between two sequences of results.
@@ -258,3 +309,46 @@ class DistanceExecution:
             way.append(last)
             last = predecessor[last]
         return distance[len(s1) - 1, len(s2) - 1], list(reversed(way))[1:]
+
+    def to_str(
+        self,
+        s1: List[ResultExecution],
+        s2: List[ResultExecution],
+        alignment: List[Tuple[int, int]],
+        column_size: int = 50,
+    ) -> str:
+        """
+        Prints out the alignment between two sequences into a string.
+        :param s1: first sequence
+        :param s2: second sequence
+        :param alignment: alignment
+        :param column_size: column size
+        :return: test
+        """
+        rows = []
+        last = -1, -1
+        for i, j in alignment:
+            assert i < len(s1), f"Unexpected value i={i} >= len(s1)={len(s1)}"
+            assert j < len(s2), f"Unexpected value i={j} >= len(s2)={len(s2)}"
+            expected = last[0] + 1, last[1] + 1
+
+            if expected == (i, j):
+                d1 = s1[i]
+                d2 = s2[j]
+                d = self.distance_pair(d1, d2)
+                symbol = "=" if d == 0 else "~"
+                rows.append(
+                    f"{symbol} | {_align(str(d1), column_size)} | {_align(str(d2), column_size)}"
+                )
+            elif i == last[0]:
+                d2 = s2[j]
+                rows.append(
+                    f"+ | {_align('', column_size)} | {_align(str(d2), column_size)} "
+                )
+            else:
+                d1 = s1[i]
+                rows.append(
+                    f"- | {_align(str(d1), column_size)} | {_align('', column_size)}"
+                )
+            last = i, j
+        return "\n".join(rows)
