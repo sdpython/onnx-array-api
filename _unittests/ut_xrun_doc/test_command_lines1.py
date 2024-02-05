@@ -105,7 +105,7 @@ class TestCommandLines1(ExtTestCase):
 
             code = st.getvalue()
             self.assertIn("[compare_onnx_execution]", code)
-            self.assertIn("AAAA", code)
+            self.assertIn("ADFF", code)
 
 
 if __name__ == "__main__":

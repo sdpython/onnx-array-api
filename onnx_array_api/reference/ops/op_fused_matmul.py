@@ -9,7 +9,7 @@ class FusedMatMul(OpRun):
         self,
         A,
         B,
-        alpha: float = 0,
+        alpha: float = 1,
         transA: int = 0,
         transB: int = 0,
         transBatchA: int = 0,

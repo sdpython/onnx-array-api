@@ -62,7 +62,7 @@ class ResultExecution:
             _align(str(self.dtype).replace("dtype(", "").replace(")", ""), 8),
             _align("x".join(map(str, self.shape)), 15),
             self.summary,
-            _align(self.op_type or "", 8),
+            _align(self.op_type or "", 10),
             self.name or "",
         ]
         return " ".join(els)
@@ -316,7 +316,7 @@ class DistanceExecution:
         s1: List[ResultExecution],
         s2: List[ResultExecution],
         alignment: List[Tuple[int, int]],
-        column_size: int = 50,
+        column_size: int = 60,
     ) -> str:
         """
         Prints out the alignment between two sequences into a string.
@@ -384,7 +384,7 @@ def generate_input(info: ValueInfoProto) -> np.ndarray:
         return (value.astype(np.float32) / p).astype(np.float32).reshape(new_shape)
     if elem_type == TensorProto.FLOAT16:
         return (value.astype(np.float16) / p).astype(np.float16).reshape(new_shape)
-    if elem_type == TensorProto.FLOAT64:
+    if elem_type == TensorProto.DOUBLE:
         return (value.astype(np.float64) / p).astype(np.float64).reshape(new_shape)
     raise RuntimeError(f"Unexpected element_type {elem_type} for info={info}")
 
@@ -414,6 +414,8 @@ def compare_onnx_execution(
     """
     Compares the execution of two onnx models.
     The function assumes both models takes the same inputs.
+    See :ref:`l-onnx-diff-example` to see a full example using
+    this function.
 
     :param model1: first model
     :param model2: second model
