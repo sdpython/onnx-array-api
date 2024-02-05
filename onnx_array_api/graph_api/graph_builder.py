@@ -836,11 +836,12 @@ class GraphBuilder:
         """
         Removes identity nodes.
         """
-        # f<irst pass: detect replacements
+        # first pass: detect replacements
         new_nodes = []
         input_names = set(i.name for i in self.inputs)
         output_names = set(i.name for i in self.outputs)
         replacements = {}
+        replacements_rev = {}
         for node in self.nodes:
             if node.op_type != "Identity":
                 new_nodes.append(node)
@@ -848,18 +849,44 @@ class GraphBuilder:
 
             if node.output[0] not in output_names:
                 old_name, new_name = node.output[0], node.input[0]
-            elif node.input[0] not in input_names:
+            elif (
+                node.input[0] not in input_names
+                and node.input[0] not in output_names
+                and node.input[0] not in replacements
+            ):
                 old_name, new_name = node.input[0], node.output[0]
             else:
                 new_nodes.append(node)
                 continue
 
             # the new name can be set for replacements as well
-            assert old_name not in replacements
             if new_name in replacements:
                 new_name = replacements[new_name]
-                assert new_name not in replacements
+                assert new_name not in replacements, (
+                    f"Name {old_name!r} still in {replacements}, node.op_type={node.op_type!r}, "
+                    f"node.input={node.input}, node.output={node.output}, "
+                    f"input_names={input_names}, output_names={output_names}"
+                )
+            if old_name in replacements_rev:
+                old_old_name = replacements_rev[old_name]
+                replacements[old_old_name] = new_name
+                replacements_rev[new_name] = old_old_name
+            if old_name in replacements:
+                replacements[replacements[old_name]] = new_name
+            assert new_name not in replacements, (
+                f"Name {old_name!r} still in {replacements}, node.op_type={node.op_type!r}, "
+                f"node.input={node.input}, node.output={node.output}, "
+                f"input_names={input_names}, output_names={output_names}"
+            )
             replacements[old_name] = new_name
+            replacements_rev[new_name] = old_name
+
+            # verification
+            for k, v in replacements.items():
+                assert v not in replacements, (
+                    f"replacement {k}->{v} is not possible because of "
+                    f"{v}->{replacements[v]}, old_name={old_name!r}, new_name={new_name!r}"
+                )
 
         # second pass: replacements in initializer
         for k, v in replacements.items():
@@ -876,10 +903,12 @@ class GraphBuilder:
             repo = {o for o in node.output if o in replacements}
             repi = {o for o in node.input if o in replacements}
             if repi or repo:
+                new_inputs = [replacements.get(i, i) for i in node.input]
+                new_outputs = [replacements.get(i, i) for i in node.output]
                 new_node = oh.make_node(
                     node.op_type,
-                    [replacements.get(i, i) for i in node.input],
-                    [replacements.get(i, i) for i in node.output],
+                    new_inputs,
+                    new_outputs,
                     domain=node.domain,
                     name=node.name,
                 )
