@@ -422,18 +422,19 @@ class TestArrayTensor(ExtTestCase):
         text = dc.to_str(s1, s2, align)
         self.assertIn("OUTPUT", text)
         expected = """
-            =|INPUTfloat322x2ABCDA|INPUTfloat322x2ABCDA
-            =|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
-            ~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
-            -|RESULTfloat322x2CEIOExpH|
-            =|RESULTfloat322x2CEIOLinearRegrY1|RESULTfloat322x2CEIOLinearRegrY1
-            ~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
-            ~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
+            1=|INPUTfloat322x2ABCDA|INPUTfloat322x2ABCDA
+            2=|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
+            3~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
+            4-|RESULTfloat322x2CEIOExpH|
+            5=|RESULTfloat322x2CEIOLinearRegrY1|RESULTfloat322x2CEIOLinearRegrY1
+            6~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
+            7~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
         """.replace(
             "            ", ""
         ).strip(
             "\n "
         )
+        self.maxDiff = None
         self.assertEqual(expected, text.replace(" ", "").strip("\n"))
 
     def test_compare_execution(self):
