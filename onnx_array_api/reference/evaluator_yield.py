@@ -196,14 +196,11 @@ class YieldEvaluator:
         """
         Executes the onnx model and enumerate intermediate results without their names.
 
-        Args:
-            output_names: requested outputs by names, None for all
-            feed_inputs: dictionary `{ input name: input value }`
-            raise_exc: raises an exception if the execution fails or stop
-                where it is
-
-        Returns:
-            iterator on ResultExecution
+        :param output_names: requested outputs by names, None for all
+        :param feed_inputs: dictionary `{ input name: input value }`
+        :param raise_exc: raises an exception if the execution fails or stop
+            where it is
+        :return: iterator on ResultExecution
         """
         for kind, name, value, op_type in self.enumerate_results(
             output_names, feed_inputs, raise_exc=raise_exc
