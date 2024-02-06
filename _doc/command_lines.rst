@@ -28,7 +28,7 @@ Output example::
 
 .. runpython::
 
-    from onnx_extended._command_lines_parser import get_parser_compare
+    from onnx_array_api._command_lines_parser import get_parser_compare
     get_parser_compare().print_help()
 
 See function :func:`onnx_array_api.reference.compare_onnx_execution`.
@@ -48,5 +48,5 @@ Output example::
 
 .. runpython::
 
-    from onnx_extended._command_lines_parser import get_parser_translate
+    from onnx_array_api._command_lines_parser import get_parser_translate
     get_parser_translate().print_help()

@@ -31,7 +31,7 @@ DistanceExecution
 .. autoclass:: onnx_array_api.reference.DistanceExecution
     :members:
 
-compare_execution
-+++++++++++++++++
+compare_onnx_execution
+++++++++++++++++++++++
 
-.. autofunction:: onnx_array_api.reference.compare_execution
+.. autofunction:: onnx_array_api.reference.compare_onnx_execution
