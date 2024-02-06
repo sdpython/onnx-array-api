@@ -118,6 +118,7 @@ class YieldEvaluator:
         self,
         output_names: Optional[List[str]] = None,
         feed_inputs: Optional[Dict[str, Any]] = None,
+        raise_exc: bool = True,
     ) -> Iterator[Tuple[ResultType, str, Any]]:
         """
         Executes the onnx model and enumerate all the intermediate results.
@@ -148,6 +149,7 @@ class YieldEvaluator:
             yield ResultType.INPUT, k, v, None
 
         # step 2: execute nodes
+        yield_output = True
         for node in self.evaluator.rt_nodes_:
             for i in node.input:
                 if i not in results:
@@ -160,26 +162,36 @@ class YieldEvaluator:
             linked_attributes = {}
             if node.has_linked_attribute and attributes:
                 linked_attributes["linked_attributes"] = attributes
-            if node.need_context():
-                outputs = node.run(*inputs, context=results, **linked_attributes)
-            else:
-                outputs = node.run(*inputs, **linked_attributes)
+
+            try:
+                if node.need_context():
+                    outputs = node.run(*inputs, context=results, **linked_attributes)
+                else:
+                    outputs = node.run(*inputs, **linked_attributes)
+            except Exception:
+                if raise_exc:
+                    raise
+                yield_output = False
+                break
+
             for name, value in zip(node.output, outputs):
                 yield ResultType.RESULT, name, value, node.op_type
                 results[name] = value
 
         # step 3: outputs
-        for name in output_names:
-            if name not in results:
-                raise RuntimeError(
-                    f"Unable to find output name {name!r} in {sorted(results)}, proto is\n{self.proto_}"
-                )
-            yield ResultType.OUTPUT, name, results[name], None
+        if yield_output:
+            for name in output_names:
+                if name not in results:
+                    raise RuntimeError(
+                        f"Unable to find output name {name!r} in {sorted(results)}, proto is\n{self.proto_}"
+                    )
+                yield ResultType.OUTPUT, name, results[name], None
 
     def enumerate_summarized(
         self,
         output_names: Optional[List[str]] = None,
         feed_inputs: Optional[Dict[str, Any]] = None,
+        raise_exc: bool = True,
     ) -> Iterator[ResultExecution]:
         """
         Executes the onnx model and enumerate intermediate results without their names.
@@ -187,12 +199,14 @@ class YieldEvaluator:
         Args:
             output_names: requested outputs by names, None for all
             feed_inputs: dictionary `{ input name: input value }`
+            raise_exc: raises an exception if the execution fails or stop
+                where it is
 
         Returns:
-            iterator on tuple(result kind, node.type, dtype, shape, value, result name)
+            iterator on ResultExecution
         """
         for kind, name, value, op_type in self.enumerate_results(
-            output_names, feed_inputs
+            output_names, feed_inputs, raise_exc=raise_exc
         ):
             summary = make_summary(value)
             yield ResultExecution(
@@ -328,6 +342,7 @@ class DistanceExecution:
         """
         rows = []
         last = -1, -1
+        row_index = 1
         for i, j in alignment:
             assert i < len(s1), f"Unexpected value i={i} >= len(s1)={len(s1)}"
             assert j < len(s2), f"Unexpected value i={j} >= len(s2)={len(s2)}"
@@ -338,20 +353,18 @@ class DistanceExecution:
                 d2 = s2[j]
                 d = self.distance_pair(d1, d2)
                 symbol = "=" if d == 0 else "~"
-                rows.append(
-                    f"{symbol} | {_align(str(d1), column_size)} | {_align(str(d2), column_size)}"
-                )
+                line = f"{symbol} | {_align(str(d1), column_size)} | {_align(str(d2), column_size)}"
             elif i == last[0]:
                 d2 = s2[j]
-                rows.append(
+                line = (
                     f"+ | {_align('', column_size)} | {_align(str(d2), column_size)} "
                 )
             else:
                 d1 = s1[i]
-                rows.append(
-                    f"- | {_align(str(d1), column_size)} | {_align('', column_size)}"
-                )
+                line = f"- | {_align(str(d1), column_size)} | {_align('', column_size)}"
+            rows.append(f"{row_index: 3d} {line}")
             last = i, j
+            row_index += 1
         return "\n".join(rows)
 
 
@@ -410,6 +423,7 @@ def compare_onnx_execution(
     model2: ModelProto,
     inputs: Optional[List[Any]] = None,
     verbose: int = 0,
+    raise_exc: bool = True,
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
     """
     Compares the execution of two onnx models.
@@ -421,6 +435,7 @@ def compare_onnx_execution(
     :param model2: second model
     :param inputs: inputs to use
     :param verbose: verbosity
+    :param raise_exc: raise exception if the execution fails or stop at the error
     :return: four results, a sequence of results for the first model and the second model,
         the alignment between the two, DistanceExecution
     """
@@ -433,11 +448,15 @@ def compare_onnx_execution(
     if verbose:
         print(f"[compare_onnx_execution] got {len(inputs)} inputs")
         print("[compare_onnx_execution] execute first model")
-    res1 = list(YieldEvaluator(model1).enumerate_summarized(None, feeds1))
+    res1 = list(
+        YieldEvaluator(model1).enumerate_summarized(None, feeds1, raise_exc=raise_exc)
+    )
     if verbose:
         print(f"[compare_onnx_execution] got {len(res1)} results")
         print("[compare_onnx_execution] execute second model")
-    res2 = list(YieldEvaluator(model2).enumerate_summarized(None, feeds2))
+    res2 = list(
+        YieldEvaluator(model2).enumerate_summarized(None, feeds2, raise_exc=raise_exc)
+    )
     if verbose:
         print(f"[compare_onnx_execution] got {len(res2)} results")
         print("[compare_onnx_execution] compute edit distance")
