@@ -14,6 +14,7 @@ from onnx.helper import (
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api._command_lines_parser import (
     get_main_parser,
+    get_parser_compare,
     get_parser_translate,
     main,
 )
@@ -69,6 +70,42 @@ class TestCommandLines1(ExtTestCase):
 
             code = st.getvalue()
             self.assertIn("start(opset=", code)
+
+    def test_parser_compare(self):
+        st = StringIO()
+        with redirect_stdout(st):
+            get_parser_compare().print_help()
+        text = st.getvalue()
+        self.assertIn("model1", text)
+
+    def test_command_compare(self):
+        X = make_tensor_value_info("X", TensorProto.FLOAT, [5, 6])
+        Y = make_tensor_value_info("Y", TensorProto.FLOAT, [5, 6])
+        Z = make_tensor_value_info("Z", TensorProto.FLOAT, [5, 6])
+        graph = make_graph(
+            [
+                make_node("Add", ["X", "Y"], ["res"]),
+                make_node("Cos", ["res"], ["Z"]),
+            ],
+            "g",
+            [X, Y],
+            [Z],
+        )
+        onnx_model = make_model(graph, opset_imports=[make_opsetid("", 18)])
+
+        with tempfile.TemporaryDirectory() as root:
+            model_file = os.path.join(root, "model.onnx")
+            with open(model_file, "wb") as f:
+                f.write(onnx_model.SerializeToString())
+
+            args = ["compare", "-m1", model_file, "-m2", model_file, "-v", "1"]
+            st = StringIO()
+            with redirect_stdout(st):
+                main(args)
+
+            code = st.getvalue()
+            self.assertIn("[compare_onnx_execution]", code)
+            self.assertIn("ADFF", code)
 
 
 if __name__ == "__main__":

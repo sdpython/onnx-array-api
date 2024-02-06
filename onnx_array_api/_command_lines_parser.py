@@ -14,12 +14,13 @@ def get_main_parser() -> ArgumentParser:
     )
     parser.add_argument(
         "cmd",
-        choices=["translate"],
+        choices=["translate", "compare"],
         help=dedent(
             """
         Selects a command.
         
-        'translate' exports an onnx graph into a piece of code replicating it.
+        'translate' exports an onnx graph into a piece of code replicating it,
+        'compares' compares the execution of two onnx models
         """
         ),
     )
@@ -65,8 +66,59 @@ def _cmd_translate(argv: List[Any]):
     print(code)
 
 
+def get_parser_compare() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="compare",
+        description=dedent(
+            """
+        Compares the execution of two onnx models.
+        """
+        ),
+        epilog="This is used when two models are different but should produce the same results.",
+    )
+    parser.add_argument(
+        "-m1",
+        "--model1",
+        type=str,
+        required=True,
+        help="first onnx model",
+    )
+    parser.add_argument(
+        "-m2",
+        "--model2",
+        type=str,
+        required=True,
+        help="second onnx model",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        help="verbosity",
+    )
+    parser.add_argument(
+        "-c",
+        "--column-size",
+        default=50,
+        help="column size when displaying the results",
+    )
+    return parser
+
+
+def _cmd_compare(argv: List[Any]):
+    from .reference import compare_onnx_execution
+
+    parser = get_parser_compare()
+    args = parser.parse_args(argv[1:])
+    onx1 = onnx.load(args.model1)
+    onx2 = onnx.load(args.model2)
+    res1, res2, align, dc = compare_onnx_execution(onx1, onx2, verbose=args.verbose)
+    text = dc.to_str(res1, res2, align, column_size=args.column_size)
+    print(text)
+
+
 def main(argv: Optional[List[Any]] = None):
-    fcts = dict(translate=_cmd_translate)
+    fcts = dict(translate=_cmd_translate, compare=_cmd_compare)
 
     if argv is None:
         argv = sys.argv[1:]

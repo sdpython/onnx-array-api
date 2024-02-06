@@ -36,6 +36,7 @@ The objective is to speed up the implementation of converter libraries.
     tutorial/index
     api/index
     tech/index
+    command_lines
     auto_examples/index
 
 .. toctree::

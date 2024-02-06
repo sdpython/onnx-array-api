@@ -4,6 +4,7 @@ Change Logs
 0.2.0
 +++++
 
+* :pr:`71`: adds tools to compare two onnx graphs
 * :pr:`61`: adds function to plot onnx model as graphs
 * :pr:`60`: supports translation of local functions
 * :pr:`59`: add methods to update nodes in GraphAPI 
