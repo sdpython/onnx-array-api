@@ -10,4 +10,5 @@ Tutorial
     graph_api
     light_api
     numpy_api
+    tools
     benchmarks
