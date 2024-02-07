@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Iterator, Optional, Tuple
+from typing import Any, Dict, List, Iterator, Optional, Tuple, Union
 from enum import IntEnum
 import numpy as np
 from onnx import ModelProto, TensorProto, ValueInfoProto
@@ -77,6 +77,12 @@ def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
     :param module: discretization parameter
     :return: short string
     """
+    if isinstance(value, np.float32):
+        # This should not happen.
+        value = np.array(value)
+    assert isinstance(
+        value, np.ndarray
+    ), f"Unexpected type {type(value)} for value, it must be a numpy array."
     value4 = np.zeros(length, dtype=np.float64)
     if value.size <= length:
         value4[: value.size] = value.flatten().astype(np.float64)
@@ -170,6 +176,9 @@ class YieldEvaluator:
                     outputs = node.run(*inputs, **linked_attributes)
             except Exception:
                 if raise_exc:
+                    # ExtendedReferenceEvaluator(self.onnx_model, verbose=10).run(
+                    #   None, feed_inputs
+                    # )
                     raise
                 yield_output = False
                 break
@@ -286,12 +295,12 @@ class DistanceExecution:
         :param s2: second sequence
         :return: distance and alignment
         """
-        delay = self.max_lag
+        delay = max(self.max_lag, abs(len(s2) - len(s1)) + 1)
         distance = {(-1, -1): 0}
         predecessor = {(-1, -1): None}
         for i in range(len(s1)):
             for j in range(max(0, i - delay), min(len(s2), i + delay)):
-                best = 1e100
+                best = distance.get((i, j), 1e100)
                 pred = None
                 ki, kj = i - 1, j - 1
                 if (ki, kj) in distance:
@@ -418,7 +427,7 @@ def generate_inputs(model: ModelProto) -> List[np.ndarray]:
 def compare_onnx_execution(
     model1: ModelProto,
     model2: ModelProto,
-    inputs: Optional[List[Any]] = None,
+    inputs: Optional[Union[List[Any], Tuple[Dict[str, Any]]]] = None,
     verbose: int = 0,
     raise_exc: bool = True,
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
@@ -430,7 +439,8 @@ def compare_onnx_execution(
 
     :param model1: first model
     :param model2: second model
-    :param inputs: inputs to use
+    :param inputs: inputs to use, a list of inputs if both models have
+        the same number of inputs or two dictionaries, one for each model
     :param verbose: verbosity
     :param raise_exc: raise exception if the execution fails or stop at the error
     :return: four results, a sequence of results for the first model and the second model,
@@ -440,8 +450,14 @@ def compare_onnx_execution(
         print("[compare_onnx_execution] generate inputs")
     if inputs is None:
         inputs = generate_inputs(model1)
-    feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
-    feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+    if isinstance(inputs, tuple):
+        assert len(inputs) == 2, f"Unexpected number  {len(inputs)} of inputs."
+        feeds1, feeds2 = inputs
+    else:
+        feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
+        feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+    assert isinstance(feeds1, dict), f"Unexpected type {type(feeds1)} for inputs"
+    assert isinstance(feeds2, dict), f"Unexpected type {type(feeds2)} for inputs"
     if verbose:
         print(f"[compare_onnx_execution] got {len(inputs)} inputs")
         print("[compare_onnx_execution] execute first model")
