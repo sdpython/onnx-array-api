@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Iterator, Optional, Tuple
+from typing import Any, Dict, List, Iterator, Optional, Tuple, Union
 from enum import IntEnum
 import numpy as np
 from onnx import ModelProto, TensorProto, ValueInfoProto
@@ -424,7 +424,7 @@ def generate_inputs(model: ModelProto) -> List[np.ndarray]:
 def compare_onnx_execution(
     model1: ModelProto,
     model2: ModelProto,
-    inputs: Optional[List[Any]] = None,
+    inputs: Optional[Union[List[Any], Tuple[Dict[str, Any]]]] = None,
     verbose: int = 0,
     raise_exc: bool = True,
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
@@ -436,7 +436,8 @@ def compare_onnx_execution(
 
     :param model1: first model
     :param model2: second model
-    :param inputs: inputs to use
+    :param inputs: inputs to use, a list of inputs if both models have
+        the same number of inputs or two dictionaries, one for each model
     :param verbose: verbosity
     :param raise_exc: raise exception if the execution fails or stop at the error
     :return: four results, a sequence of results for the first model and the second model,
@@ -446,8 +447,14 @@ def compare_onnx_execution(
         print("[compare_onnx_execution] generate inputs")
     if inputs is None:
         inputs = generate_inputs(model1)
-    feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
-    feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+    if isinstance(inputs, tuple):
+        assert len(inputs) == 2, f"Unexpected number  {len(inputs)} of inputs."
+        feeds1, feeds2 = inputs
+    else:
+        feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
+        feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+    assert isinstance(feeds1, dict), f"Unexpected type {type(feeds1)} for inputs"
+    assert isinstance(feeds2, dict), f"Unexpected type {type(feeds2)} for inputs"
     if verbose:
         print(f"[compare_onnx_execution] got {len(inputs)} inputs")
         print("[compare_onnx_execution] execute first model")
