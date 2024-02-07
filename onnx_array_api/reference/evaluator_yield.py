@@ -77,6 +77,9 @@ def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
     :param module: discretization parameter
     :return: short string
     """
+    assert isinstance(
+        value, np.ndarray
+    ), f"Unexpected type {type(value)} for value, it must be a numpy array."
     value4 = np.zeros(length, dtype=np.float64)
     if value.size <= length:
         value4[: value.size] = value.flatten().astype(np.float64)
