@@ -173,10 +173,9 @@ class YieldEvaluator:
                     outputs = node.run(*inputs, **linked_attributes)
             except Exception:
                 if raise_exc:
-                    print("ERROR")
-                    ExtendedReferenceEvaluator(self.onnx_model, verbose=10).run(
-                        None, feed_inputs
-                    )
+                    # ExtendedReferenceEvaluator(self.onnx_model, verbose=10).run(
+                    #   None, feed_inputs
+                    # )
                     raise
                 yield_output = False
                 break
@@ -298,7 +297,6 @@ class DistanceExecution:
         predecessor = {(-1, -1): None}
         for i in range(len(s1)):
             for j in range(max(0, i - delay), min(len(s2), i + delay)):
-                print(i, j, "*", delay, "*", len(s1), len(s2))
                 best = distance.get((i, j), 1e100)
                 pred = None
                 ki, kj = i - 1, j - 1
