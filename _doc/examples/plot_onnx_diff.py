@@ -64,5 +64,6 @@ text = dc.to_str(res1, res2, align)
 print(text)
 
 ###############################
+# See :ref:`l-long-output-compare_onnx_execution` for a better view.
 # The display shows that ReduceSumSquare was replaced by Mul + ReduceSum,
 # and ReduceLogSumExp by ReduceMax + Sub + Exp + Log + Add.
