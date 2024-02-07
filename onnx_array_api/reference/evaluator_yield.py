@@ -77,6 +77,9 @@ def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
     :param module: discretization parameter
     :return: short string
     """
+    if isinstance(value, np.float32):
+        # This should not happen.
+        value = np.array(value)
     assert isinstance(
         value, np.ndarray
     ), f"Unexpected type {type(value)} for value, it must be a numpy array."
