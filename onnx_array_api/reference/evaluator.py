@@ -110,4 +110,7 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
         """
         See :meth:`onnx.reference.ReferenceEvaluator.run`.
         """
+        if len(args) == 1 and isinstance(args[0], list):
+            feeds = dict(zip(self.input_names, args[0]))
+            return self.run(None, feeds, **kwargs)
         return ReferenceEvaluator.run(self, *args, **kwargs)

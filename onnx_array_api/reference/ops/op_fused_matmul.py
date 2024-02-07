@@ -22,10 +22,14 @@ class FusedMatMul(OpRun):
             transBatchB == 0
         ), f"Not implemented for transBatchB==1 and {A.shape}x{B.shape}"
         if transA:
-            dim = len(A.shape)
-            A = A.transpose(axes=(dim - 2, dim - 1))
+            perm = list(range(len(A.shape)))
+            dim = len(perm)
+            perm[dim - 2], perm[dim - 1] = perm[dim - 1], perm[dim - 2]
+            A = np.transpose(A, perm)
         if transB:
-            dim = len(B.shape)
-            B = B.transpose(axes=(dim - 2, dim - 1))
+            perm = list(range(len(B.shape)))
+            dim = len(perm)
+            perm[dim - 2], perm[dim - 1] = perm[dim - 1], perm[dim - 2]
+            B = np.transpose(B, perm)
         a = np.array(alpha, dtype=A.dtype)
-        return (A @ B * a,)
+        return (np.matmul(A, B) * a,)
