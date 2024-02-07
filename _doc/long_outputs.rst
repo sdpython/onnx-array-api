@@ -1,6 +1,11 @@
+:hide-toc:
+
 ==========================
 Long outputs uneasy to see
 ==========================
+
+.. contents::
+    :local:
 
 onnx
 ====
@@ -12,18 +17,19 @@ onnx_array_api.reference.compare_onnx_execution
 
 From example :ref:`l-onnx-diff-example` for function
 :func:`onnx_array_api.reference.compare_onnx_execution`.
+See also `raw rendering <https://github.com/sdpython/onnx-array-api/blob/main/_doc/long_outputs.rst#onnx_array_apireferencecompare_onnx_execution>`_.
 
 ::
 
-    1 = | INITIA float64  1               HAAA            Ad_Addcst    | INITIA float64  1               HAAA            Ad_Addcst   
-    2 = | INITIA float64  4x4             ADZF            Ge_Gemmcst   | INITIA float64  4x4             ADZF            Ge_Gemmcst  
-    3 = | INITIA float64  4               USEA            Ge_Gemmcst1  | INITIA float64  4               USEA            Ge_Gemmcst1 
-    4 = | INITIA float64  1               AAAA            Mu_Mulcst    | INITIA float64  1               AAAA            Mu_Mulcst   
-    5 = | INITIA float64  1               DAAA            Ad_Addcst1   | INITIA float64  1               DAAA            Ad_Addcst1  
-    6 = | INITIA float64  1               AAAA            Ad_Addcst2   | INITIA float64  1               AAAA            Ad_Addcst2  
-    7 = | INPUT  float64  1x4             AAAA            X            | INPUT  float64  1x4             AAAA            X           
-    8 = | RESULT float64  1x4             UTFC Gemm       Ge_Y0        | RESULT float64  1x4             UTFC Gemm       Ge_Y0       
-    9 + |                                                              | RESULT float64  1x4             TIEG Mul        Mu_C01       
+     1 = | INITIA float64  1               HAAA            Ad_Addcst    | INITIA float64  1               HAAA            Ad_Addcst   
+     2 = | INITIA float64  4x4             ADZF            Ge_Gemmcst   | INITIA float64  4x4             ADZF            Ge_Gemmcst  
+     3 = | INITIA float64  4               USEA            Ge_Gemmcst1  | INITIA float64  4               USEA            Ge_Gemmcst1 
+     4 = | INITIA float64  1               AAAA            Mu_Mulcst    | INITIA float64  1               AAAA            Mu_Mulcst   
+     5 = | INITIA float64  1               DAAA            Ad_Addcst1   | INITIA float64  1               DAAA            Ad_Addcst1  
+     6 = | INITIA float64  1               AAAA            Ad_Addcst2   | INITIA float64  1               AAAA            Ad_Addcst2  
+     7 = | INPUT  float64  1x4             AAAA            X            | INPUT  float64  1x4             AAAA            X           
+     8 = | RESULT float64  1x4             UTFC Gemm       Ge_Y0        | RESULT float64  1x4             UTFC Gemm       Ge_Y0       
+     9 + |                                                              | RESULT float64  1x4             TIEG Mul        Mu_C01       
     10 ~ | RESULT float64  1x1             NAAA ReduceSumS Re_reduced0  | RESULT float64  1x1             NAAA ReduceSum  Re_reduced0 
     11 = | RESULT float64  1x1             NAAA Concat     Co_concat_re | RESULT float64  1x1             NAAA Concat     Co_concat_re
     12 = | RESULT float64  1x1             UAAA Add        Ad_C02       | RESULT float64  1x1             UAAA Add        Ad_C02      
