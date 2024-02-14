@@ -368,7 +368,7 @@ class DistanceExecution:
             else:
                 d1 = s1[i]
                 line = f"- | {_align(str(d1), column_size)} | {_align('', column_size)}"
-            rows.append(f"{row_index: 3d} {line}")
+            rows.append(f"{row_index:03d} {line}")
             last = i, j
             row_index += 1
         return "\n".join(rows)

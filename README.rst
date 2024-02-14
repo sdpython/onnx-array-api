@@ -31,6 +31,10 @@ onnx-array-api: APIs to create ONNX Graphs
 
 **onnx-array-api** implements APIs to create custom ONNX graphs.
 The objective is to speed up the implementation of converter libraries.
+The library is released on
+`pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
+and its documentation is published at
+`APIs to create ONNX Graphs <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.
 
 Numpy API
 +++++++++
@@ -146,11 +150,6 @@ The euclidean distance looks like the following:
         .vout()
         .to_onnx()
     )    
-
-The library is released on
-`pypi/onnx-array-api <https://pypi.org/project/onnx-array-api/>`_
-and its documentation is published at
-`APIs to create ONNX Graphs <https://sdpython.github.io/doc/onnx-array-api/dev/>`_.
 
 GraphBuilder API
 ++++++++++++++++

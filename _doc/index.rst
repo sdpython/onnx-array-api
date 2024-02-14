@@ -45,6 +45,7 @@ The objective is to speed up the implementation of converter libraries.
 
     CHANGELOGS
     license
+    long_outputs
 
 Sources available on
 `github/onnx-array-api <https://github.com/sdpython/onnx-array-api>`_.
