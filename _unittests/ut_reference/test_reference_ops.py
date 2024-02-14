@@ -59,6 +59,25 @@ class TestReferenceOps(ExtTestCase):
         got = ref.run(None, {"X": a, "Y": a})
         self.assertEqualArray(a.T @ a.T, got[0])
 
+    def test_memcpy(self):
+        model = make_model(
+            make_graph(
+                [
+                    make_node("MemcpyToHost", ["X"], ["Z"]),
+                    make_node("MemcpyFromHost", ["X"], ["Z"]),
+                ],
+                "name",
+                [make_tensor_value_info("X", TensorProto.FLOAT, None)],
+                [make_tensor_value_info("Z", TensorProto.FLOAT, None)],
+            ),
+            opset_imports=[make_opsetid("", 18), make_opsetid("com.microsoft", 1)],
+            ir_version=9,
+        )
+        a = np.arange(4).reshape(-1, 2).astype(np.float32)
+        ref = ExtendedReferenceEvaluator(model)
+        got = ref.run(None, {"X": a})
+        self.assertEqualArray(a, got[0])
+
     def test_quick_gelu(self):
         from onnxruntime import InferenceSession
 
