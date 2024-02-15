@@ -8,6 +8,9 @@ from .ops.op_cast_like import CastLike_15, CastLike_19
 from .ops.op_concat import Concat
 from .ops.op_constant_of_shape import ConstantOfShape
 from .ops.op_fused_matmul import FusedMatMul
+from .ops.op_memcpy_host import MemcpyFromHost, MemcpyToHost
+from .ops.op_quick_gelu import QuickGelu
+from .ops.op_scatter_elements import ScatterElements
 
 
 logger = getLogger("onnx-array-api-eval")
@@ -34,6 +37,10 @@ class ExtendedReferenceEvaluator(ReferenceEvaluator):
         CastLike_19,
         ConstantOfShape,
         FusedMatMul,
+        MemcpyFromHost,
+        MemcpyToHost,
+        QuickGelu,
+        ScatterElements,
     ]
 
     @staticmethod
