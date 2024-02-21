@@ -424,13 +424,13 @@ class TestArrayTensor(ExtTestCase):
         text = dc.to_str(s1, s2, align)
         self.assertIn("OUTPUT", text)
         expected = """
-            001=|INPUTfloat322x2ABCDA|INPUTfloat322x2ABCDA
-            002=|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
-            003~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
-            004-|RESULTfloat322x2CEIOExpH|
-            005=|RESULTfloat322x2CEIOLinearRegressioY1|RESULTfloat322x2CEIOLinearRegressioY1
-            006~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
-            007~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
+            001=|INPUTfloat322:2x2ABCDA|INPUTfloat322:2x2ABCDA
+            002=|INPUTfloat322:2x2ABCDB|INPUTfloat322:2x2ABCDB
+            003~|INPUTfloat322:2x3ABCDX|INPUTfloat322:2x2ABCDX
+            004-|RESULTfloat322:2x2CEIOExpH|
+            005=|RESULTfloat322:2x2CEIOLinearRegressioY1|RESULTfloat322:2x2CEIOLinearRegressioY1
+            006~|RESULTfloat322:2x2CEIOAbsY|RESULTfloat322:2x3CEIPAbsZ
+            007~|OUTPUTfloat322:2x2CEIOY|OUTPUTfloat322:2x2CEIPY
         """.replace(
             "            ", ""
         ).strip(

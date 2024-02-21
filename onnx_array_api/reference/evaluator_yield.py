@@ -29,6 +29,22 @@ class ResultType(IntEnum):
         return f"{self.__class__.__name__}.{self._name_}"
 
 
+def _dimension_to_str(d):
+    if isinstance(d, int):
+        return str(d)
+    try:
+        int(d)
+    except ValueError:
+        return d
+    return f"{d!r}"
+
+
+def _rank_to_str(shape):
+    if shape:
+        return f"{len(shape)}:"
+    return "  "
+
+
 @dataclass
 class ResultExecution:
     """
@@ -65,7 +81,13 @@ class ResultExecution:
         els = [
             _align(self.kind._name_, 6),
             _align(str(dtype).replace("dtype(", "").replace(")", ""), 8),
-            _align("x".join("" if self.shape is None else map(str, self.shape)), 15),
+            _rank_to_str(self.shape)
+            + _align(
+                "x".join(
+                    "" if self.shape is None else map(_dimension_to_str, self.shape)
+                ),
+                18,
+            ),
             self.summary,
             _align(self.op_type or "", 15),
             self.name or "",
