@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Iterator, Optional, Tuple, Union
 from enum import IntEnum
 import numpy as np
-from onnx import ModelProto, TensorProto, ValueInfoProto
+from onnx import ModelProto, TensorProto, ValueInfoProto, load
+from onnx.helper import tensor_dtype_to_np_dtype
+from onnx.shape_inference import infer_shapes
+from . import to_array_extended
 from .evaluator import ExtendedReferenceEvaluator
 
 
@@ -20,9 +23,26 @@ class ResultType(IntEnum):
     SPARSE_INITIALIZER = 4
     INPUT = 8
     OUTPUT = 16
+    NODE = 32
 
     def __repr__(self):
         return f"{self.__class__.__name__}.{self._name_}"
+
+
+def _dimension_to_str(d):
+    if isinstance(d, int):
+        return str(d)
+    try:
+        int(d)
+    except ValueError:
+        return d
+    return f"{d!r}"
+
+
+def _rank_to_str(shape):
+    if shape:
+        return f"{len(shape)}:"
+    return "  "
 
 
 @dataclass
@@ -57,12 +77,19 @@ class ResultExecution:
         raise IndexError(f"i={i} out of boundary")
 
     def __str__(self):
+        dtype = self.dtype if self.dtype != 0 else ""
         els = [
             _align(self.kind._name_, 6),
-            _align(str(self.dtype).replace("dtype(", "").replace(")", ""), 8),
-            _align("x".join(map(str, self.shape)), 15),
+            _align(str(dtype).replace("dtype(", "").replace(")", ""), 8),
+            _rank_to_str(self.shape)
+            + _align(
+                "x".join(
+                    "" if self.shape is None else map(_dimension_to_str, self.shape)
+                ),
+                18,
+            ),
             self.summary,
-            _align(self.op_type or "", 10),
+            _align(self.op_type or "", 15),
             self.name or "",
         ]
         return " ".join(els)
@@ -270,6 +297,22 @@ class DistanceExecution:
         return 1
 
     def _cost_shape(self, s1: Tuple[int, ...], s2: Tuple[int, ...]) -> float:
+        if s1 is None or s2 is None:
+            return self.rank_cost
+        if any(map(lambda s: isinstance(s, str), s1)) or any(
+            map(lambda s: isinstance(s, str), s2)
+        ):
+            # dynamic shapes
+            if len(s1) != len(s2):
+                return self.rank_cost
+            d = 0
+            for i, j in zip(s1, s2):
+                if isinstance(i, int) and isinstance(j, int):
+                    d += abs(i - j)
+                elif i != j:
+                    d += self.rank_cost / 2
+            return d
+
         d = abs(np.prod(s1) - np.prod(s2))
         if len(s1) != len(s2):
             return self.rank_cost + d
@@ -424,12 +467,90 @@ def generate_inputs(model: ModelProto) -> List[np.ndarray]:
     return inputs
 
 
+def _update_shape_types_with_proto(
+    proto: ModelProto,
+) -> Dict[str, Tuple[int, Tuple[Union[int, str], ...]]]:
+    """
+    Retrieves the shapes and types for a model.
+    """
+    assert isinstance(proto, ModelProto), f"Unexpected type {type(proto)} for proto"
+    res = {}
+
+    for val in proto.graph.input:
+        itype = val.type.tensor_type.elem_type
+        shape = tuple(
+            d.dim_param if d.dim_param else d.dim_value
+            for d in val.type.tensor_type.shape.dim
+        )
+        res[val.name] = [itype, shape]
+
+    for val in proto.graph.output:
+        itype = val.type.tensor_type.elem_type
+        shape = tuple(
+            d.dim_param if d.dim_param else d.dim_value
+            for d in val.type.tensor_type.shape.dim
+        )
+        res[val.name] = [itype, shape]
+
+    for val in proto.graph.initializer:
+        itype = val.data_type
+        shape = tuple(d for d in val.dims)
+        res[val.name] = [itype, shape]
+
+    new_proto = infer_shapes(proto)
+    for val in new_proto.graph.value_info:
+        itype = val.type.tensor_type.elem_type
+        shape = tuple(
+            d.dim_param if d.dim_param else d.dim_value
+            for d in val.type.tensor_type.shape.dim
+        )
+        res[val.name] = [itype, shape]
+
+    return res
+
+
+def _enumerate_result_no_execution(model: ModelProto) -> Iterator[ResultType]:
+    """
+    Produces a list of results based on a model in order to
+    trigger the edit distance comparison.
+    """
+    type_shape = _update_shape_types_with_proto(model)
+    for i in model.graph.initializer:
+        itype, shape = type_shape.get(i.name, (0, None))
+        dtype = tensor_dtype_to_np_dtype(itype)
+        yield ResultExecution(
+            ResultType.INITIALIZER,
+            dtype,
+            shape,
+            make_summary(to_array_extended(i)),
+            "INIT",
+            i.name,
+        )
+    for i in model.graph.input:
+        itype, shape = type_shape.get(i.name, (0, None))
+        dtype = tensor_dtype_to_np_dtype(itype)
+        yield ResultExecution(ResultType.INPUT, dtype, shape, "????", "INPUT", i.name)
+    for node in model.graph.node:
+        yield ResultExecution(ResultType.NODE, 0, None, "????", node.op_type, node.name)
+        for o in node.output:
+            itype, shape = type_shape.get(o, (0, None))
+            dtype = 0 if itype == 0 else tensor_dtype_to_np_dtype(itype)
+            yield ResultExecution(
+                ResultType.RESULT, dtype, shape, "????", node.op_type, o
+            )
+    for i in model.graph.output:
+        itype, shape = type_shape.get(i.name, (0, None))
+        dtype = tensor_dtype_to_np_dtype(itype)
+        yield ResultExecution(ResultType.OUTPUT, dtype, shape, "????", "OUTPUT", i.name)
+
+
 def compare_onnx_execution(
     model1: ModelProto,
     model2: ModelProto,
     inputs: Optional[Union[List[Any], Tuple[Dict[str, Any]]]] = None,
     verbose: int = 0,
     raise_exc: bool = True,
+    mode: str = "execute",
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
     """
     Compares the execution of two onnx models.
@@ -443,33 +564,55 @@ def compare_onnx_execution(
         the same number of inputs or two dictionaries, one for each model
     :param verbose: verbosity
     :param raise_exc: raise exception if the execution fails or stop at the error
+    :param mode: the model should be executed but the function can be executed
+        but the comparison may append on nodes only
     :return: four results, a sequence of results for the first model and the second model,
         the alignment between the two, DistanceExecution
     """
-    if verbose:
-        print("[compare_onnx_execution] generate inputs")
-    if inputs is None:
-        inputs = generate_inputs(model1)
-    if isinstance(inputs, tuple):
-        assert len(inputs) == 2, f"Unexpected number  {len(inputs)} of inputs."
-        feeds1, feeds2 = inputs
+    assert mode in {"execute", "nodes"}, f"Unexpected value for mode={mode!r}."
+
+    if mode == "execute":
+        if inputs is None:
+            if verbose:
+                print("[compare_onnx_execution] generate inputs")
+            inputs = generate_inputs(model1)
+        if isinstance(inputs, tuple):
+            assert len(inputs) == 2, f"Unexpected number {len(inputs)} of inputs."
+            feeds1, feeds2 = inputs
+        else:
+            feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
+            feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
+        assert isinstance(feeds1, dict), f"Unexpected type {type(feeds1)} for inputs"
+        assert isinstance(feeds2, dict), f"Unexpected type {type(feeds2)} for inputs"
+        if verbose:
+            print(f"[compare_onnx_execution] execute with {len(inputs)} inputs")
+            print("[compare_onnx_execution] execute first model")
+        res1 = list(
+            YieldEvaluator(model1).enumerate_summarized(
+                None, feeds1, raise_exc=raise_exc
+            )
+        )
+        if verbose:
+            print(f"[compare_onnx_execution] got {len(res1)} results")
+            print("[compare_onnx_execution] execute second model")
+        res2 = list(
+            YieldEvaluator(model2).enumerate_summarized(
+                None, feeds2, raise_exc=raise_exc
+            )
+        )
+    elif mode == "nodes":
+        # No execution.
+        if verbose:
+            print("[compare_onnx_execution] loading first model")
+        proto1 = load(model1) if isinstance(model1, str) else model1
+        if verbose:
+            print("[compare_onnx_execution] loading first model")
+        proto2 = load(model2) if isinstance(model2, str) else model2
+        res1 = list(_enumerate_result_no_execution(proto1))
+        res2 = list(_enumerate_result_no_execution(proto2))
     else:
-        feeds1 = {i.name: v for i, v in zip(model1.graph.input, inputs)}
-        feeds2 = {i.name: v for i, v in zip(model2.graph.input, inputs)}
-    assert isinstance(feeds1, dict), f"Unexpected type {type(feeds1)} for inputs"
-    assert isinstance(feeds2, dict), f"Unexpected type {type(feeds2)} for inputs"
-    if verbose:
-        print(f"[compare_onnx_execution] got {len(inputs)} inputs")
-        print("[compare_onnx_execution] execute first model")
-    res1 = list(
-        YieldEvaluator(model1).enumerate_summarized(None, feeds1, raise_exc=raise_exc)
-    )
-    if verbose:
-        print(f"[compare_onnx_execution] got {len(res1)} results")
-        print("[compare_onnx_execution] execute second model")
-    res2 = list(
-        YieldEvaluator(model2).enumerate_summarized(None, feeds2, raise_exc=raise_exc)
-    )
+        return
+
     if verbose:
         print(f"[compare_onnx_execution] got {len(res2)} results")
         print("[compare_onnx_execution] compute edit distance")
