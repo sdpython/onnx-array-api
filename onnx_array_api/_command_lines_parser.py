@@ -20,7 +20,7 @@ def get_main_parser() -> ArgumentParser:
         Selects a command.
         
         'translate' exports an onnx graph into a piece of code replicating it,
-        'compares' compares the execution of two onnx models
+        'compare' compares the execution of two onnx models
         """
         ),
     )
@@ -91,6 +91,13 @@ def get_parser_compare() -> ArgumentParser:
         help="second onnx model",
     )
     parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["execute", "nodes"],
+        default="execute",
+        help="compare the execution ('execute') or the nodes only ('nodes')",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         default=0,
@@ -112,7 +119,9 @@ def _cmd_compare(argv: List[Any]):
     args = parser.parse_args(argv[1:])
     onx1 = onnx.load(args.model1)
     onx2 = onnx.load(args.model2)
-    res1, res2, align, dc = compare_onnx_execution(onx1, onx2, verbose=args.verbose)
+    res1, res2, align, dc = compare_onnx_execution(
+        onx1, onx2, verbose=args.verbose, mode=args.mode
+    )
     text = dc.to_str(res1, res2, align, column_size=args.column_size)
     print(text)
 
@@ -127,7 +136,7 @@ def main(argv: Optional[List[Any]] = None):
             parser = get_main_parser()
             parser.parse_args(argv)
         else:
-            parsers = dict(translate=get_parser_translate)
+            parsers = dict(translate=get_parser_translate, compare=get_parser_compare)
             cmd = argv[0]
             if cmd not in parsers:
                 raise ValueError(

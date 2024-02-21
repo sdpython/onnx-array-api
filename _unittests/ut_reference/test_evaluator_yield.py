@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from onnx import TensorProto
+from onnx.checker import check_model
 from onnx.helper import (
     make_function,
     make_graph,
@@ -9,6 +10,7 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
+from onnx.numpy_helper import from_array
 from onnx.parser import parse_model
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.reference import (
@@ -426,7 +428,7 @@ class TestArrayTensor(ExtTestCase):
             002=|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
             003~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
             004-|RESULTfloat322x2CEIOExpH|
-            005=|RESULTfloat322x2CEIOLinearRegrY1|RESULTfloat322x2CEIOLinearRegrY1
+            005=|RESULTfloat322x2CEIOLinearRegresY1|RESULTfloat322x2CEIOLinearRegresY1
             006~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
             007~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
         """.replace(
@@ -459,6 +461,68 @@ class TestArrayTensor(ExtTestCase):
         text = dc.to_str(res1, res2, align)
         self.assertIn("CAAA Constant", text)
         self.assertEqual(len(align), 5)
+
+    def test_no_execution(self):
+        model = make_model(
+            make_graph(
+                [
+                    make_node("Unsqueeze", ["X", "zero"], ["xu1"]),
+                    make_node("Unsqueeze", ["xu1", "un"], ["xu2"]),
+                    make_node("Reshape", ["xu2", "shape1"], ["xm1"]),
+                    make_node("Reshape", ["Y", "shape2"], ["xm2c"]),
+                    make_node("Cast", ["xm2c"], ["xm2"], to=1),
+                    make_node("MatMul", ["xm1", "xm2"], ["xm"]),
+                    make_node("Reshape", ["xm", "shape3"], ["Z"]),
+                ],
+                "dummy",
+                [
+                    make_tensor_value_info("X", TensorProto.FLOAT, [32, 128]),
+                    make_tensor_value_info("Y", TensorProto.FLOAT, [3, 5, 128, 64]),
+                ],
+                [make_tensor_value_info("Z", TensorProto.FLOAT, [3, 5, 32, "N"])],
+                [
+                    from_array(np.array([0], dtype=np.int64), name="zero"),
+                    from_array(np.array([1], dtype=np.int64), name="un"),
+                    from_array(np.array([1, 32, 128], dtype=np.int64), name="shape1"),
+                    from_array(np.array([15, 128, 64], dtype=np.int64), name="shape2"),
+                    from_array(np.array([3, 5, 32, 64], dtype=np.int64), name="shape3"),
+                ],
+            )
+        )
+        check_model(model)
+        res1, res2, align, dc = compare_onnx_execution(model, model, mode="nodes")
+        text = dc.to_str(res1, res2, align)
+        self.assertIn("012 = | NODE", text)
+
+        model2 = make_model(
+            make_graph(
+                [
+                    make_node("Unsqueeze", ["X", "zero"], ["xu1"]),
+                    make_node("Unsqueeze", ["xu1", "un"], ["xu2"]),
+                    make_node("Reshape", ["xu2", "shape1"], ["xm1"]),
+                    make_node("Reshape", ["Y", "shape2"], ["xm2c"]),
+                    make_node("MatMul", ["xm1", "xm2c"], ["xm"]),
+                    make_node("Reshape", ["xm", "shape3"], ["Z"]),
+                ],
+                "dummy",
+                [
+                    make_tensor_value_info("X", TensorProto.FLOAT, [32, 128]),
+                    make_tensor_value_info("Y", TensorProto.FLOAT, [3, 5, 128, 64]),
+                ],
+                [make_tensor_value_info("Z", TensorProto.FLOAT, [3, 5, 32, "N"])],
+                [
+                    from_array(np.array([0], dtype=np.int64), name="zero"),
+                    from_array(np.array([1], dtype=np.int64), name="un"),
+                    from_array(np.array([1, 32, 128], dtype=np.int64), name="shape1"),
+                    from_array(np.array([15, 128, 64], dtype=np.int64), name="shape2"),
+                    from_array(np.array([3, 5, 32, 64], dtype=np.int64), name="shape3"),
+                ],
+            )
+        )
+        check_model(model2)
+        res1, res2, align, dc = compare_onnx_execution(model, model2, mode="nodes")
+        text = dc.to_str(res1, res2, align)
+        self.assertIn("012 = | NODE", text)
 
 
 if __name__ == "__main__":
