@@ -122,7 +122,7 @@ def _cmd_compare(argv: List[Any]):
     res1, res2, align, dc = compare_onnx_execution(
         onx1, onx2, verbose=args.verbose, mode=args.mode
     )
-    text = dc.to_str(res1, res2, align, column_size=args.column_size)
+    text = dc.to_str(res1, res2, align, column_size=int(args.column_size))
     print(text)
 
 

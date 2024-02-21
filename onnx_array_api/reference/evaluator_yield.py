@@ -5,6 +5,7 @@ import numpy as np
 from onnx import ModelProto, TensorProto, ValueInfoProto, load
 from onnx.helper import tensor_dtype_to_np_dtype
 from onnx.shape_inference import infer_shapes
+from . import to_array_extended
 from .evaluator import ExtendedReferenceEvaluator
 
 
@@ -66,7 +67,7 @@ class ResultExecution:
             _align(str(dtype).replace("dtype(", "").replace(")", ""), 8),
             _align("x".join("" if self.shape is None else map(str, self.shape)), 15),
             self.summary,
-            _align(self.op_type or "", 12),
+            _align(self.op_type or "", 15),
             self.name or "",
         ]
         return " ".join(els)
@@ -496,7 +497,12 @@ def _enumerate_result_no_execution(model: ModelProto) -> Iterator[ResultType]:
         itype, shape = type_shape.get(i.name, (0, None))
         dtype = tensor_dtype_to_np_dtype(itype)
         yield ResultExecution(
-            ResultType.INITIALIZER, dtype, shape, "????", "INIT", i.name
+            ResultType.INITIALIZER,
+            dtype,
+            shape,
+            make_summary(to_array_extended(i)),
+            "INIT",
+            i.name,
         )
     for i in model.graph.input:
         itype, shape = type_shape.get(i.name, (0, None))
@@ -506,7 +512,7 @@ def _enumerate_result_no_execution(model: ModelProto) -> Iterator[ResultType]:
         yield ResultExecution(ResultType.NODE, 0, None, "????", node.op_type, node.name)
         for o in node.output:
             itype, shape = type_shape.get(o, (0, None))
-            dtype = tensor_dtype_to_np_dtype(itype)
+            dtype = 0 if itype == 0 else tensor_dtype_to_np_dtype(itype)
             yield ResultExecution(
                 ResultType.RESULT, dtype, shape, "????", node.op_type, o
             )

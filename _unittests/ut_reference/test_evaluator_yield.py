@@ -428,7 +428,7 @@ class TestArrayTensor(ExtTestCase):
             002=|INPUTfloat322x2ABCDB|INPUTfloat322x2ABCDB
             003~|INPUTfloat322x3ABCDX|INPUTfloat322x2ABCDX
             004-|RESULTfloat322x2CEIOExpH|
-            005=|RESULTfloat322x2CEIOLinearRegresY1|RESULTfloat322x2CEIOLinearRegresY1
+            005=|RESULTfloat322x2CEIOLinearRegressioY1|RESULTfloat322x2CEIOLinearRegressioY1
             006~|RESULTfloat322x2CEIOAbsY|RESULTfloat322x3CEIPAbsZ
             007~|OUTPUTfloat322x2CEIOY|OUTPUTfloat322x2CEIPY
         """.replace(
