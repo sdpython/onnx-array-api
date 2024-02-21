@@ -604,10 +604,10 @@ def compare_onnx_execution(
         # No execution.
         if verbose:
             print("[compare_onnx_execution] loading first model")
-        proto1 = load(model1) if isinstance(model1, str) else model2
+        proto1 = load(model1) if isinstance(model1, str) else model1
         if verbose:
             print("[compare_onnx_execution] loading first model")
-        proto2 = load(model2) if isinstance(model2, str) else model1
+        proto2 = load(model2) if isinstance(model2, str) else model2
         res1 = list(_enumerate_result_no_execution(proto1))
         res2 = list(_enumerate_result_no_execution(proto2))
     else:
