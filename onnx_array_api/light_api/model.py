@@ -42,6 +42,7 @@ class OnnxGraph:
 
     :param opset: main opset version
     :param opsets: other opsets as a dictionary
+    :param ir_version: to specify an ir_version
     :param is_function: a :class:`onnx.ModelProto` or a :class:`onnx.FunctionProto`
     """
 
@@ -49,6 +50,7 @@ class OnnxGraph:
         self,
         opset: Optional[int] = None,
         opsets: Optional[Dict[str, int]] = None,
+        ir_version: Optional[int] = None,
         proto_type: ProtoType = ProtoType.MODEL,
     ):
         if opsets is not None and "" in opsets:
@@ -65,6 +67,7 @@ class OnnxGraph:
         self.proto_type = proto_type
         self.opsets = opsets
         self.opset = opset
+        self.ir_version = ir_version
         self.nodes: List[Union[NodeProto, TensorProto]] = []
         self.inputs: List[ValueInfoProto] = []
         self.outputs: List[ValueInfoProto] = []
@@ -402,6 +405,8 @@ class OnnxGraph:
             # If no opsets, it a subgraph, not a model.
             return graph
         model = make_model(graph, opset_imports=opsets)
+        if self.ir_version:
+            model.ir_version = ir_version
         if not is_windows() or not is_azure():
             # check_model fails sometimes on Windows
             check_model(model)
