@@ -314,6 +314,13 @@ class OpsVar:
     def Shrink(self, bias: float = 0.0, lambd: float = 0.5) -> "Var":
         return self.make_node("Shrink", self, bias=bias, lambd=lambd)
 
+    def Slice(
+        self, starts: "Var", ends: "Var", axes: "Var", steps: Optional["Var"] = None
+    ) -> "Var":
+        if steps is None:
+            return self.make_node("Slice", self, starts, ends, axes)
+        return self.make_node("Slice", self, starts, ends, axes, steps)
+
     def Softmax(self, axis: int = -1) -> "Var":
         return self.make_node("Softmax", self, axis=axis)
 

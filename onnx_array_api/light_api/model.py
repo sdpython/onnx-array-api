@@ -406,7 +406,7 @@ class OnnxGraph:
             return graph
         model = make_model(graph, opset_imports=opsets)
         if self.ir_version:
-            model.ir_version = ir_version
+            model.ir_version = self.ir_version
         if not is_windows() or not is_azure():
             # check_model fails sometimes on Windows
             check_model(model)
