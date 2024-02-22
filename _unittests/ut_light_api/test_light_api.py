@@ -538,7 +538,6 @@ class TestLightApi(ExtTestCase):
         got = ref.run(None, {"X": np.array([2, 3], dtype=np.int64)})[0]
         self.assertEqualArray(np.zeros((2, 3), dtype=np.float32), got)
 
-<<<<<<< HEAD
     def test_constant_of_shape_value(self):
         onx = (
             start()
@@ -568,9 +567,6 @@ class TestLightApi(ExtTestCase):
         got = ref.run(None, {"X": np.array([2, 3], dtype=np.int64)})[0]
         self.assertEqualArray(np.ones((2, 1), dtype=np.float32), got)
 
-=======
->>>>>>> 2dd068672d352ed1761d889c071a9bac02790663
 
 if __name__ == "__main__":
-    TestLightApi().test_add()
     unittest.main(verbosity=2)
