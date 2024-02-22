@@ -1,4 +1,6 @@
 from typing import List, Optional, Union
+import numpy as np
+from ..reference import from_array_extended
 from ..annotations import AI_ONNX_ML, domain
 
 
@@ -68,6 +70,11 @@ class OpsVar:
 
     def Celu(self, alpha: float = 1.0) -> "Var":
         return self.make_node("Celu", self, alpha=alpha)
+
+    def ConstantOfShape(self, value: Optional[np.array] = None) -> "Var":
+        if value is None:
+            return self.make_node("ConstantOfShape", self)
+        return self.make_node("ConstantOfShape", self, value=from_array_extended(value))
 
     def DepthToSpace(self, blocksize: int = 0, mode: str = "DCR") -> "Var":
         return self.make_node("DepthToSpace", self, blocksize=blocksize, mode=mode)

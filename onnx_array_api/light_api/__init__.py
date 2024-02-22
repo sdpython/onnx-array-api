@@ -8,12 +8,14 @@ from .var import Var, Vars
 def start(
     opset: Optional[int] = None,
     opsets: Optional[Dict[str, int]] = None,
+    ir_version: Optional[int] = None,
 ) -> OnnxGraph:
     """
     Starts an onnx model.
 
     :param opset: main opset version
     :param opsets: others opsets as a dictionary
+    :param ir_version: specify the ir_version as well
     :return: an instance of :class:`onnx_array_api.light_api.OnnxGraph`
 
     A very simple model:
@@ -45,7 +47,7 @@ def start(
         )
         print(onx)
     """
-    return OnnxGraph(opset=opset, opsets=opsets)
+    return OnnxGraph(opset=opset, opsets=opsets, ir_version=ir_version)
 
 
 def g() -> OnnxGraph:
