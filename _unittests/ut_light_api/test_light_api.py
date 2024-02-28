@@ -2,7 +2,7 @@ import inspect
 import unittest
 from typing import Callable, Optional
 import numpy as np
-from onnx import GraphProto, ModelProto
+from onnx import GraphProto, ModelProto, TensorProto
 from onnx.defs import (
     get_all_schemas_with_history,
     onnx_opset_version,
@@ -526,7 +526,47 @@ class TestLightApi(ExtTestCase):
         i = str(model.graph.input[0]).replace("\n", "").replace(" ", "")
         self.assertNotIn("shape{}", i)
 
+    def test_constant_of_shape(self):
+        onx = (
+            start()
+            .vin("X", TensorProto.INT64, shape=[None, None])
+            .ConstantOfShape()
+            .vout(shape=[])
+            .to_onnx()
+        )
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"X": np.array([2, 3], dtype=np.int64)})[0]
+        self.assertEqualArray(np.zeros((2, 3), dtype=np.float32), got)
+
+    def test_constant_of_shape_value(self):
+        onx = (
+            start()
+            .vin("X", TensorProto.INT64, shape=[None, None])
+            .ConstantOfShape(value=np.array([1], dtype=np.float32))
+            .vout(shape=[])
+            .to_onnx()
+        )
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"X": np.array([2, 3], dtype=np.int64)})[0]
+        self.assertEqualArray(np.ones((2, 3), dtype=np.float32), got)
+
+    def test_slice(self):
+        onx = (
+            start(opset=18, ir_version=9)
+            .cst(np.array([1], dtype=np.int64), name="one")
+            .cst(np.array([2], dtype=np.int64), name="two")
+            .vin("X", TensorProto.INT64, shape=[None, None])
+            .ConstantOfShape(value=np.array([1], dtype=np.float32))
+            .rename("CX")
+            .bring("CX", "one", "two", "one")
+            .Slice()
+            .vout(shape=[])
+            .to_onnx()
+        )
+        ref = ReferenceEvaluator(onx)
+        got = ref.run(None, {"X": np.array([2, 3], dtype=np.int64)})[0]
+        self.assertEqualArray(np.ones((2, 1), dtype=np.float32), got)
+
 
 if __name__ == "__main__":
-    TestLightApi().test_add()
     unittest.main(verbosity=2)
