@@ -106,7 +106,7 @@ def get_parser_compare() -> ArgumentParser:
     parser.add_argument(
         "-c",
         "--column-size",
-        default=50,
+        default=60,
         help="column size when displaying the results",
     )
     return parser

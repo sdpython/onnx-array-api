@@ -462,6 +462,31 @@ class TestArrayTensor(ExtTestCase):
         self.assertIn("CAAA Constant", text)
         self.assertEqual(len(align), 5)
 
+    def test_compare_execution_discrepancies(self):
+        m1 = parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(x, x)
+            }"""
+        )
+        m2 = parse_model(
+            """
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                z = Mul(x, x)
+            }"""
+        )
+        res1, res2, align, dc = compare_onnx_execution(m1, m2, keep_tensor=True)
+        text = dc.to_str(res1, res2, align)
+        print(text)
+        self.assertIn("CAAA Constant", text)
+        self.assertIn("| a=", text)
+        self.assertIn(" r=", text)
+
     def test_no_execution(self):
         model = make_model(
             make_graph(
