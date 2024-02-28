@@ -5,7 +5,7 @@ Change Logs
 +++++
 
 * :pr:`77`: supports ConcatOfShape and Slice with the light API
-* :pr:`76`: add a mode to compare models without execution
+* :pr:`76`, :pr:`79`: add a mode to compare models without execution
 * :pr:`75`: add QuickGelu to ExtendedReferenceEvaluator
 * :pr:`71`: adds tools to compare two onnx graphs
 * :pr:`61`: adds function to plot onnx model as graphs

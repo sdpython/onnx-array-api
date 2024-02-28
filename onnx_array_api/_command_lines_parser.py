@@ -106,8 +106,14 @@ def get_parser_compare() -> ArgumentParser:
     parser.add_argument(
         "-c",
         "--column-size",
-        default=50,
+        default=60,
         help="column size when displaying the results",
+    )
+    parser.add_argument(
+        "-d",
+        "--discrepancies",
+        default=0,
+        help="show precise discrepancies when mode is execution",
     )
     return parser
 
@@ -120,7 +126,11 @@ def _cmd_compare(argv: List[Any]):
     onx1 = onnx.load(args.model1)
     onx2 = onnx.load(args.model2)
     res1, res2, align, dc = compare_onnx_execution(
-        onx1, onx2, verbose=args.verbose, mode=args.mode
+        onx1,
+        onx2,
+        verbose=args.verbose,
+        mode=args.mode,
+        keep_tensor=args.discrepancies in (1, "1", "True", True),
     )
     text = dc.to_str(res1, res2, align, column_size=int(args.column_size))
     print(text)
