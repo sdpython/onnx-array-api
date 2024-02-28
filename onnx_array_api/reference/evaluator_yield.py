@@ -123,9 +123,11 @@ def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
         else:
             value2 = value.flatten().astype(np.float64)
         value4 = value2.reshape((4, -1)).sum(axis=1)
-    value4i = value4.astype(np.int64) % modulo
-    s = "".join([chr(65 + i) for i in value4i])
-    return s
+    value4 = np.where(np.abs(value4) < 1e10, value4, np.nan)
+    s = []
+    for v in value4:
+        s.append("?" if np.isnan(v) else (chr(65 + int(v) % modulo)))
+    return "".join(s)
 
 
 class YieldEvaluator:
