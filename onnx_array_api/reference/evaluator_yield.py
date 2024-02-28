@@ -57,6 +57,7 @@ class ResultExecution:
     summary: str
     op_type: str
     name: str
+    value: Optional[Any] = None
 
     def __len__(self) -> int:
         return 6
@@ -122,9 +123,11 @@ def make_summary(value: Any, length: int = 4, modulo: int = 26) -> str:
         else:
             value2 = value.flatten().astype(np.float64)
         value4 = value2.reshape((4, -1)).sum(axis=1)
-    value4i = value4.astype(np.int64) % modulo
-    s = "".join([chr(65 + i) for i in value4i])
-    return s
+    value4 = np.where(np.abs(value4) < 1e10, value4, np.nan)
+    s = []
+    for v in value4:
+        s.append("?" if np.isnan(v) else (chr(65 + int(v) % modulo)))
+    return "".join(s)
 
 
 class YieldEvaluator:
@@ -228,6 +231,7 @@ class YieldEvaluator:
         output_names: Optional[List[str]] = None,
         feed_inputs: Optional[Dict[str, Any]] = None,
         raise_exc: bool = True,
+        keep_tensor: bool = False,
     ) -> Iterator[ResultExecution]:
         """
         Executes the onnx model and enumerate intermediate results without their names.
@@ -236,6 +240,7 @@ class YieldEvaluator:
         :param feed_inputs: dictionary `{ input name: input value }`
         :param raise_exc: raises an exception if the execution fails or stop
             where it is
+        :param keep_tensor:keep the tensor in order to compute precise distances
         :return: iterator on ResultExecution
         """
         for kind, name, value, op_type in self.enumerate_results(
@@ -243,8 +248,30 @@ class YieldEvaluator:
         ):
             summary = make_summary(value)
             yield ResultExecution(
-                kind, value.dtype, value.shape, summary, op_type, name
+                kind,
+                value.dtype,
+                value.shape,
+                summary,
+                op_type,
+                name,
+                value=value if keep_tensor else None,
             )
+
+
+def discrepancies(
+    expected: np.ndarray, value: np.ndarray, eps: float = 1e-7
+) -> Dict[str, float]:
+    """
+    Computes absolute error and relative error between two matrices.
+    """
+    assert (
+        expected.size == value.size
+    ), f"Incompatible shapes v1.shape={expected.shape}, v2.shape={value.shape}"
+    expected = expected.ravel().astype(np.float32)
+    value = value.ravel().astype(np.float32)
+    diff = np.abs(expected - value)
+    rel = diff / (np.abs(expected) + eps)
+    return dict(aerr=float(diff.max()), rerr=float(rel.max()))
 
 
 class DistanceExecution:
@@ -403,6 +430,14 @@ class DistanceExecution:
                 d = self.distance_pair(d1, d2)
                 symbol = "=" if d == 0 else "~"
                 line = f"{symbol} | {_align(str(d1), column_size)} | {_align(str(d2), column_size)}"
+                if (
+                    d1.value is not None
+                    and d2.value is not None
+                    and d1.value.size == d2.value.size
+                ):
+                    disc = discrepancies(d1.value, d2.value)
+                    a, r = disc["aerr"], disc["rerr"]
+                    line += f" | a={a:.3f} r={r:.3f}"
             elif i == last[0]:
                 d2 = s2[j]
                 line = (
@@ -551,6 +586,7 @@ def compare_onnx_execution(
     verbose: int = 0,
     raise_exc: bool = True,
     mode: str = "execute",
+    keep_tensor: bool = False,
 ) -> Tuple[List[ResultExecution], List[ResultExecution], List[Tuple[int, int]]]:
     """
     Compares the execution of two onnx models.
@@ -566,6 +602,7 @@ def compare_onnx_execution(
     :param raise_exc: raise exception if the execution fails or stop at the error
     :param mode: the model should be executed but the function can be executed
         but the comparison may append on nodes only
+    :param keep_tensor: keeps the tensor in order to compute a precise distance
     :return: four results, a sequence of results for the first model and the second model,
         the alignment between the two, DistanceExecution
     """
@@ -589,7 +626,7 @@ def compare_onnx_execution(
             print("[compare_onnx_execution] execute first model")
         res1 = list(
             YieldEvaluator(model1).enumerate_summarized(
-                None, feeds1, raise_exc=raise_exc
+                None, feeds1, raise_exc=raise_exc, keep_tensor=keep_tensor
             )
         )
         if verbose:
@@ -597,7 +634,7 @@ def compare_onnx_execution(
             print("[compare_onnx_execution] execute second model")
         res2 = list(
             YieldEvaluator(model2).enumerate_summarized(
-                None, feeds2, raise_exc=raise_exc
+                None, feeds2, raise_exc=raise_exc, keep_tensor=keep_tensor
             )
         )
     elif mode == "nodes":
