@@ -73,7 +73,7 @@ def _run_subprocess(
         shell=False,
         env=os.environ,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stderr=subprocess.PIPE,
     )
     raise_exception = False
     output = ""
@@ -91,12 +91,14 @@ def _run_subprocess(
             ):
                 raise_exception = True
     p.poll()
+    error = p.stderr.readline().decode(errors="ignore")
     p.stdout.close()
-    if raise_exception:
+    if error and raise_exception:
         raise RuntimeError(
-            "An error was found in the output. The build is stopped.\n{output}"
+            f"An error was found in the output. The build is stopped."
+            f"\n{output}\n---\n{error}"
         )
-    return output
+    return output + "\n" + error
 
 
 def _run_graphviz(filename: str, image: str, engine: str = "dot") -> str:
@@ -134,8 +136,12 @@ def _run_graphviz(filename: str, image: str, engine: str = "dot") -> str:
         exe = engine
     if os.path.exists(image):
         os.remove(image)
-    output = _run_subprocess([exe, f"-T{ext[1:]}", filename, "-o", image])
-    assert os.path.exists(image), f"Graphviz failed due to {output}"
+    cmd = [exe, f"-T{ext[1:]}", filename, "-o", image]
+    output = _run_subprocess(cmd)
+    assert os.path.exists(image), (
+        f"Unable to find {image!r}, command line is "
+        f"{' '.join(cmd)!r}, Graphviz failed due to\n{output}"
+    )
     return output
 
 
@@ -190,23 +196,25 @@ def plot_dot(
     :param image: output image, None, just returns the output
     :param engine: *dot* or *neato*
     :param figsize: figsize of ax is None
-    :return: :epkg:`Graphviz` output or
-        the dot text if *image* is None
+    :return: :epkg:`Graphviz` output or, the dot text if *image* is None
 
     .. plot::
 
         import matplotlib.pyplot as plt
         import onnx.parser
+        from onnx_array_api.plotting.graphviz_helper import plot_dot
 
         model = onnx.parser.parse_model(
-                    '''
-                    <ir_version: 8, opset_import: [ "": 18]>
-                    agraph (float[N] x) => (float[N] z) {
-                        two = Constant <value_float=2.0> ()
-                        four = Add(two, two)
-                        z = Mul(four, four)
-                    }''')
-        ax = plot_dot(dot)
+            '''
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(four, four)
+            }
+        ''')
+
+        ax = plot_dot(model)
         ax.set_title("Dummy graph")
         plt.show()
     """

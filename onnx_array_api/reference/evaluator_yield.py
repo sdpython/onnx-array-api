@@ -237,10 +237,9 @@ class YieldEvaluator:
         Executes the onnx model and enumerate intermediate results without their names.
 
         :param output_names: requested outputs by names, None for all
-        :param feed_inputs: dictionary `{ input name: input value }`
-        :param raise_exc: raises an exception if the execution fails or stop
-            where it is
-        :param keep_tensor:keep the tensor in order to compute precise distances
+        :param feed_inputs: dictionary ``{ input name: input value }``
+        :param raise_exc: raises an exception if the execution fails or stop where it is
+        :param keep_tensor: keep the tensor in order to compute precise distances
         :return: iterator on ResultExecution
         """
         for kind, name, value, op_type in self.enumerate_results(

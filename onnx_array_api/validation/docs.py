@@ -30,7 +30,9 @@ def make_euclidean(
     n2 = oh.make_node("Pow", ["dxy", "two"], ["dxy2"])
     n3 = oh.make_node("ReduceSum", ["dxy2"], [output_name])
     graph = oh.make_graph([n1, n2, n3], "euclidian", [X, Y], [Z], [two])
-    model = oh.make_model(graph, opset_imports=[oh.make_opsetid("", opset)])
+    model = oh.make_model(
+        graph, opset_imports=[oh.make_opsetid("", opset)], ir_version=9
+    )
     return model
 
 
