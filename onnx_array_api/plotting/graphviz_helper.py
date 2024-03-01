@@ -206,13 +206,14 @@ def plot_dot(
         from onnx_array_api.plotting.graphviz_helper import plot_dot
 
         model = onnx.parser.parse_model(
-                    '''
-                    <ir_version: 8, opset_import: [ "": 18]>
-                    agraph (float[N] x) => (float[N] z) {
-                        two = Constant <value_float=2.0> ()
-                        four = Add(two, two)
-                        z = Mul(four, four)
-                    }''')
+            '''
+            <ir_version: 8, opset_import: [ "": 18]>
+            agraph (float[N] x) => (float[N] z) {
+                two = Constant <value_float=2.0> ()
+                four = Add(two, two)
+                z = Mul(four, four)
+            }
+        ''')
 
         ax = plot_dot(model)
         ax.set_title("Dummy graph")
