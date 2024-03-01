@@ -116,7 +116,12 @@ def to_dot(
     clean_label_reg2 = re.compile("\\\\p\\{[0-9P]{1,6}\\}")
 
     def dot_name(text):
-        return text.replace("/", "_").replace(":", "__").replace(".", "_")
+        return (
+            text.replace("/", "_")
+            .replace(":", "__")
+            .replace(".", "_")
+            .replace("-", "_")
+        )
 
     def dot_label(text):
         if text is None:
