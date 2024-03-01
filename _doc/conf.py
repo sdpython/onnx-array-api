@@ -117,6 +117,7 @@ epkg_dictionary = {
     "ast": "https://docs.python.org/3/library/ast.html",
     "cProfile.Profile": "https://docs.python.org/3/library/profile.html#profile.Profile",
     "DOT": "https://graphviz.org/doc/info/lang.html",
+    "Graphviz": "https://graphviz.org/",
     "inner API": "https://onnx.ai/onnx/intro/python.html",
     "JIT": "https://en.wikipedia.org/wiki/Just-in-time_compilation",
     "onnx": "https://onnx.ai/onnx/",
