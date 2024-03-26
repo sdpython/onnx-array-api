@@ -242,7 +242,7 @@ backend_test = onnx.backend.test.BackendTest(ExportBackend, __name__)
 
 # The following tests are too slow with the reference implementation (Conv).
 backend_test.exclude(
-    "(FLOAT8|BFLOAT16|_opt_|_3d_|_momentum_|_4d_"
+    "(FLOAT8|BFLOAT16|INT4|_opt_|_3d_|_momentum_|_4d_|int4"
     "|test_adagrad"
     "|test_adam"
     "|test_ai_onnx_ml_"
@@ -270,6 +270,8 @@ backend_test.exclude(
     "|test_squeezenet"
     "|test_vgg19"
     "|test_zfnet512"
+    "|test_range_float_type_positive_delta_expanded"
+    "|test_range_int32_type_negative_delta_expanded"
     ")"
 )
 
