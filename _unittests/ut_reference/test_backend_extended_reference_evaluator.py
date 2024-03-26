@@ -164,8 +164,10 @@ if onnx_opset_version() < 200:
         "|test_cast_no_saturate_"
         "|_to_FLOAT8"
         "|_FLOAT8"
+        "|INT4"
         "|test_quantizelinear_e4m3fn"
         "|test_quantizelinear_e5m2"
+        "|test_scatter_with"
         ")"
     )
 
