@@ -156,6 +156,7 @@ class GraphBuilder:
         optimization_options: Optional[OptimizationOptions] = None,
         args: Optional[List[Any]] = None,
         verbose: int = 0,
+        ir_version: Optional[int] = None,
     ):
         self.optimization_options = optimization_options or OptimizationOptions()
         self.as_function = as_function
@@ -170,6 +171,7 @@ class GraphBuilder:
                 if isinstance(target_opset_or_existing_proto, int)
                 else target_opset_or_existing_proto
             )
+            self.ir_version = ir_version
             self.nodes = []
             self.initializers_dict = {}
             self.inputs = []
@@ -186,6 +188,7 @@ class GraphBuilder:
             ), "input_names must be empty if the input is an existing model."
             proto = target_opset_or_existing_proto
             self.opsets = {d.domain: d.version for d in proto.opset_import}
+            self.ir_version = ir_version or target_opset_or_existing_proto.ir_version
             self.nodes = list(proto.graph.node)
             self.initializers_dict = {i.name: i for i in proto.graph.initializer}
             self.initializers_dict.update(
@@ -674,6 +677,8 @@ class GraphBuilder:
         if self.verbose:
             print("[GraphBuilder] onh.make_model")
         model = oh.make_model(graph, opset_imports=opsets)
+        if self.ir_version:
+            model.ir_version = self.ir_version
         return model
 
     def _check_order_node(self, ind: int, node: NodeProto, existing: Set[str]):
