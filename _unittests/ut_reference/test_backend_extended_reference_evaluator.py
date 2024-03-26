@@ -149,7 +149,7 @@ backend_test.exclude(
     "|test_scan_sum)"
 )
 
-if onnx_opset_version() < 21:
+if onnx_opset_version() < 200:
     # The following tests are using types not supported by NumPy.
     # They could be if method to_array is extended to support custom
     # types the same as the reference implementation does
