@@ -82,6 +82,16 @@ class Translater:
                 self.emitter(EventType.BEGIN_GRAPH, name=self.proto_.graph.name)
             )
 
+        for i in initializers:
+            rows.extend(
+                self.emitter(
+                    EventType.INITIALIZER,
+                    name=i.name,
+                    init=i,
+                    value=to_array_extended(i),
+                )
+            )
+
         rows.extend(self.emitter(EventType.BEGIN_SIGNATURE))
 
         for i in inputs:
@@ -106,16 +116,6 @@ class Translater:
             )
 
         rows.extend(self.emitter(EventType.END_SIGNATURE))
-
-        for i in initializers:
-            rows.extend(
-                self.emitter(
-                    EventType.INITIALIZER,
-                    name=i.name,
-                    init=i,
-                    value=to_array_extended(i),
-                )
-            )
 
         for node in nodes:
             atts = self.extract_attributes(node)

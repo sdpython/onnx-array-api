@@ -65,6 +65,32 @@ class TestTranslateBuilder(ExtTestCase):
         got = ref.run(None, {"X": a})[0]
         self.assertEqualArray(np.exp(a), got)
 
+    def test_zdoc(self):
+        onx = (
+            start()
+            .vin("X")
+            .reshape((-1, 1))
+            .Transpose(perm=[1, 0])
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        code = translate(onx, api="builder")
+        expected = dedent(
+            """
+            (
+                start()
+                .vin("X")
+                .reshape((-1, 1))
+                .Transpose(perm=[1, 0])
+                .rename("Y")
+                .vout()
+                .to_onnx()
+            )"""
+        ).strip("\n")
+        self.maxDiff = None
+        self.assertEqual(expected, code)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
