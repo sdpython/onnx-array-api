@@ -75,6 +75,8 @@ class Translater:
                     domain=self.proto_.domain,
                 )
             )
+        elif isinstance(self.proto_, GraphProto):
+            rows.extend(self.emitter(EventType.BEGIN_GRAPH, name=self.proto_.name))
         else:
             rows.extend(
                 self.emitter(EventType.BEGIN_GRAPH, name=self.proto_.graph.name)

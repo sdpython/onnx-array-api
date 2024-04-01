@@ -80,9 +80,9 @@ class TestTranslate(ExtTestCase):
             """
             (
                 start(opset=19)
+                .vin('X', elem_type=TensorProto.FLOAT)
                 .cst(np.array([-1, 1], dtype=np.int64))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()
                 .rename('r0_0')
@@ -166,9 +166,9 @@ class TestTranslate(ExtTestCase):
             f"""
             (
                 start(opset=19)
+                .vin('X', elem_type=TensorProto.FLOAT)
                 .cst(np.array([0.0], dtype=np.float32))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X')
                 .ReduceSum(keepdims=1, noop_with_empty_axes=0)
                 .rename('Xs')
@@ -202,9 +202,9 @@ class TestTranslate(ExtTestCase):
             """
             (
                 start(opset=19, opsets={'ai.onnx.ml': 3})
+                .vin('X', elem_type=TensorProto.FLOAT)
                 .cst(np.array([-1, 1], dtype=np.int64))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()
                 .rename('USE')

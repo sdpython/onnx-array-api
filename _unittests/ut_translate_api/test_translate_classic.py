@@ -138,13 +138,13 @@ class TestTranslateClassic(ExtTestCase):
             initializers = []
             sparse_initializers = []
             functions = []
+            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             initializers.append(
                 from_array(
                     np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -278,13 +278,13 @@ class TestTranslateClassic(ExtTestCase):
             initializers = []
             sparse_initializers = []
             functions = []
+            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             initializers.append(
                 from_array(
                     np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
