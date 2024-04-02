@@ -68,7 +68,7 @@ class TestTranslateBuilder(ExtTestCase):
 
     def test_zdoc(self):
         onx = (
-            start()
+            start(opset=19)
             .vin("X")
             .reshape((-1, 1))
             .Transpose(perm=[1, 0])
@@ -89,7 +89,7 @@ class TestTranslateBuilder(ExtTestCase):
                 op.Identity(Y, outputs=["Y"])
                 return Y
 
-            g = GraphBuilder({'': 21})
+            g = GraphBuilder({'': 19})
             g.make_tensor_input("X", TensorProto.FLOAT, ())
             light_api(g.op, "X")
             g.make_tensor_output("Y", TensorProto.FLOAT, ())
