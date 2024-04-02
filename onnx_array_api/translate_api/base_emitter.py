@@ -21,6 +21,10 @@ class EventType(IntEnum):
     FUNCTION_OUTPUT = 12
     FUNCTION_ATTRIBUTES = 13
     TO_ONNX_FUNCTION = 14
+    BEGIN_SIGNATURE = 15
+    END_SIGNATURE = 16
+    BEGIN_RETURN = 17
+    END_RETURN = 18
 
     @classmethod
     def to_str(cls, self) -> str:
@@ -83,6 +87,18 @@ class BaseEmitter:
 
         if event == EventType.FUNCTION_ATTRIBUTES:
             return self._emit_function_attributes(**kwargs)
+
+        if event == EventType.BEGIN_SIGNATURE:
+            return self._emit_begin_signature(**kwargs)
+
+        if event == EventType.END_SIGNATURE:
+            return self._emit_end_signature(**kwargs)
+
+        if event == EventType.BEGIN_RETURN:
+            return self._emit_begin_return(**kwargs)
+
+        if event == EventType.END_RETURN:
+            return self._emit_end_return(**kwargs)
 
         raise ValueError(f"Unexpected event {EventType.to_str(event)}.")
 
@@ -222,3 +238,15 @@ class BaseEmitter:
         raise NotImplementedError(
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
+
+    def _emit_begin_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_begin_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
