@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 from onnx import TensorProto
+from onnx.numpy_helper import to_array
 from .base_emitter import BaseEmitter
 
 _types = {
@@ -31,7 +32,7 @@ class BuilderEmitter(BaseEmitter):
         return []
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
-        inps = ", ".join(["g.op", *self.inputs])
+        inps = ", ".join(["g.op", *[f'"{i}"' for i in self.inputs]])
         inputs = []
         for inp, stype, shape in self.inputs_full_:
             inputs.append(f'g.make_tensor_input("{inp}", TensorProto.{stype}, {shape})')
@@ -64,7 +65,14 @@ class BuilderEmitter(BaseEmitter):
         return []
 
     def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
-        assert False, f"not implemented yet with {kwargs}"
+        init = kwargs["init"]
+        if isinstance(init, TensorProto):
+            assert (
+                kwargs["name"] == init.name
+            ), f"Name mismatch init.name={init.name!r}, name={kwargs['name']!r}"
+            self.inits.append(init)
+            return []
+        raise AssertionError(f"Unsupported type for an initializer {type(init)}")
 
     def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
@@ -90,6 +98,10 @@ class BuilderEmitter(BaseEmitter):
         for i in self.inputs_full:
             rows.append(f"    {i},")
         rows.append("):")
+        for init in self.inits:
+            val = to_array(init)
+            stype = str(val.dtype).split(".")[-1]
+            rows.append(f"    {init.name} = np.array({val.tolist()}, dtype=np.{stype})")
         return rows
 
     def _emit_begin_return(self, **kwargs: Dict[str, Any]) -> List[str]:

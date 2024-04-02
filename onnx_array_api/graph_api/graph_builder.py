@@ -119,6 +119,18 @@ class Opset:
         except AttributeError as e:
             raise AttributeError(f"Unable to access attribute {name!r}.") from e
 
+    def Initializer(
+        self, init: Union[TensorProto, np.ndarray], name: Optional[str] = None
+    ) -> str:
+        """
+        Creates an initializer.
+
+        :param init: value
+        :param name: name if value is not a TensorProto
+        :return: its name
+        """
+        return self.builder.make_initializer(init, name=name, exists=True)
+
     def make_node(
         self,
         op_type: str,

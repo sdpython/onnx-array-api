@@ -2,6 +2,7 @@ import unittest
 from textwrap import dedent
 import numpy as np
 from onnx import ModelProto, TensorProto
+from onnx.checker import check_model
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
@@ -39,7 +40,7 @@ class TestTranslateBuilder(ExtTestCase):
 
         g = GraphBuilder({'': 19})
         g.make_tensor_input("X", TensorProto.FLOAT, ())
-        light_api(g.op, X)
+        light_api(g.op, "X")
         g.make_tensor_output("Y", TensorProto.FLOAT, ())
         model = g.to_onnx()
         """
@@ -78,18 +79,43 @@ class TestTranslateBuilder(ExtTestCase):
         code = translate(onx, api="builder")
         expected = dedent(
             """
-            (
-                start()
-                .vin("X")
-                .reshape((-1, 1))
-                .Transpose(perm=[1, 0])
-                .rename("Y")
-                .vout()
-                .to_onnx()
-            )"""
+            def light_api(
+                op: "GraphBuilder",
+                X: "FLOAT[]",
+            ):
+                r = np.array([-1, 1], dtype=np.int64)
+                r0_0 = op.Reshape(X, r)
+                Y = op.Transpose(r0_0, perm=[1, 0])
+                op.Identity(Y, outputs=["Y"])
+                return Y
+
+            g = GraphBuilder({'': 21})
+            g.make_tensor_input("X", TensorProto.FLOAT, ())
+            light_api(g.op, "X")
+            g.make_tensor_output("Y", TensorProto.FLOAT, ())
+            model = g.to_onnx()
+            """
         ).strip("\n")
         self.maxDiff = None
-        self.assertEqual(expected, code)
+        self.assertEqual(expected, code.strip("\n"))
+
+        def light_api(
+            op: "GraphBuilder",
+            X: "FLOAT[]",  # noqa: F722
+        ):
+            r = np.array([-1, 1], dtype=np.int64)
+            r0_0 = op.Reshape(X, r)
+            Y = op.Transpose(r0_0, perm=[1, 0])
+            op.Identity(Y, outputs=["Y"])
+            return Y
+
+        g = GraphBuilder({"": 21})
+        X = g.make_tensor_input("X", TensorProto.FLOAT, ())
+        light_api(g.op, X)
+        g.make_tensor_output("Y", TensorProto.FLOAT, ())
+        model = g.to_onnx()
+        self.assertNotEmpty(model)
+        check_model(model)
 
 
 if __name__ == "__main__":
