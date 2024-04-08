@@ -123,8 +123,14 @@ def _cmd_compare(argv: List[Any]):
 
     parser = get_parser_compare()
     args = parser.parse_args(argv[1:])
+    if args.verbose in ("1", 1, "True", True):
+        print(f"[compare] first model {args.model1!r}")
+        print(f"[compare] second model {args.model2!r}")
     onx1 = onnx.load(args.model1)
     onx2 = onnx.load(args.model2)
+    if args.verbose in ("1", 1, "True", True):
+        print(f"[compare] first model has {len(onx1.graph.node)} nodes")
+        print(f"[compare] second model has {len(onx2.graph.node)} nodes")
     res1, res2, align, dc = compare_onnx_execution(
         onx1,
         onx2,

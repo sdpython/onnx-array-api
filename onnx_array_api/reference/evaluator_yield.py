@@ -642,7 +642,7 @@ def compare_onnx_execution(
             print("[compare_onnx_execution] loading first model")
         proto1 = load(model1) if isinstance(model1, str) else model1
         if verbose:
-            print("[compare_onnx_execution] loading first model")
+            print("[compare_onnx_execution] loading second model")
         proto2 = load(model2) if isinstance(model2, str) else model2
         res1 = list(_enumerate_result_no_execution(proto1))
         res2 = list(_enumerate_result_no_execution(proto2))
@@ -650,7 +650,8 @@ def compare_onnx_execution(
         return
 
     if verbose:
-        print(f"[compare_onnx_execution] got {len(res2)} results")
+        print(f"[compare_onnx_execution] got {len(res1)} results (first model)")
+        print(f"[compare_onnx_execution] got {len(res2)} results (second model)")
         print("[compare_onnx_execution] compute edit distance")
     dc = DistanceExecution()
     _, align = dc.distance_sequence(res1, res2)
