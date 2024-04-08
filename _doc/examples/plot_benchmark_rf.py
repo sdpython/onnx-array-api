@@ -22,8 +22,6 @@ import matplotlib.pyplot as plt
 import numpy
 import pandas
 from lightgbm import LGBMRegressor
-from onnxmltools.convert.lightgbm.operator_converters.LightGbm import convert_lightgbm
-from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
 from onnxruntime import InferenceSession, SessionOptions
 from psutil import cpu_count
 from sphinx_runpython.runpython import run_cmd
@@ -33,9 +31,14 @@ from sklearn import set_config
 from sklearn.ensemble import RandomForestRegressor
 from tqdm import tqdm
 from xgboost import XGBRegressor
+from onnxmltools.convert.xgboost.operator_converters.XGBoost import convert_xgboost
 
 
 def skl2onnx_convert_lightgbm(scope, operator, container):
+    from onnxmltools.convert.lightgbm.operator_converters.LightGbm import (
+        convert_lightgbm,
+    )
+
     options = scope.get_options(operator.raw_operator)
     if "split" in options:
         operator.split = options["split"]
