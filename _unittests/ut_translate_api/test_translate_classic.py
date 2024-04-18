@@ -388,7 +388,7 @@ class TestTranslateClassic(ExtTestCase):
         feeds = {"X": x}
 
         class CustomGemmFloat8E4M3FN(OpRun):
-            op_domain = "onnx_extented.ortops.tutorial.cpu"
+            op_domain = "onnx_extended.ortops.tutorial.cpu"
 
             def _run(
                 self,
