@@ -6,6 +6,11 @@ Benchmark
 
 .. autofunction:: onnx_array_api.ext_test_case.measure_time
 
+Manipulations
++++++++++++++
+
+.. autofunction:: onnx_array_api.tools.replace_initializer_by_constant_of_shape
+
 Examples
 ++++++++
 
