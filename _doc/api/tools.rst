@@ -9,7 +9,7 @@ Benchmark
 Manipulations
 +++++++++++++
 
-.. autofunction:: onnx_array_api.tools.replace_initializer_by_constant_of_shape
+.. autofunction:: onnx_array_api.tools.replace_constants.replace_initializer_by_constant_of_shape
 
 Examples
 ++++++++
