@@ -281,7 +281,8 @@ def astype(
             to = DType(TensorProto.STRING)
         else:
             raise TypeError(f"dtype must of type DType, not {type(dtype)}-{dtype}.")
-    return var(a, op="Cast", to=to.code)
+        return var(a, op="Cast", to=to.code)
+    return var(a, op="Cast", to=dtype.code)
 
 
 @npxapi_inline

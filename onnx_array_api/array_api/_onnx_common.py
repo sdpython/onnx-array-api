@@ -46,14 +46,13 @@ def asarray(
     dtype: Optional[DType] = None,
     order: Optional[str] = None,
     like: Any = None,
+    device: Optional[str] = None,
     copy: bool = False,
 ) -> EagerTensor:
     """
     Converts anything into an array.
     """
-    """
-    Converts anything into an array.
-    """
+    assert device is None, f"asarray not implemented yet for device={device!r}"
     if order not in ("C", None):
         raise NotImplementedError(f"asarray is not implemented for order={order!r}.")
     if like is not None:
