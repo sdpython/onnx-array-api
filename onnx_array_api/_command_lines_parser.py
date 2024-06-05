@@ -14,13 +14,14 @@ def get_main_parser() -> ArgumentParser:
     )
     parser.add_argument(
         "cmd",
-        choices=["translate", "compare"],
+        choices=["translate", "compare", "replace"],
         help=dedent(
             """
         Selects a command.
         
         'translate' exports an onnx graph into a piece of code replicating it,
-        'compare' compares the execution of two onnx models
+        'compare' compares the execution of two onnx models,
+        'replace' replaces constant and initliazers by ConstantOfShape to make the model lighter
         """
         ),
     )
@@ -142,8 +143,75 @@ def _cmd_compare(argv: List[Any]):
     print(text)
 
 
+def get_parser_replace() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="translate",
+        description=dedent(
+            """
+        Replaces constants and initializes by ConstOfShape or any other nodes
+        to make the model smaller.
+        """
+        ),
+        epilog="This is mostly used to write unit tests without adding "
+        "a big file to the repository.",
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        type=str,
+        required=True,
+        help="onnx model to translate",
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        type=str,
+        required=True,
+        help="output file",
+    )
+    parser.add_argument(
+        "-t",
+        "--threshold",
+        default=128,
+        help="Threshold above which every constant is replaced",
+    )
+    parser.add_argument(
+        "--type",
+        default="ConstontOfShape",
+        help="Inserts this operator type",
+    )
+    parser.add_argument(
+        "--domain",
+        default="",
+        help="Inserts this domain",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        help="verbosity",
+    )
+    return parser
+
+
+def _cmd_replace(argv: List[Any]):
+    from .tools.replace_constants import replace_initializer_by_constant_of_shape
+
+    parser = get_parser_replace()
+    args = parser.parse_args(argv[1:])
+    if args.verbose in ("1", 1, "True", True):
+        print(f"[compare] load model {args.model!r}")
+    onx = onnx.load(args.model)
+    new_onx = replace_initializer_by_constant_of_shape(
+        onx, threshold=args.threshold, op_type=args.type, domain=args.domain
+    )
+    if args.verbose in ("1", 1, "True", True):
+        print(f"[compare] save model {args.out!r}")
+    onnx.save(new_onx, args.out)
+
+
 def main(argv: Optional[List[Any]] = None):
-    fcts = dict(translate=_cmd_translate, compare=_cmd_compare)
+    fcts = dict(translate=_cmd_translate, compare=_cmd_compare, replace=_cmd_replace)
 
     if argv is None:
         argv = sys.argv[1:]
@@ -152,7 +220,11 @@ def main(argv: Optional[List[Any]] = None):
             parser = get_main_parser()
             parser.parse_args(argv)
         else:
-            parsers = dict(translate=get_parser_translate, compare=get_parser_compare)
+            parsers = dict(
+                translate=get_parser_translate,
+                compare=get_parser_compare,
+                replace=get_parser_replace,
+            )
             cmd = argv[0]
             if cmd not in parsers:
                 raise ValueError(
