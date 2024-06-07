@@ -16,6 +16,7 @@ from onnx_array_api._command_lines_parser import (
     get_main_parser,
     get_parser_compare,
     get_parser_translate,
+    get_parser_replace,
     main,
 )
 
@@ -32,6 +33,13 @@ class TestCommandLines1(ExtTestCase):
         st = StringIO()
         with redirect_stdout(st):
             get_parser_translate().print_help()
+        text = st.getvalue()
+        self.assertIn("model", text)
+
+    def test_parser_replace(self):
+        st = StringIO()
+        with redirect_stdout(st):
+            get_parser_replace().print_help()
         text = st.getvalue()
         self.assertIn("model", text)
 
