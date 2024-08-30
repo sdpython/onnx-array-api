@@ -563,7 +563,7 @@ class JitOnnx(JitEager):
     def __init__(
         self,
         f: Callable,
-        tensor_class: type = None,
+        tensor_class: Optional[type] = None,
         target_opsets: Optional[Dict[str, int]] = None,
         output_types: Optional[Dict[Any, TensorType]] = None,
         ir_version: Optional[int] = None,
@@ -636,7 +636,7 @@ class EagerOnnx(JitEager):
     def __init__(
         self,
         f: Callable,
-        tensor_class: type = None,
+        tensor_class: Optional[type] = None,
         target_opsets: Optional[Dict[str, int]] = None,
         output_types: Optional[Dict[Any, TensorType]] = None,
         ir_version: Optional[int] = None,
@@ -671,12 +671,12 @@ class EagerOnnx(JitEager):
                 new_args.append(self.tensor_class(n.inputs[0]))
                 modified = True
             elif isinstance(n, tuple):
-                if all(map(lambda x: isinstance(x, int), n)):
+                if all(isinstance(x, int) for x in n):
                     new_args.append(
                         self.tensor_class(np.array(list(n), dtype=np.int64))
                     )
                     modified = True
-                elif any(map(lambda t: isinstance(t, Var), n)):
+                elif any(isinstance(t, Var) for t in n):
                     raise TypeError(
                         f"Unexpected types in tuple "
                         f"({[type(t) for t in n]}) for input {i}, "
@@ -727,14 +727,14 @@ class EagerOnnx(JitEager):
         )
         if already_eager:
             if any(
-                map(
-                    lambda t: t is not None
+                (
+                    t is not None
                     and not isinstance(
                         t,
                         EagerOnnx.allowed_input_types,
-                    ),
-                    args,
+                    )
                 )
+                for t in args
             ):
                 raise TypeError(
                     f"One of the input is not an EagerTensor or a constant, "
@@ -759,8 +759,8 @@ class EagerOnnx(JitEager):
             try:
                 res = self.f(*values, **kwargs)
             except (AttributeError, TypeError) as e:
-                inp1 = ", ".join(map(str, map(lambda a: type(a).__name__, args)))
-                inp2 = ", ".join(map(str, map(lambda a: type(a).__name__, values)))
+                inp1 = ", ".join(map(str, [type(a).__name__ for a in args]))
+                inp2 = ", ".join(map(str, [type(a).__name__ for a in values]))
                 raise TypeError(
                     f"Unexpected types, input types are args=[{inp1}], "
                     f"values=[{inp2}], kwargs={kwargs}. "
@@ -778,7 +778,7 @@ class EagerOnnx(JitEager):
                         f"from module {self.f.__module__!r}, "
                         f"type of first input is {type(args[0])}."
                     )
-            elif isinstance(res, Var) or any(map(lambda x: isinstance(x, Var), res)):
+            elif isinstance(res, Var) or any(isinstance(x, Var) for x in res):
                 # The function returns instance of type Var.
                 # It does not support eager mode and needs
                 # to be converted into onnx.

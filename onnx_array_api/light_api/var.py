@@ -193,7 +193,7 @@ class BaseVar:
             )
         if len(names) == 1:
             return Var(self.parent, names[0])
-        return Vars(self.parent, *list(map(lambda v: Var(self.parent, v), names)))
+        return Vars(self.parent, *[Var(self.parent, v) for v in names])
 
     def vin(
         self,
@@ -445,7 +445,8 @@ class Vars(BaseVar, OpsVars):
         "Renames variables."
         if len(new_names) != len(self):
             raise ValueError(
-                f"Vars has {len(self)} elements but the method received {len(new_names)} names."
+                f"Vars has {len(self)} elements but the method "
+                f"received {len(new_names)} names."
             )
         new_vars = []
         for var, name in zip(self.vars_, new_names):

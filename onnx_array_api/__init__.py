@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 APIs to create ONNX Graphs.
 """

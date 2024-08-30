@@ -51,8 +51,8 @@ def _finfo(dtype):
             d[k] = v
     d["dtype"] = DType(np_dtype_to_tensor_dtype(dt))
     nres = type("finfo", (res.__class__,), d)
-    setattr(nres, "smallest_normal", float(res.smallest_normal))
-    setattr(nres, "tiny", float(res.tiny))
+    setattr(nres, "smallest_normal", float(res.smallest_normal))  # noqa: B010
+    setattr(nres, "tiny", float(res.tiny))  # noqa: B010
     return nres
 
 
@@ -84,8 +84,8 @@ def _iinfo(dtype):
             d[k] = v
     d["dtype"] = DType(np_dtype_to_tensor_dtype(dt))
     nres = type("iinfo", (res.__class__,), d)
-    setattr(nres, "min", int(res.min))
-    setattr(nres, "max", int(res.max))
+    setattr(nres, "min", int(res.min))  # noqa: B010
+    setattr(nres, "max", int(res.max))  # noqa: B010
     return nres
 
 
@@ -133,10 +133,10 @@ def _finalize_array_api(module, function_names, TEagerTensor):
     module.uint32 = DType(TensorProto.UINT32)
     module.uint64 = DType(TensorProto.UINT64)
     module.bfloat16 = DType(TensorProto.BFLOAT16)
-    setattr(module, "bool", DType(TensorProto.BOOL))
-    setattr(module, "str", DType(TensorProto.STRING))
-    setattr(module, "finfo", _finfo)
-    setattr(module, "iinfo", _iinfo)
+    setattr(module, "bool", DType(TensorProto.BOOL))  # noqa: B010
+    setattr(module, "str", DType(TensorProto.STRING))  # noqa: B010
+    setattr(module, "finfo", _finfo)  # noqa: B010
+    setattr(module, "iinfo", _iinfo)  # noqa: B010
 
     if function_names is None:
         function_names = supported_functions
@@ -146,7 +146,10 @@ def _finalize_array_api(module, function_names, TEagerTensor):
         if f is None:
             f2 = getattr(npx_functions, name, None)
             if f2 is None:
-                warnings.warn(f"Function {name!r} is not available in {module!r}.")
+                warnings.warn(
+                    f"Function {name!r} is not available in {module!r}.",
+                    stacklevel=0,
+                )
                 continue
             f = lambda TEagerTensor, *args, _f=f2, **kwargs: _f(  # noqa: E731
                 *args, **kwargs

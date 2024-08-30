@@ -86,7 +86,7 @@ class OrtTensor:
             tensor_class: type,
             input_names: List[str],
             onx: ModelProto,
-            f: Callable = None,
+            f: Optional[Callable] = None,
         ):
             try:
                 self.ref = InferenceSession(
@@ -282,5 +282,3 @@ class JitOrtTensor(OrtTensor, OrtCommon, JitTensor):
     """
     Defines a value for :epkg:`onnxruntime` as a backend.
     """
-
-    pass

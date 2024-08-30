@@ -319,7 +319,8 @@ class OnnxGraph:
         value = self.unique_names_[old_name]
         if isinstance(value, int):
             raise TypeError(
-                f"Unexpected type {type(value)} for value {old_name!r} renamed into {new_name!r}."
+                f"Unexpected type {type(value)} for value {old_name!r} "
+                f"renamed into {new_name!r}."
             )
         self.unique_names_[new_name] = value
         self.renames_[old_name] = new_name

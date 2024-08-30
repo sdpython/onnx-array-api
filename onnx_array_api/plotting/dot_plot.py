@@ -310,7 +310,7 @@ def to_dot(
                 exp.append(f'    label="{node.op_type}\\n({dot_name(field)}){satts}";')
                 exp.append(f"    fontsize={fontsize};")
                 exp.append("    color=black;")
-                exp.append("\n".join(map(lambda s: "  " + s, subgraph.split("\n"))))
+                exp.append("\n".join(f"  {s}" for s in subgraph.split("\n")))
 
                 node0 = body.node[0]
                 connects.append(

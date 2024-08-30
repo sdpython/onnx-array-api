@@ -87,14 +87,14 @@ for n in tqdm([1, 10, 100, 1000, 10000, 100000]):
     x = np.random.randn(n, 2).astype(np.float32)
     y = np.random.randn(n, 2).astype(np.float32)
 
-    obs = measure_time(lambda: myloss(x, y))
+    obs = measure_time(lambda x=x, y=y: myloss(x, y))
     obs["name"] = "numpy"
     obs["n"] = n
     data.append(obs)
 
     xort = OrtTensor.from_array(x)
     yort = OrtTensor.from_array(y)
-    obs = measure_time(lambda: ort_myloss(xort, yort))
+    obs = measure_time(lambda xort=xort, yort=yort: ort_myloss(xort, yort))
     obs["name"] = "ort"
     obs["n"] = n
     data.append(obs)

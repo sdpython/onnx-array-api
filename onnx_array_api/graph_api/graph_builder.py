@@ -328,9 +328,9 @@ class GraphBuilder:
         return name in self._known_types
 
     def get_type(self, name: str) -> int:
-        assert name in self._known_types, (
-            f"Type is unknown for result {name!r}, " f"known_types={self._known_types}."
-        )
+        assert (
+            name in self._known_types
+        ), f"Type is unknown for result {name!r}, known_types={self._known_types}."
         return self._known_types[name]
 
     def unique_name(self, prefix: str) -> str:
@@ -472,7 +472,7 @@ class GraphBuilder:
                 f"A node {op_type!r} cannot be created with "
                 f"inputs={inputs} (types={[type(i) for i in inputs]}), "
                 f"outputs={outputs} "
-                f"(types={[type(o) for o in outputs] if isinstance(outputs, (tuple, list)) else outputs}), "
+                f"(types={[type(o) for o in outputs] if isinstance(outputs, (tuple, list)) else outputs}), "  # noqa: E501
                 f"domain={domain!r}, kwargs={kwargs}."
             ) from e
         if attributes:
@@ -594,14 +594,16 @@ class GraphBuilder:
             return output_names[0]
         return output_names
 
-    def from_array(self, arr: T, name: str = None) -> TensorProto:  # noqa: F821
+    def from_array(
+        self, arr: T, name: Optional[str] = None
+    ) -> TensorProto:  # noqa: F821
         if isinstance(arr, np.ndarray):
             return self.from_np_array(arr, name)
         raise NotImplementedError(
             f"{type(arr)} is not supported yet but initializer {name or ''!r} is."
         )
 
-    def from_np_array(self, arr: np.ndarray, name: str = None) -> TensorProto:
+    def from_np_array(self, arr: np.ndarray, name: Optional[str] = None) -> TensorProto:
         arr_cpu = np.ascontiguousarray(arr) if not arr.flags["C_CONTIGUOUS"] else arr
         if arr_cpu.ctypes.data == arr.ctypes.data:
             if sys.byteorder == "big":
@@ -816,7 +818,7 @@ class GraphBuilder:
         """
         updates = {}
         node_to_remove = set()
-        for k, v in self.constants_.items():
+        for _k, v in self.constants_.items():
             if v is None:
                 # this is an initiliazer
                 continue
@@ -837,7 +839,8 @@ class GraphBuilder:
                     self.initializers_dict[name] = value
                     if self.verbose:
                         print(
-                            f"[GraphBuilder] fold_constant:{v.op_type}:{name}[{value.dtype}:"
+                            f"[GraphBuilder] fold_constant:"
+                            f"{v.op_type}:{name}[{value.dtype}:"
                             f"{value.shape}]:from:{','.join(sorted(feeds))}"
                         )
 
@@ -880,7 +883,8 @@ class GraphBuilder:
             if new_name in replacements:
                 new_name = replacements[new_name]
                 assert new_name not in replacements, (
-                    f"Name {old_name!r} still in {replacements}, node.op_type={node.op_type!r}, "
+                    f"Name {old_name!r} still in {replacements}, "
+                    f"node.op_type={node.op_type!r}, "
                     f"node.input={node.input}, node.output={node.output}, "
                     f"input_names={input_names}, output_names={output_names}"
                 )
@@ -891,7 +895,8 @@ class GraphBuilder:
             if old_name in replacements:
                 replacements[replacements[old_name]] = new_name
             assert new_name not in replacements, (
-                f"Name {old_name!r} still in {replacements}, node.op_type={node.op_type!r}, "
+                f"Name {old_name!r} still in {replacements}, "
+                f"node.op_type={node.op_type!r}, "
                 f"node.input={node.input}, node.output={node.output}, "
                 f"input_names={input_names}, output_names={output_names}"
             )
@@ -902,7 +907,8 @@ class GraphBuilder:
             for k, v in replacements.items():
                 assert v not in replacements, (
                     f"replacement {k}->{v} is not possible because of "
-                    f"{v}->{replacements[v]}, old_name={old_name!r}, new_name={new_name!r}"
+                    f"{v}->{replacements[v]}, old_name={old_name!r}, "
+                    f"new_name={new_name!r}"
                 )
 
         # second pass: replacements in initializer

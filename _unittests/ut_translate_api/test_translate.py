@@ -160,8 +160,14 @@ class TestTranslate(ExtTestCase):
         self.assertEqualArray(np.array([1], dtype=np.int64), got[0])
 
         code = translate(onx)
-        selse = "g().cst(np.array([0], dtype=np.int64)).rename('Z').bring('Z').vout(elem_type=TensorProto.FLOAT)"
-        sthen = "g().cst(np.array([1], dtype=np.int64)).rename('Z').bring('Z').vout(elem_type=TensorProto.FLOAT)"
+        selse = (
+            "g().cst(np.array([0], dtype=np.int64)).rename('Z')."
+            "bring('Z').vout(elem_type=TensorProto.FLOAT)"
+        )
+        sthen = (
+            "g().cst(np.array([1], dtype=np.int64)).rename('Z')."
+            "bring('Z').vout(elem_type=TensorProto.FLOAT)"
+        )
         expected = dedent(
             f"""
             (

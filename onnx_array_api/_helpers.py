@@ -41,5 +41,5 @@ def np_dtype_to_tensor_dtype(dtype: Any):
         elif dtype is float:
             dt = TensorProto.DOUBLE
         else:
-            raise KeyError(f"Unable to guess type for dtype={dtype}.")
+            raise KeyError(f"Unable to guess type for dtype={dtype}.")  # noqa: B904
     return dt

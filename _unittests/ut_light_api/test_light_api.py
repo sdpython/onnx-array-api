@@ -484,7 +484,7 @@ class TestLightApi(ExtTestCase):
         def ah(self):
             return True
 
-        setattr(A, "h", ah)
+        setattr(A, "h", ah)  # noqa: B010
 
         self.assertTrue(A().h())
         self.assertIn("(self)", str(inspect.signature(A.h)))

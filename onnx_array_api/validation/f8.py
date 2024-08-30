@@ -9,8 +9,6 @@ class UndefinedCastError(FloatingPointError):
     Unable to case a number.
     """
 
-    pass
-
 
 def display_int(ival, sign=1, exponent=8, mantissa=23):
     """
@@ -317,25 +315,23 @@ def fe5m2_to_float32(ival: int, fn: bool = False, uz: bool = False) -> float:
 class CastFloat8Sets:
     values_e4m3fn = list(
         sorted(
-            (fe4m3_to_float32_float(i), i) for i in range(0, 256) if i not in (255, 127)
+            (fe4m3_to_float32_float(i), i) for i in range(256) if i not in (255, 127)
         )
     )
     values_e4m3fnuz = list(
-        sorted(
-            (fe4m3_to_float32_float(i, uz=True), i) for i in range(0, 256) if i != 0x80
-        )
+        sorted((fe4m3_to_float32_float(i, uz=True), i) for i in range(256) if i != 0x80)
     )
     values_e5m2 = list(
         sorted(
             (fe5m2_to_float32_float(i), i)
-            for i in range(0, 256)
+            for i in range(256)
             if i not in {253, 254, 255, 125, 126, 127}
         )
     )
     values_e5m2fnuz = list(
         sorted(
             (fe5m2_to_float32_float(i, fn=True, uz=True), i)
-            for i in range(0, 256)
+            for i in range(256)
             if i != 0x80
         )
     )

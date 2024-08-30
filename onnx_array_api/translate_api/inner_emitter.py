@@ -38,7 +38,10 @@ class InnerEmitter(BaseEmitter):
             raise NotImplementedError(
                 f"Cannot create attribute with name={name!r}, attr_type={attr_type}."
             )
-        return f"make_ref_attribute(key={name!r}, attr_type={attr_type}, ref_attr_name={ref_attr_name!r})"
+        return (
+            f"make_ref_attribute(key={name!r}, attr_type={attr_type}, "
+            f"ref_attr_name={ref_attr_name!r})"
+        )
 
     def join(self, rows: List[str], single_line: bool = False) -> str:
         "Returns the separators. `single_line` is unused."
@@ -118,14 +121,17 @@ class InnerEmitter(BaseEmitter):
         shape = kwargs.get("shape", None)
         if elem_type and shape:
             return [
-                f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
+                f"{container}.append(make_tensor_value_info({name!r}, "
+                f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
             ]
         if elem_type:
             return [
-                f"{container}.append(make_tensor_value_info({name!r}, TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
+                f"{container}.append(make_tensor_value_info({name!r}, "
+                f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
             ]
         return [
-            f"{container}.append(make_tensor_value_info({name!r}, TensorProto.UNDEFINED, []))"
+            f"{container}.append(make_tensor_value_info({name!r}, "
+            f"TensorProto.UNDEFINED, []))"
         ]
 
     def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -184,7 +190,7 @@ class InnerEmitter(BaseEmitter):
 
     def _emit_function_attributes(self, **kwargs: Dict[str, Any]) -> List[str]:
         atts = kwargs["attributes"]
-        if isinstance(atts, list) and all(map(lambda t: isinstance(t, str), atts)):
+        if isinstance(atts, list) and all(isinstance(t, str) for t in atts):
             return [f"atts.extend({atts!r})"]
         raise NotImplementedError(f"Unable to process function attributes {atts!r}.")
 

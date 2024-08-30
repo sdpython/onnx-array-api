@@ -221,8 +221,12 @@ class TestTranslateClassic(ExtTestCase):
                     sorted=1
                 )
             )
-            outputs.append(make_tensor_value_info('Values', TensorProto.FLOAT, shape=[]))
-            outputs.append(make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
+            outputs.append(
+                make_tensor_value_info('Values', TensorProto.FLOAT, shape=[])
+            )
+            outputs.append(
+                make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[])
+            )
             graph = make_graph(
                 nodes,
                 'light_api',
@@ -252,7 +256,7 @@ class TestTranslateClassic(ExtTestCase):
             new_code = "\n".join(
                 [f"{i+1:04} {line}" for i, line in enumerate(code.split("\n"))]
             )
-            raise AssertionError(f"ERROR {e}\n{new_code}")
+            raise AssertionError(f"ERROR {e}\n{new_code}")  # noqa: B904
 
     def test_aionnxml(self):
         onx = (

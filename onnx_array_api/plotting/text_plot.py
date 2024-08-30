@@ -85,10 +85,8 @@ def onnx_text_plot_tree(node):
                     )
                 else:
                     ts = " ".join(
-                        map(
-                            lambda t: f"{t['target_id']}:{_number2str(t['weight'])}",
-                            self.targets,
-                        )
+                        f"{t['target_id']}:{_number2str(t['weight'])}"
+                        for t in self.targets
                     )
                     text = f"{self.true_false}f {ts}"
             else:
@@ -351,7 +349,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
 
     def _find_sequence(node_name, known, done):
         inputs = dnodes[node_name].input
-        if any(map(lambda i: i not in known, inputs)):
+        if any((i not in known) for i in inputs):
             return []
 
         res = [node_name]
@@ -362,7 +360,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                 if len(next_names) == 1:
                     next_name = next_names.pop()
                     inputs = dnodes[next_name].input
-                    if any(map(lambda i: i not in known, inputs)):
+                    if any((i not in known) for i in inputs):
                         break
                     res.extend(next_name)
                 else:
@@ -390,7 +388,7 @@ def reorder_nodes_for_display(nodes, verbose=False):
                 possibles[k] = v
 
         sequences = OrderedDict()
-        for k, v in possibles.items():
+        for k, _v in possibles.items():
             if k in done:
                 continue
             sequences[k] = _find_sequence(k, known, done)
@@ -941,7 +939,7 @@ def onnx_simple_text_plot(
         rows.append(str_node(indent if use_indentation else 0, node))
         indents[name] = indent
 
-        for i, o in enumerate(node.output):
+        for _i, o in enumerate(node.output):
             indents[o] = indent + 1
 
         previous_indent = indents[name]

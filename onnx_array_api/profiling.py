@@ -247,8 +247,7 @@ class ProfileNode:
                 else:
                     if filter_node is not None and not filter_node(n):
                         continue
-                    for t in depth_first(n, roots_keys, indent + 1):
-                        yield t
+                    yield from depth_first(n, roots_keys, indent + 1)
 
         if filter_node is None:
             filter_node = ProfileNode.filter_node_
@@ -472,7 +471,7 @@ def _process_pstats(
 def profile2df(
     ps: Stats,
     as_df: bool = True,
-    clean_text: bool = None,
+    clean_text: Optional[bool] = None,
     verbose: bool = False,
     fLOG=None,
 ):
@@ -740,7 +739,7 @@ def profile2graph(
             node.add_called_by(child)
             child.add_calls_to(node, vv)
 
-    for k, v in nodes.items():
+    for _k, v in nodes.items():
         root = v.get_root()
         break
 

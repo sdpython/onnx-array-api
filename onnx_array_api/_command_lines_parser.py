@@ -18,10 +18,11 @@ def get_main_parser() -> ArgumentParser:
         help=dedent(
             """
         Selects a command.
-        
+
         'translate' exports an onnx graph into a piece of code replicating it,
         'compare' compares the execution of two onnx models,
-        'replace' replaces constant and initliazers by ConstantOfShape to make the model lighter
+        'replace' replaces constant and initliazers by ConstantOfShape
+                  to make the model lighter
         """
         ),
     )
@@ -75,7 +76,8 @@ def get_parser_compare() -> ArgumentParser:
         Compares the execution of two onnx models.
         """
         ),
-        epilog="This is used when two models are different but should produce the same results.",
+        epilog="This is used when two models are different but "
+        "should produce the same results.",
     )
     parser.add_argument(
         "-m1",

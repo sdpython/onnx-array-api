@@ -31,7 +31,6 @@ verbosity = 10 if "-v" in sys.argv or "--verbose" in sys.argv else 0
 
 class ReferenceImplementationError(RuntimeError):
     "Fails, export cannot be compared."
-    pass
 
 
 class ExportWrapper:
@@ -64,7 +63,8 @@ class ExportWrapper:
             expected = self.expected_sess.run(names, feeds)
         except (RuntimeError, AssertionError, TypeError, KeyError) as e:
             raise ReferenceImplementationError(
-                f"ReferenceImplementation fails with {onnx_simple_text_plot(self.model)}"
+                f"ReferenceImplementation fails with "
+                f"{onnx_simple_text_plot(self.model)}"
                 f"\n--RAW--\n{self.model}"
             ) from e
 
@@ -85,7 +85,7 @@ class ExportWrapper:
                 new_code = "\n".join(
                     [f"{i+1:04} {line}" for i, line in enumerate(code.split("\n"))]
                 )
-                raise AssertionError(f"ERROR {e}\n{new_code}")
+                raise AssertionError(f"ERROR {e}\n{new_code}")  # noqa: B904
 
             locs = {
                 "np": numpy,
@@ -154,7 +154,8 @@ class ExportWrapper:
                 ):
                     if a.tolist() != b.tolist():
                         raise AssertionError(
-                            f"Text discrepancies for api {api!r} with a.dtype={a.dtype} "
+                            f"Text discrepancies for api {api!r} "
+                            f"with a.dtype={a.dtype} "
                             f"and b.dtype={b.dtype}"
                             f"\n--BASE--\n{onnx_simple_text_plot(self.model)}"
                             f"\n--EXP[{api}]--\n{onnx_simple_text_plot(export_model)}"
