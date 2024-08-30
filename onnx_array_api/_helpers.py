@@ -9,7 +9,7 @@ def np_dtype_to_tensor_dtype(dtype: Any):
     """
     try:
         dt = helper.np_dtype_to_tensor_dtype(dtype)
-    except KeyError:
+    except (KeyError, ValueError):
         if dtype == np.float32:
             dt = TensorProto.FLOAT
         elif dtype == np.float64:
