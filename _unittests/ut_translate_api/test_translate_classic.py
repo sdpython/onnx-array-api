@@ -221,12 +221,8 @@ class TestTranslateClassic(ExtTestCase):
                     sorted=1
                 )
             )
-            outputs.append(
-                make_tensor_value_info('Values', TensorProto.FLOAT, shape=[])
-            )
-            outputs.append(
-                make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[])
-            )
+            outputs.append(make_tensor_value_info('Values', TensorProto.FLOAT, shape=[]))
+            outputs.append(make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
             graph = make_graph(
                 nodes,
                 'light_api',

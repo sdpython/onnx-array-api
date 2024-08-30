@@ -59,4 +59,5 @@ select = [
 "onnx_array_api/profiling.py" = ["E731"]
 "onnx_array_api/reference/__init__.py" = ["F401"]
 "_unittests/ut_npx/test_npx.py" = ["F821"]
+"_unittests/ut_translate_api/test_translate_classic.py" = ["E501"]
 

@@ -4,11 +4,14 @@ import numpy as np
 from onnx import TensorProto
 
 try:
+    import array_api_strict
+
+    Array = type(array_api_strict.ones((1,)))
+except ImportError:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         from numpy.array_api._array_object import Array
-except ImportError:
-    Array = None
+
 from ..npx.npx_types import (
     DType,
     ElemType,

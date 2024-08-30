@@ -2,6 +2,7 @@ import unittest
 import warnings
 from os import getenv
 from functools import reduce
+import packaging.version as pv
 import numpy as np
 from operator import mul
 from hypothesis import given
@@ -44,9 +45,12 @@ class TestHypothesisArraysApis(ExtTestCase):
 
     @classmethod
     def setUpClass(cls):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            from numpy import array_api as xp
+        try:
+            import array_api_strict as xp
+        except ImportError:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                from numpy import array_api as xp
 
         api_version = getenv(
             "ARRAY_API_TESTS_VERSION",
@@ -63,6 +67,9 @@ class TestHypothesisArraysApis(ExtTestCase):
         self.assertNotEmpty(self.xps)
         self.assertNotEmpty(self.onxps)
 
+    @unittest.skipIf(
+        pv.Version(np.__version__) >= pv.Version("2.0"), reason="abandonned"
+    )
     def test_scalar_strategies(self):
         dtypes = dict(
             integer_dtypes=self.xps.integer_dtypes(),
@@ -139,6 +146,9 @@ class TestHypothesisArraysApis(ExtTestCase):
         fctonx()
         self.assertEqual(len(args_onxp), len(args_np))
 
+    @unittest.skipIf(
+        pv.Version(np.__version__) >= pv.Version("2.0"), reason="abandonned"
+    )
     def test_square_sizes_strategies(self):
         dtypes = dict(
             integer_dtypes=self.xps.integer_dtypes(),

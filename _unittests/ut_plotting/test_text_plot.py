@@ -94,6 +94,7 @@ class TestTextPlot(ExtTestCase):
                +f 0:1 1:0 2:0
         """
         ).strip(" \n\r")
+        res = res.replace("np.float32(", "").replace(")", "")
         self.assertEqual(expected, res.strip(" \n\r"))
 
     @ignore_warnings((UserWarning, FutureWarning))
