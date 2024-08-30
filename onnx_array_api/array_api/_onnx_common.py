@@ -3,9 +3,12 @@ import warnings
 import numpy as np
 from onnx import TensorProto
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from numpy.array_api._array_object import Array
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from numpy.array_api._array_object import Array
+except ImportError:
+    Array = None
 from ..npx.npx_types import (
     DType,
     ElemType,
@@ -107,7 +110,7 @@ def asarray(
             v = TEagerTensor(np.array(a))
     elif isinstance(a, np.ndarray):
         v = TEagerTensor(a)
-    elif isinstance(a, Array):
+    elif Array and isinstance(a, Array):
         v = TEagerTensor(np.asarray(a))
     else:
         raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
