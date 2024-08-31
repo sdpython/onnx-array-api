@@ -5,6 +5,7 @@ from difflib import unified_diff
 import packaging.version as pv
 import numpy
 from numpy.testing import assert_allclose
+from onnx.defs import onnx_opset_version
 import onnx.backend.base
 import onnx.backend.test
 import onnx.shape_inference
@@ -275,6 +276,22 @@ backend_test.exclude(
     "|test_range_int32_type_negative_delta_expanded"
     ")"
 )
+
+if onnx_opset_version() < 22:
+    backend_test.exclude(
+        "("
+        "test_dft_inverse_cpu"
+        "|test_dft_inverse_opset19_cpu"
+        "|test_lppool_1d_default_cpu"
+        "|test_lppool_2d_default_cpu"
+        "|test_lppool_2d_dilations_cpu"
+        "|test_lppool_2d_pads_cpu"
+        "|test_lppool_2d_same_lower_cpu"
+        "|test_lppool_2d_same_upper_cpu"
+        "|test_lppool_2d_strides_cpu"
+        "|test_lppool_3d_default_cpu"
+        ")"
+    )
 
 if pv.Version(onnx_version) < pv.Version("1.16.0"):
     backend_test.exclude("(test_strnorm|test_range_)")
