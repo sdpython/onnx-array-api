@@ -94,7 +94,7 @@ def _extract_attribute_value(
             f"Unable to convert attribute {att.name!r} type {att.type!r}."
         )
     raise AttributeError(  # pragma: no cover
-        f"Unable to convert default value for {ref_att.name!r} " f"type {att.type!r}."
+        f"Unable to convert default value for {ref_att.name!r} type {att.type!r}."
     )
 
 
@@ -120,7 +120,7 @@ def get_tensor_shape(obj):
     for d in obj.tensor_type.shape.dim:
         v = d.dim_value if d.dim_value > 0 else d.dim_param
         shape.append(v)
-    shape = None if not shape else list(None if s == 0 else s for s in shape)
+    shape = None if not shape else [None if s == 0 else s for s in shape]
     return shape
 
 
@@ -183,7 +183,7 @@ def _get_shape(obj):
             arr = to_array(obj)
             return arr.shape
         raise RuntimeError(  # pragma: no cover
-            f"Unable to guess type from {obj0!r}, " f"data_type is {obj.data_type!r}."
+            f"Unable to guess type from {obj0!r}, data_type is {obj.data_type!r}."
         )
     if hasattr(obj, "type"):
         obj = obj.type

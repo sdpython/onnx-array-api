@@ -217,6 +217,25 @@ if onnx_opset_version() < 21:
     # The following tests fail due to a type mismatch.
     backend_test.exclude("(test_eyelike_without_dtype)")
 
+if onnx_opset_version() < 22:
+    backend_test.exclude(
+        "("
+        "test_adagrad_cpu"
+        "|test_adagrad_multiple_cpu"
+        "|test_dft_inverse_cpu"
+        "|test_dft_inverse_opset19_cpu"
+        "|test_lppool_1d_default_cpu"
+        "|test_lppool_2d_default_cpu"
+        "|test_lppool_2d_dilations_cpu"
+        "|test_lppool_2d_pads_cpu"
+        "|test_lppool_2d_same_lower_cpu"
+        "|test_lppool_2d_same_upper_cpu"
+        "|test_lppool_2d_strides_cpu"
+        "|test_lppool_3d_default_cpu"
+        ")"
+    )
+
+
 # The following tests fail due to discrepancies (small but still higher than 1e-7).
 backend_test.exclude("test_adam_multiple")  # 1e-2
 

@@ -15,7 +15,7 @@ _arg_name_as_tuple = {"perm"}
 class args_tuple(tuple):
     """Overwrites a tuple to make the distinction later in the code."""
 
-    pass
+    __slots__ = ()
 
 
 def cst(*args, **kwargs):
@@ -140,7 +140,7 @@ def _xapi(fn: Callable, inline: bool):
 
     # It has the same signature
     def wrapper(*inputs, **kwargs):
-        if any(map(lambda x: isinstance(x, EagerTensor), inputs)):
+        if any(isinstance(x, EagerTensor) for x in inputs):
             tensor_class = None
             for x in inputs:
                 if isinstance(x, EagerTensor):

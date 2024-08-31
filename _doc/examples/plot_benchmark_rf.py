@@ -40,10 +40,7 @@ def skl2onnx_convert_lightgbm(scope, operator, container):
     )
 
     options = scope.get_options(operator.raw_operator)
-    if "split" in options:
-        operator.split = options["split"]
-    else:
-        operator.split = None
+    operator.split = options.get("split", None)
     convert_lightgbm(scope, operator, container)
 
 
@@ -103,7 +100,7 @@ def measure_inference(fct, X, repeat, max_time=5, quantile=1):
     :return: number of runs, sum of the time, average, median
     """
     times = []
-    for n in range(repeat):
+    for _n in range(repeat):
         perf = time.perf_counter()
         fct(X)
         delta = time.perf_counter() - perf
@@ -241,7 +238,10 @@ for n_j, max_depth, n_estimators in bar:
     # onnxruntime
     bar.set_description(f"J={n_j} E={n_estimators} D={max_depth} predictO")
     r, t, mean, med = measure_inference(
-        lambda x: sess.run(None, {"X": x}), X, repeat=repeat, max_time=max_time
+        lambda x, sess=sess: sess.run(None, {"X": x}),
+        X,
+        repeat=repeat,
+        max_time=max_time,
     )
     o2 = obs.copy()
     o2.update(dict(avg=mean, med=med, n_runs=r, ttime=t, name="ort_"))

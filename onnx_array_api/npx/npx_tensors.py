@@ -10,8 +10,6 @@ class JitTensor:
     Defines a value for a specific jit mode
     """
 
-    pass
-
 
 class EagerTensor(BaseArrayApi):
     """
@@ -93,7 +91,7 @@ class EagerTensor(BaseArrayApi):
 
         if not isinstance(x, Var):
             raise TypeError(f"Input 0 must be a Var not {type(x)}.")
-        meth = getattr(Var, "astype")
+        meth = getattr(Var, "astype")  # noqa: B009
         return meth(x, dtype)
 
     @staticmethod

@@ -11,7 +11,7 @@ class WrapperType:
     WrapperType.
     """
 
-    pass
+    __slots__ = ()
 
 
 class DType(WrapperType):
@@ -78,8 +78,8 @@ class DType(WrapperType):
             return self.code_ == dt.dtype.code_
         try:
             dti = np_dtype_to_tensor_dtype(dt)
-        except KeyError:
-            raise TypeError(f"dt must be DType not {type(dt)} - {dt!r}.")
+        except KeyError as e:
+            raise TypeError(f"dt must be DType not {type(dt)} - {dt!r}.") from e
         return self.code_ == dti
 
     def __lt__(self, dt: "DType") -> bool:
@@ -90,8 +90,8 @@ class DType(WrapperType):
             raise TypeError(f"dt must be DType not {type(dt)}.")
         try:
             dti = np_dtype_to_tensor_dtype(dt)
-        except KeyError:
-            raise TypeError(f"dt must be DType not {type(dt)} - {dt}.")
+        except KeyError as e:
+            raise TypeError(f"dt must be DType not {type(dt)} - {dt}.") from e
         return self.code_ < dti
 
     @classmethod
@@ -102,12 +102,10 @@ class DType(WrapperType):
 
 class _DType2(DType):
     "Wraps a type into a different type."
-    pass
 
 
 class _DTypes(DType):
     "Wraps a type into a different type."
-    pass
 
 
 class ElemTypeCstInner(WrapperType):
@@ -367,7 +365,7 @@ class ParType(WrapperType):
         if cls.dtype == str:
             return AttributeProto.STRING
         raise RuntimeError(
-            f"Unsupported attribute type {cls.dtype!r} " f"for parameter {cls!r}."
+            f"Unsupported attribute type {cls.dtype!r} for parameter {cls!r}."
         )
 
 
@@ -403,9 +401,11 @@ class ShapeType(Tuple[int, ...]):
     Defines a shape type.
     """
 
+    __slots__ = ()
+
     @classmethod
     def __class_getitem__(cls, *args):
-        if any(map(lambda t: t is not None and not isinstance(t, (int, str)), args)):
+        if any((t is not None and not isinstance(t, (int, str))) for t in args):
             raise TypeError(
                 f"Unexpected value for args={args}, every element should int or str."
             )
@@ -504,7 +504,7 @@ class TensorType(WrapperType):
         if name:
             msg.append(name)
         if dtypes is not None:
-            msg.append("_".join(map(lambda t: str(t.dtype), dtypes)))
+            msg.append("_".join(str(t.dtype) for t in dtypes))
         if shape is not None:
             msg.append("_".join(map(str, shape)))
         final = "__".join(msg)
@@ -561,11 +561,11 @@ class TensorType(WrapperType):
             s += 1 << dt.dtype
         try:
             return ElemType.set_names[s]
-        except KeyError:
+        except KeyError as e:
             raise RuntimeError(
                 f"Unable to guess element type name for {s}: "
                 f"{repr(self)} in {ElemType.set_names}."
-            )
+            ) from e
 
     @classmethod
     def issuperset(cls, tensor_type: type) -> bool:
@@ -686,7 +686,7 @@ class TupleType(WrapperType):
     @classmethod
     def type_name(cls) -> str:
         "Returns its full name."
-        dts = ", ".join(map(lambda s: s.type_name(), cls.elem_types))
+        dts = ", ".join(s.type_name() for s in cls.elem_types)
         if cls.name:
             newt = f"TupleType[{dts}, {cls.name!r}]"
         else:

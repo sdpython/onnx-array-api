@@ -223,7 +223,8 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         if self.shape:
             warnings.warn(
                 f"Conversion to bool only works for scalar, not for {self!r}, "
-                f"bool(...)={bool(self._tensor)}."
+                f"bool(...)={bool(self._tensor)}.",
+                stacklevel=0,
             )
             try:
                 return bool(self._tensor)
@@ -279,7 +280,8 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
         warnings.warn(
             f"Iterators are not implemented in the generic case. "
             f"Every function using them cannot be converted into ONNX "
-            f"(tensors - {type(self)})."
+            f"(tensors - {type(self)}).",
+            stacklevel=0,
         )
         for row in self._tensor:
             yield self.__class__(row)
@@ -289,5 +291,3 @@ class JitNumpyTensor(NumpyTensor, JitTensor):
     """
     Defines a value for a specific backend.
     """
-
-    pass

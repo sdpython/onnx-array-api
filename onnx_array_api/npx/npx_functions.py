@@ -480,7 +480,7 @@ def eye(
     /,
     *,
     k: ParType[int] = 0,
-    dtype: ParType[DType] = DType(TensorProto.DOUBLE),
+    dtype: ParType[DType] = DType(TensorProto.DOUBLE),  # noqa: B008
 ):
     "See :func:`numpy.eye`."
     shape = cst(np.array([-1], dtype=np.int64))

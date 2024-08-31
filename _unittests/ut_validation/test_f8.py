@@ -88,7 +88,7 @@ class TestF8(ExtTestCase):
         self.assertEqual(fe5m2_to_float32(int("11111100", 2)), -numpy.inf)
 
     def test_fe4m3fn_to_float32_all(self):
-        for i in range(0, 256):
+        for i in range(256):
             a = fe4m3_to_float32_float(i)
             b = fe4m3_to_float32(i)
             if numpy.isnan(a):
@@ -97,7 +97,7 @@ class TestF8(ExtTestCase):
             self.assertEqual(a, b)
 
     def test_fe4m3fn_to_float32_all_ml_types(self):
-        for i in range(0, 256):
+        for i in range(256):
             a = fe4m3_to_float32_float(i)
             b = fe4m3_to_float32(i)
             c = new_cvt_float32_to_e4m3fn(b)
@@ -188,7 +188,7 @@ class TestF8(ExtTestCase):
                         self.assertEqual(b1, b2)
 
     def test_search_float32_into_fe4m3fn_equal(self):
-        values = [(fe4m3_to_float32_float(i), i) for i in range(0, 256)]
+        values = [(fe4m3_to_float32_float(i), i) for i in range(256)]
         values.sort()
 
         for value, expected in values:
@@ -208,7 +208,7 @@ class TestF8(ExtTestCase):
                     self.assertIn(nf, (0, 128))
 
     def test_search_float32_into_fe5m2_equal(self):
-        values = [(fe5m2_to_float32_float(i), i) for i in range(0, 256)]
+        values = [(fe5m2_to_float32_float(i), i) for i in range(256)]
         values.sort()
 
         for value, expected in values:
@@ -233,7 +233,7 @@ class TestF8(ExtTestCase):
                 self.assertEqual(fe5m2_to_float32(nf), float(cf))
 
     def test_search_float32_into_fe4m3fn(self):
-        values = [(fe4m3_to_float32_float(i), i) for i in range(0, 256)]
+        values = [(fe4m3_to_float32_float(i), i) for i in range(256)]
         values.sort()
 
         obs = []
@@ -308,7 +308,7 @@ class TestF8(ExtTestCase):
             )
 
     def test_search_float32_into_fe5m2(self):
-        values = [(fe5m2_to_float32_float(i), i) for i in range(0, 256)]
+        values = [(fe5m2_to_float32_float(i), i) for i in range(256)]
         values.sort()
 
         obs = []
@@ -651,7 +651,7 @@ class TestF8(ExtTestCase):
                 self.assertEqual(expected, got)
 
     def test_fe4m3fnuz_to_float32_all(self):
-        for i in range(0, 256):
+        for i in range(256):
             a = fe4m3_to_float32_float(i, uz=True)
             b = fe4m3_to_float32(i, uz=True)
             if numpy.isnan(a):
@@ -660,7 +660,7 @@ class TestF8(ExtTestCase):
             self.assertEqual(a, b)
 
     def test_fe5m2fnuz_to_float32_all(self):
-        for i in range(0, 256):
+        for i in range(256):
             a = fe5m2_to_float32_float(i, fn=True, uz=True)
             b = fe5m2_to_float32(i, fn=True, uz=True)
             if numpy.isnan(a):
@@ -669,7 +669,7 @@ class TestF8(ExtTestCase):
             self.assertEqual(a, b)
 
     def test_search_float32_into_fe4m3fnuz(self):
-        values = [(fe4m3_to_float32_float(i, uz=True), i) for i in range(0, 256)]
+        values = [(fe4m3_to_float32_float(i, uz=True), i) for i in range(256)]
         values.sort()
 
         obs = []
@@ -715,9 +715,7 @@ class TestF8(ExtTestCase):
             )
 
     def test_search_float32_into_fe5m2fnuz(self):
-        values = [
-            (fe5m2_to_float32_float(i, fn=True, uz=True), i) for i in range(0, 256)
-        ]
+        values = [(fe5m2_to_float32_float(i, fn=True, uz=True), i) for i in range(256)]
         values.sort()
 
         obs = []
@@ -1235,7 +1233,7 @@ class TestF8(ExtTestCase):
                 expected,
             )
         ]
-        for i in range(0, 23):
+        for i in range(23):
             v = 0x7F800000 | (1 << i)
             f = numpy.uint32(v).view(numpy.float32)
             values.append((i, v, f, expected))

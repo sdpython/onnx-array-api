@@ -252,7 +252,7 @@ class TestTranslateClassic(ExtTestCase):
             new_code = "\n".join(
                 [f"{i+1:04} {line}" for i, line in enumerate(code.split("\n"))]
             )
-            raise AssertionError(f"ERROR {e}\n{new_code}")
+            raise AssertionError(f"ERROR {e}\n{new_code}")  # noqa: B904
 
     def test_aionnxml(self):
         onx = (

@@ -130,8 +130,7 @@ def iter_nodes(nodes: Sequence[NodeProto]) -> Iterator[NodeProto]:
                 and hasattr(att, "g")
                 and att.g is not None
             ):
-                for n in iter_nodes(att.g.node):
-                    yield n
+                yield from iter_nodes(att.g.node)
 
 
 def onnx_model_to_function(

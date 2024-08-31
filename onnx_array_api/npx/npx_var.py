@@ -33,7 +33,7 @@ class Par:
     ):
         if not issubclass(dtype, ParType):
             raise TypeError(
-                f"dtype for parameter {name!r} must be of " f"ParType not {dtype}."
+                f"dtype for parameter {name!r} must be of ParType not {dtype}."
             )
         if parent_op is None:
             raise ValueError(f"parent_op must be filled for paramenter {name!r}.")
@@ -453,7 +453,7 @@ class Var(BaseArrayApi):
                     deleted.append(var)
                     continue
                 raise TypeError(
-                    f"Unexpected type {type(applied)} as output of " f"function {fct}."
+                    f"Unexpected type {type(applied)} as output of function {fct}."
                 )
             vs.append(var)
             for i in reversed(var.inputs):
@@ -469,11 +469,11 @@ class Var(BaseArrayApi):
                     replacement_cst[id(i)] = cst(np.array(i))
                     continue
                 if isinstance(i, tuple):
-                    if all(map(lambda x: isinstance(x, int), i)):
+                    if all(isinstance(x, int) for x in i):
                         cst = Var.get_cst_var()[0]
                         replacement_cst[id(i)] = cst(np.array(list(i), dtype=np.int64))
                         continue
-                    if any(map(lambda t: isinstance(t, Var), i)):
+                    if any(isinstance(t, Var) for t in i):
                         raise TypeError(
                             f"Unexpected types in tuple "
                             f"({[type(t) for t in i]}), "
@@ -1138,7 +1138,7 @@ class Input(Var):
     :param annotation: annotation if any is available
     """
 
-    def __init__(self, name: str = None, annotation: Optional[type] = None):
+    def __init__(self, name: Optional[str] = None, annotation: Optional[type] = None):
         Var.__init__(self)
         self.name = name
         self._prefix = name or "I"
@@ -1172,15 +1172,15 @@ class Cst(Var):
         elif isinstance(cst, float):
             Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
         elif isinstance(cst, list):
-            if all(map(lambda t: isinstance(t, bool), cst)):
+            if all(isinstance(t, bool) for t in cst):
                 Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
-            elif all(map(lambda t: isinstance(t, (int, bool)), cst)):
+            elif all(isinstance(t, (int, bool)) for t in cst):
                 Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
-            elif all(map(lambda t: isinstance(t, (float, int, bool)), cst)):
+            elif all(isinstance(t, (float, int, bool)) for t in cst):
                 Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
             else:
                 raise ValueError(
-                    f"Unable to convert cst (type={type(cst)}), " f"value={cst}."
+                    f"Unable to convert cst (type={type(cst)}), value={cst}."
                 )
         else:
             raise NotImplementedError(

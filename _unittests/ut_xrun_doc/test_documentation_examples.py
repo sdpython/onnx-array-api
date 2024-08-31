@@ -49,7 +49,7 @@ class TestDocumentationExamples(ExtTestCase):
                     if verbose:
                         print(f"failed: {name!r} due to missing dot.")
                     return 0
-                raise AssertionError(
+                raise AssertionError(  # noqa: B904
                     "Example '{}' (cmd: {} - exec_prefix='{}') "
                     "failed due to\n{}"
                     "".format(name, cmds, sys.exec_prefix, st)

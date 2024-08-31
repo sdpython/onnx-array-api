@@ -190,7 +190,8 @@ class YieldEvaluator:
             for i in node.input:
                 if i not in results:
                     raise RuntimeError(
-                        f"Unable to find input {i!r} in known results {sorted(results)}, "
+                        f"Unable to find input {i!r} "
+                        f"in known results {sorted(results)}, "
                         f"self.rt_inits_ has {sorted(self.evaluator.rt_inits_)}, "
                         f"feed_inputs has {sorted(feed_inputs)}."
                     )
@@ -222,7 +223,8 @@ class YieldEvaluator:
             for name in output_names:
                 if name not in results:
                     raise RuntimeError(
-                        f"Unable to find output name {name!r} in {sorted(results)}, proto is\n{self.proto_}"
+                        f"Unable to find output name {name!r} in {sorted(results)}, "
+                        f"proto is\n{self.proto_}"
                     )
                 yield ResultType.OUTPUT, name, results[name], None
 
@@ -325,9 +327,7 @@ class DistanceExecution:
     def _cost_shape(self, s1: Tuple[int, ...], s2: Tuple[int, ...]) -> float:
         if s1 is None or s2 is None:
             return self.rank_cost
-        if any(map(lambda s: isinstance(s, str), s1)) or any(
-            map(lambda s: isinstance(s, str), s2)
-        ):
+        if any(isinstance(s, str) for s in s1) or any(isinstance(s, str) for s in s2):
             # dynamic shapes
             if len(s1) != len(s2):
                 return self.rank_cost
@@ -428,7 +428,10 @@ class DistanceExecution:
                 d2 = s2[j]
                 d = self.distance_pair(d1, d2)
                 symbol = "=" if d == 0 else "~"
-                line = f"{symbol} | {_align(str(d1), column_size)} | {_align(str(d2), column_size)}"
+                line = (
+                    f"{symbol} | {_align(str(d1), column_size)} | "
+                    f"{_align(str(d2), column_size)}"
+                )
                 if (
                     d1.value is not None
                     and d2.value is not None
@@ -457,7 +460,7 @@ def generate_input(info: ValueInfoProto) -> np.ndarray:
     """
     elem_type = info.type.tensor_type.elem_type
     shape = [
-        (getattr(d, "dim_value", None) or getattr(d, "dim_param"))
+        (getattr(d, "dim_value", None) or getattr(d, "dim_param"))  # noqa: B009
         for d in info.type.tensor_type.shape.dim
     ]
     new_shape = []
@@ -602,7 +605,8 @@ def compare_onnx_execution(
     :param mode: the model should be executed but the function can be executed
         but the comparison may append on nodes only
     :param keep_tensor: keeps the tensor in order to compute a precise distance
-    :return: four results, a sequence of results for the first model and the second model,
+    :return: four results, a sequence of results
+        for the first model and the second model,
         the alignment between the two, DistanceExecution
     """
     assert mode in {"execute", "nodes"}, f"Unexpected value for mode={mode!r}."

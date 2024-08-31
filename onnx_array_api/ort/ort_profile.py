@@ -52,7 +52,7 @@ def post_process_df_profile(
     for c in agg_cols:
         df[c] = df[c].fillna("")
     df["dur"] = df["dur"].fillna(0)
-    agg = df[agg_cols + ["dur"]].groupby(agg_cols).sum()
+    agg = df[[*agg_cols, "dur"]].groupby(agg_cols).sum()
     return agg
 
 
@@ -101,14 +101,16 @@ def ort_profile(
     if providers is None:
         providers = ["CPUExecutionProvider"]
     sess = InferenceSession(obj, sess_options, providers=providers, **kwargs)
-    first = list(feeds.values())[0]
+    for v in feeds.values():
+        first = v
+        break
 
     if isinstance(first, numpy.ndarray):
-        for i in range(repeat):
+        for _i in range(repeat):
             sess.run(None, feeds)
     else:
         out_names = [o.name for o in sess.get_outputs()]
-        for i in range(repeat):
+        for _i in range(repeat):
             sess._sess.run_with_ort_values(feeds, out_names, None)
 
     prof = sess.end_profiling()
@@ -177,7 +179,7 @@ def _merge_ort_profile_preprocess(df):
             df[c] = df[c].apply(str)
     df = df.copy()
     df["count"] = 1
-    gr = df[groupkey + ["dur", "count"]].groupby(groupkey)
+    gr = df[[*groupkey, "dur", "count"]].groupby(groupkey)
     return gr.sum()
 
 
@@ -187,7 +189,9 @@ def _process_shape(s: Tuple[int, ...], keys: Dict[str, str]) -> str:
     for v in value:
         if len(v) != 1:
             raise NotImplementedError(f"Unexpected value {v} in {s!r}.")
-        k, v = list(v.items())[0]
+        for _k, _v in v.items():
+            k, v = _k, _v
+            break
         n = "-".join([keys[k], "x".join(map(str, v))])
         ns.append(n)
     return ",".join(ns)

@@ -450,7 +450,7 @@ class _GraphBuilder:
                 name = inp.name
                 if name is None:
                     raise RuntimeError(
-                        f"Input {i} is None for function " f"{self.function_name!r}."
+                        f"Input {i} is None for function {self.function_name!r}."
                     )
                 inputs.append(name)
 
@@ -473,7 +473,7 @@ class _GraphBuilder:
         model = make_model(
             graph,
             opset_imports=opset_imports,
-            functions=list(f[0] for f in self.functions_.values()),
+            functions=[f[0] for f in self.functions_.values()],
             ir_version=self.ir_version,
         )
         if not is_windows() or not is_azure():
@@ -512,12 +512,7 @@ class _GraphBuilder:
             there is an undefined number of inputs
         """
         sig = signature(fct)
-        if any(
-            map(
-                lambda t: issubclass(t.annotation, SequenceType),
-                sig.parameters.values(),
-            )
-        ):
+        if any(issubclass(t.annotation, SequenceType) for t in sig.parameters.values()):
             # onnx does not allow undefined number of inputs
             key = fct.__module__, fct.__name__, n_inputs
         else:
@@ -852,7 +847,7 @@ class _GraphBuilder:
                     node_inputs.append(input_name)
                     continue
 
-                if isinstance(i, tuple) and all(map(lambda x: isinstance(x, int), i)):
+                if isinstance(i, tuple) and all(isinstance(x, int) for x in i):
                     ai = np.array(list(i), dtype=np.int64)
                     c = Cst(ai)
                     input_name = self._unique(var._prefix)

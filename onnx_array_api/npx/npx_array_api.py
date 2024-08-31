@@ -10,8 +10,6 @@ class ArrayApiError(RuntimeError):
     Raised when a function is not supported by the :epkg:`Array API`.
     """
 
-    pass
-
 
 class BaseArrayApi:
     """

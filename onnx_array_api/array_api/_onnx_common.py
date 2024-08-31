@@ -3,9 +3,15 @@ import warnings
 import numpy as np
 from onnx import TensorProto
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from numpy.array_api._array_object import Array
+try:
+    import array_api_strict
+
+    Array = type(array_api_strict.ones((1,)))
+except ImportError:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from numpy.array_api._array_object import Array
+
 from ..npx.npx_types import (
     DType,
     ElemType,
@@ -92,13 +98,13 @@ def asarray(
     elif isinstance(a, str):
         v = TEagerTensor(np.array(a, dtype=np.str_))
     elif isinstance(a, list):
-        if all(map(lambda x: isinstance(x, bool), a)):
+        if all(isinstance(x, bool) for x in a):
             v = TEagerTensor(np.array(a, dtype=np.bool_))
-        elif all(map(lambda x: isinstance(x, int), a)):
+        elif all(isinstance(x, int) for x in a):
             try:
                 cvt = np.array(a, dtype=np.int64)
             except OverflowError as e:
-                if all(map(lambda x: x >= 0, a)):
+                if all(x >= 0 for x in a):
                     cvt = np.array(a, dtype=np.uint64)
                 else:
                     raise e
@@ -107,7 +113,7 @@ def asarray(
             v = TEagerTensor(np.array(a))
     elif isinstance(a, np.ndarray):
         v = TEagerTensor(a)
-    elif isinstance(a, Array):
+    elif Array and isinstance(a, Array):
         v = TEagerTensor(np.asarray(a))
     else:
         raise RuntimeError(f"Unexpected type {type(a)} for the first input.")
@@ -127,9 +133,7 @@ def arange(
     step: EagerTensor[OptTensorType[ElemType.int64, "I", (1,)]] = None,
     dtype: OptParType[DType] = None,
 ) -> EagerTensor[TensorType[ElemType.numerics, "T"]]:
-    use_float = any(
-        map(lambda x: isinstance(x, float), [start_or_stop, stop_or_step, step])
-    )
+    use_float = any(isinstance(x, float) for x in [start_or_stop, stop_or_step, step])
     if isinstance(start_or_stop, int):
         start_or_stop = TEagerTensor(
             np.array([start_or_stop], dtype=np.float64 if use_float else np.int64)
@@ -207,7 +211,7 @@ def eye(
     /,
     *,
     k: ParType[int] = 0,
-    dtype: ParType[DType] = DType(TensorProto.DOUBLE),
+    dtype: ParType[DType] = DType(TensorProto.DOUBLE),  # noqa: B008
 ):
     if isinstance(n_rows, int):
         n_rows = TEagerTensor(np.array(n_rows, dtype=np.int64))
@@ -245,7 +249,7 @@ def linspace(
     dtype: OptParType[DType] = None,
     endpoint: ParType[int] = 1,
 ) -> EagerTensor[TensorType[ElemType.numerics, "T"]]:
-    use_float = any(map(lambda x: isinstance(x, float), [start, stop]))
+    use_float = any(isinstance(x, float) for x in [start, stop])
     if isinstance(start, int):
         start = TEagerTensor(
             np.array(start, dtype=np.float64 if use_float else np.int64)
