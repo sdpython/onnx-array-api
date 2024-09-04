@@ -4,9 +4,6 @@
 Long outputs uneasy to see
 ==========================
 
-.. contents::
-    :local:
-
 onnx
 ====
 
