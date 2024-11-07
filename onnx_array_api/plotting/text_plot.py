@@ -824,7 +824,10 @@ def onnx_simple_text_plot(
             rows.append(f"opset: domain={opset.domain!r} version={opset.version!r}")
     if hasattr(model, "graph"):
         if model.doc_string:
-            rows.append(f"doc_string: {model.doc_string}")
+            if len(model.doc_string) < 55:
+                rows.append(f"doc_string: {model.doc_string}")
+            else:
+                rows.append(f"doc_string: {model.doc_string[:55]}...")
         main_model = model
         model = model.graph
     else:
@@ -1044,7 +1047,10 @@ def onnx_simple_text_plot(
         for fct in main_model.functions:
             rows.append(f"----- function name={fct.name} domain={fct.domain}")
             if fct.doc_string:
-                rows.append(f"----- doc_string: {fct.doc_string}")
+                if len(fct.doc_string) < 55:
+                    rows.append(f"----- doc_string: {fct.doc_string}")
+                else:
+                    rows.append(f"----- doc_string: {fct.doc_string[:55]}...")
             res = onnx_simple_text_plot(
                 fct,
                 verbose=verbose,
