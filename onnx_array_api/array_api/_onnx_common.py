@@ -93,6 +93,8 @@ def asarray(
                     v = TEagerTensor(va)
     elif isinstance(a, float):
         v = TEagerTensor(np.array(a, dtype=np.float64))
+    elif isinstance(a, complex):
+        v = TEagerTensor(np.array(a, dtype=np.complex128))
     elif isinstance(a, bool):
         v = TEagerTensor(np.array(a, dtype=np.bool_))
     elif isinstance(a, str):

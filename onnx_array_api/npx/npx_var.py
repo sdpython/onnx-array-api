@@ -1171,6 +1171,8 @@ class Cst(Var):
             Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
         elif isinstance(cst, float):
             Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
+        elif isinstance(cst, complex):
+            Var.__init__(self, np.array(cst, dtype=np.complex128), op="Identity")
         elif isinstance(cst, list):
             if all(isinstance(t, bool) for t in cst):
                 Var.__init__(self, np.array(cst, dtype=np.bool_), op="Identity")
@@ -1178,6 +1180,8 @@ class Cst(Var):
                 Var.__init__(self, np.array(cst, dtype=np.int64), op="Identity")
             elif all(isinstance(t, (float, int, bool)) for t in cst):
                 Var.__init__(self, np.array(cst, dtype=np.float64), op="Identity")
+            elif all(isinstance(t, (float, int, bool, complex)) for t in cst):
+                Var.__init__(self, np.array(cst, dtype=np.complex128), op="Identity")
             else:
                 raise ValueError(
                     f"Unable to convert cst (type={type(cst)}), value={cst}."

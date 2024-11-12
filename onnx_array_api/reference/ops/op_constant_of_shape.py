@@ -19,6 +19,8 @@ class ConstantOfShape(OpRun):
             cst = np.int64(cst)
         elif isinstance(cst, float):
             cst = np.float64(cst)
+        elif isinstance(cst, complex):
+            cst = np.complex128(cst)
         elif cst is None:
             cst = np.float32(0)
         if not isinstance(
@@ -27,6 +29,8 @@ class ConstantOfShape(OpRun):
                 np.float16,
                 np.float32,
                 np.float64,
+                np.complex64,
+                np.complex128,
                 np.int64,
                 np.int32,
                 np.int16,

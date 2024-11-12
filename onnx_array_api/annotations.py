@@ -64,6 +64,8 @@ _type_numpy = {
     np.uint64: TensorProto.UINT64,
     np.bool_: TensorProto.BOOL,
     np.str_: TensorProto.STRING,
+    np.complex64: TensorProto.COMPLEX64,
+    np.complex128: TensorProto.COMPLEX128,
 }
 
 

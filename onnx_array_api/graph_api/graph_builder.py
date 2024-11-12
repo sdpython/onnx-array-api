@@ -536,7 +536,6 @@ class GraphBuilder:
             if isinstance(value, TensorProto):
                 value.name = name
             self.initializers_dict[name] = value
-
             self.constants_[name] = None
             self.set_shape(name, builder._known_shapes[init])
             self.set_type(name, builder._known_types[init])

@@ -265,12 +265,34 @@ class EagerNumpyTensor(NumpyTensor, EagerTensor):
             DType(TensorProto.DOUBLE),
             DType(TensorProto.FLOAT16),
             DType(TensorProto.BFLOAT16),
+            DType(TensorProto.COMPLEX64),
+            DType(TensorProto.COMPLEX128),
         }:
             raise TypeError(
                 f"Conversion to float only works for float scalar, "
                 f"not for dtype={self.dtype}."
             )
         return float(self._tensor)
+
+    def __complex__(self):
+        "Implicit conversion to complex."
+        if self.shape:
+            raise ValueError(
+                f"Conversion to bool only works for scalar, not for {self!r}."
+            )
+        if self.dtype not in {
+            DType(TensorProto.FLOAT),
+            DType(TensorProto.DOUBLE),
+            DType(TensorProto.FLOAT16),
+            DType(TensorProto.BFLOAT16),
+            DType(TensorProto.COMPLEX64),
+            DType(TensorProto.COMPLEX128),
+        }:
+            raise TypeError(
+                f"Conversion to float only works for float scalar, "
+                f"not for dtype={self.dtype}."
+            )
+        return complex(self._tensor)
 
     def __iter__(self):
         """

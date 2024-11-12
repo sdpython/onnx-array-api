@@ -40,6 +40,10 @@ def np_dtype_to_tensor_dtype(dtype: Any):
             dt = TensorProto.INT64
         elif dtype is float:
             dt = TensorProto.DOUBLE
+        elif dtype == np.complex64:
+            dt = TensorProto.COMPLEX64
+        elif dtype == np.complex128:
+            dt = TensorProto.COMPLEX128
         else:
             raise KeyError(f"Unable to guess type for dtype={dtype}.")  # noqa: B904
     return dt

@@ -824,7 +824,10 @@ def onnx_simple_text_plot(
             rows.append(f"opset: domain={opset.domain!r} version={opset.version!r}")
     if hasattr(model, "graph"):
         if model.doc_string:
-            rows.append(f"doc_string: {model.doc_string}")
+            if len(model.doc_string) < 55:
+                rows.append(f"doc_string: {model.doc_string}")
+            else:
+                rows.append(f"doc_string: {model.doc_string[:55]}...")
         main_model = model
         model = model.graph
     else:
@@ -861,9 +864,16 @@ def onnx_simple_text_plot(
             else:
                 content = ""
             line_name_new[init.name] = len(rows)
+            if init.doc_string:
+                t = (
+                    f"init: name={init.name!r} type={_get_type(init)} "
+                    f"shape={_get_shape(init)}{content}"
+                )
+                rows.append(f"{t}{' ' * max(0, 70 - len(t))}-- {init.doc_string}")
+                continue
             rows.append(
-                "init: name=%r type=%r shape=%r%s"
-                % (init.name, _get_type(init), _get_shape(init), content)
+                f"init: name={init.name!r} type={_get_type(init)} "
+                f"shape={_get_shape(init)}{content}"
             )
     if level == 0:
         rows.append("----- main graph ----")
@@ -1044,7 +1054,10 @@ def onnx_simple_text_plot(
         for fct in main_model.functions:
             rows.append(f"----- function name={fct.name} domain={fct.domain}")
             if fct.doc_string:
-                rows.append(f"----- doc_string: {fct.doc_string}")
+                if len(fct.doc_string) < 55:
+                    rows.append(f"----- doc_string: {fct.doc_string}")
+                else:
+                    rows.append(f"----- doc_string: {fct.doc_string[:55]}...")
             res = onnx_simple_text_plot(
                 fct,
                 verbose=verbose,
@@ -1103,10 +1116,19 @@ def onnx_text_plot_io(model, verbose=False, att_display=None):
         )
     # initializer
     for init in model.initializer:
+
+        if init.doc_string:
+            t = (
+                f"init: name={init.name!r} type={_get_type(init)} "
+                f"shape={_get_shape(init)}"
+            )
+            rows.append(f"{t}{' ' * max(0, 70 - len(t))}-- {init.doc_string}")
+            continue
         rows.append(
-            "init: name=%r type=%r shape=%r"
-            % (init.name, _get_type(init), _get_shape(init))
+            f"init: name={init.name!r} type={_get_type(init)} "
+            f"shape={_get_shape(init)}"
         )
+
     # outputs
     for out in model.output:
         rows.append(
