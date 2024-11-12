@@ -865,10 +865,11 @@ def onnx_simple_text_plot(
                 content = ""
             line_name_new[init.name] = len(rows)
             if init.doc_string:
-                rows.append(
+                t = (
                     f"init: name={init.name!r} type={_get_type(init)} "
-                    f"shape={_get_shape(init)}{content}         -- {init.doc_string}"
+                    f"shape={_get_shape(init)}{content}"
                 )
+                rows.append(f"{t}{' ' * max(0, 70 - len(t))}-- {init.doc_string}")
                 continue
             rows.append(
                 f"init: name={init.name!r} type={_get_type(init)} "
@@ -1117,10 +1118,11 @@ def onnx_text_plot_io(model, verbose=False, att_display=None):
     for init in model.initializer:
 
         if init.doc_string:
-            rows.append(
+            t = (
                 f"init: name={init.name!r} type={_get_type(init)} "
-                f"shape={_get_shape(init)}         -- {init.doc_string}"
+                f"shape={_get_shape(init)}"
             )
+            rows.append(f"{t}{' ' * max(0, 70 - len(t))}-- {init.doc_string}")
             continue
         rows.append(
             f"init: name={init.name!r} type={_get_type(init)} "
