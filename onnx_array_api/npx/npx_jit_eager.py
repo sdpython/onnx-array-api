@@ -204,7 +204,7 @@ class JitEager:
                 if k in self.kwargs_to_input_:
                     res.append(type(v))
                     res.append(v)
-                elif isinstance(v, (int, float, str, type, bool, DType)):
+                elif isinstance(v, (int, float, str, type, bool, complex, DType)):
                     res.append(k)
                     res.append(type(v))
                     res.append(v)
