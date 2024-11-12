@@ -864,9 +864,15 @@ def onnx_simple_text_plot(
             else:
                 content = ""
             line_name_new[init.name] = len(rows)
+            if init.doc_string:
+                rows.append(
+                    f"init: name={init.name!r} type={_get_type(init)} "
+                    f"shape={_get_shape(init)}{content}         -- {init.doc_string}"
+                )
+                continue
             rows.append(
-                "init: name=%r type=%r shape=%r%s"
-                % (init.name, _get_type(init), _get_shape(init), content)
+                f"init: name={init.name!r} type={_get_type(init)} "
+                f"shape={_get_shape(init)}{content}"
             )
     if level == 0:
         rows.append("----- main graph ----")
@@ -1109,10 +1115,18 @@ def onnx_text_plot_io(model, verbose=False, att_display=None):
         )
     # initializer
     for init in model.initializer:
+
+        if init.doc_string:
+            rows.append(
+                f"init: name={init.name!r} type={_get_type(init)} "
+                f"shape={_get_shape(init)}         -- {init.doc_string}"
+            )
+            continue
         rows.append(
-            "init: name=%r type=%r shape=%r"
-            % (init.name, _get_type(init), _get_shape(init))
+            f"init: name={init.name!r} type={_get_type(init)} "
+            f"shape={_get_shape(init)}"
         )
+
     # outputs
     for out in model.output:
         rows.append(
