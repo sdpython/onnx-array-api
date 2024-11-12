@@ -167,7 +167,7 @@ class JitEager:
                         f"to the attribute list, v={v}."
                     )
                 res.append(v.key)
-            elif isinstance(v, (int, float, bool, DType)):
+            elif isinstance(v, (int, float, bool, complex, DType)):
                 if iv in self.kwargs_to_input_:
                     res.append(self.kwargs_to_input_[iv])
                 res.append(type(v))
