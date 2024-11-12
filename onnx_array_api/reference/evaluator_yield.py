@@ -485,6 +485,12 @@ def generate_input(info: ValueInfoProto) -> np.ndarray:
         return (value.astype(np.float16) / p).astype(np.float16).reshape(new_shape)
     if elem_type == TensorProto.DOUBLE:
         return (value.astype(np.float64) / p).astype(np.float64).reshape(new_shape)
+    if elem_type == TensorProto.COMPLEX64:
+        return (value.astype(np.complex64) / p).astype(np.complex64).reshape(new_shape)
+    if elem_type == TensorProto.COMPLEX128:
+        return (
+            (value.astype(np.complex128) / p).astype(np.complex128).reshape(new_shape)
+        )
     raise RuntimeError(f"Unexpected element_type {elem_type} for info={info}")
 
 

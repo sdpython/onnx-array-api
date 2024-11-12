@@ -47,6 +47,8 @@ def _finfo(dtype):
             continue
         if isinstance(v, (np.float32, np.float64, np.float16)):
             d[k] = float(v)
+        elif isinstance(v, (np.complex128, np.complex64)):
+            d[k] = complex(v)
         else:
             d[k] = v
     d["dtype"] = DType(np_dtype_to_tensor_dtype(dt))
@@ -124,6 +126,8 @@ def _finalize_array_api(module, function_names, TEagerTensor):
     module.float16 = DType(TensorProto.FLOAT16)
     module.float32 = DType(TensorProto.FLOAT)
     module.float64 = DType(TensorProto.DOUBLE)
+    module.complex64 = DType(TensorProto.COMPLEX64)
+    module.complex128 = DType(TensorProto.COMPLEX128)
     module.int8 = DType(TensorProto.INT8)
     module.int16 = DType(TensorProto.INT16)
     module.int32 = DType(TensorProto.INT32)
