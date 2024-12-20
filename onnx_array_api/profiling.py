@@ -73,8 +73,8 @@ class ProfileNode:
                 stor.append(node)
             if not node.called_by:
                 return node
-            if len(node.called_by) == 1:
-                return _get_root(node.called_by[0], stor=stor)
+            if len(node.called_by) == 0:
+                return None
             res = None
             for ct in node.called_by:
                 k = id(node), id(ct)

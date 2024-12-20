@@ -17,6 +17,7 @@ class TestSklearnArrayAPIOrt(ExtTestCase):
         reason="reshape ArrayAPI not followed",
     )
     @skipif_ci_windows("Unstable on Windows.")
+    @unittest.skip("discontinued")
     def test_sklearn_array_api_linear_discriminant_ort(self):
         X = np.array(
             [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float64
@@ -40,6 +41,7 @@ class TestSklearnArrayAPIOrt(ExtTestCase):
         reason="reshape ArrayAPI not followed",
     )
     @skipif_ci_windows("Unstable on Windows.")
+    @unittest.skip("discontinued")
     def test_sklearn_array_api_linear_discriminant_ort_float32(self):
         X = np.array(
             [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float32
