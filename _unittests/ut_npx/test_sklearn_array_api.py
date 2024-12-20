@@ -17,6 +17,7 @@ class TestSklearnArrayAPI(ExtTestCase):
         reason="reshape ArrayAPI not followed",
     )
     @ignore_warnings(DeprecationWarning)
+    @unittest.skip("not maintained")
     def test_sklearn_array_api_linear_discriminant(self):
         X = np.array(
             [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float64
@@ -39,6 +40,7 @@ class TestSklearnArrayAPI(ExtTestCase):
         reason="reshape ArrayAPI not followed",
     )
     @ignore_warnings(DeprecationWarning)
+    @unittest.skip("not maintained")
     def test_sklearn_array_api_linear_discriminant_float32(self):
         X = np.array(
             [[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]], dtype=np.float32

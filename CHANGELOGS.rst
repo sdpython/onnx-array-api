@@ -4,7 +4,8 @@ Change Logs
 0.3.0
 +++++
 
-* :pr:`87`: add command line to replace contant by ConstantOfShape
+* :pr:`92`: avoids recursion errors in profiling
+* :pr:`87`: adds command line to replace contant by ConstantOfShape
 * :pr:`79`: first draft to export to GraphBuilder
 * :pr:`77`: supports ConcatOfShape and Slice with the light API
 
