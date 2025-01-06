@@ -139,7 +139,8 @@ class YieldEvaluator:
 
     :param onnx_model: model to run
     :param recursive: dig into subgraph and functions as well
-    :param cls: evaluator to use, default value is :class:`ExtendedReferenceEvaluator`
+    :param cls: evaluator to use, default value is :class:`ExtendedReferenceEvaluator
+        <onnx_array_api.reference.ExtendedReferenceEvaluator>`
     """
 
     def __init__(
