@@ -139,17 +139,22 @@ class YieldEvaluator:
 
     :param onnx_model: model to run
     :param recursive: dig into subgraph and functions as well
+    :param cls: evaluator to use, default value is :class:`ExtendedReferenceEvaluator`
     """
 
     def __init__(
         self,
         onnx_model: ModelProto,
         recursive: bool = False,
-        cls=ExtendedReferenceEvaluator,
+        cls: Optional[type[ExtendedReferenceEvaluator]] = None,
     ):
         assert not recursive, "recursive=True is not yet implemented"
         self.onnx_model = onnx_model
-        self.evaluator = cls(onnx_model) if cls is not None else None
+        self.evaluator = (
+            cls(onnx_model)
+            if cls is not None
+            else ExtendedReferenceEvaluator(onnx_model)
+        )
 
     def enumerate_results(
         self,
