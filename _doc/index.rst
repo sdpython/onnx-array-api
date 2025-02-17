@@ -187,5 +187,7 @@ to know onnx for that. See :ref:`l-numpy-api-onnx`.
 Older versions
 ++++++++++++++
 
+* `0.3.0 <../v0.3.0/index.html>`_
+* `0.2.0 <../v0.2.0/index.html>`_
 * `0.1.3 <../v0.1.3/index.html>`_
 * `0.1.2 <../v0.1.2/index.html>`_

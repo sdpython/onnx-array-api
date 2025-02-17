@@ -208,7 +208,7 @@ class TestNpx(ExtTestCase):
             return x
 
         def local2(
-            x: TensorType[ElemType.floats, "T"]
+            x: TensorType[ElemType.floats, "T"],
         ) -> TensorType[ElemType.floats, "T"]:
             return x
 
