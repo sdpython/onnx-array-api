@@ -146,11 +146,9 @@ epkg_dictionary = {
     "torch.onnx": "https://pytorch.org/docs/stable/onnx.html",
     #
     "C_OrtValue": (
-        "http://www.xavierdupre.fr/app/onnxcustom/helpsphinx/"
-        "api/onnxruntime_python/ortvalue.html#c-class-ortvalue-or-c-ortvalue"
+        "https://onnxruntime.ai/docs/api/csharp/api/Microsoft.ML.OnnxRuntime.OrtValue.html"
     ),
     "OrtValue": (
-        "http://www.xavierdupre.fr/app/onnxcustom/helpsphinx/"
-        "api/onnxruntime_python/ortvalue.html#onnxruntime.OrtValue"
+        "https://onnxruntime.ai/docs/api/python/api_summary.html#onnxruntime.OrtValue"
     ),
 }

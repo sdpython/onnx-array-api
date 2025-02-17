@@ -4,6 +4,7 @@ Change Logs
 0.3.0
 +++++
 
+* :pr:`93`: fixes evaluator type in ``compare_onnx_execution``
 * :pr:`92`: avoids recursion errors in profiling
 * :pr:`87`: adds command line to replace contant by ConstantOfShape
 * :pr:`79`: first draft to export to GraphBuilder

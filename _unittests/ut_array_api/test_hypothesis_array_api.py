@@ -1,5 +1,4 @@
 import unittest
-import warnings
 from os import getenv
 from functools import reduce
 import packaging.version as pv
@@ -45,12 +44,7 @@ class TestHypothesisArraysApis(ExtTestCase):
 
     @classmethod
     def setUpClass(cls):
-        try:
-            import array_api_strict as xp
-        except ImportError:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                from numpy import array_api as xp
+        import array_api_strict as xp
 
         api_version = getenv(
             "ARRAY_API_TESTS_VERSION",

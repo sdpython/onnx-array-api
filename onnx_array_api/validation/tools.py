@@ -20,7 +20,7 @@ from ..reference import from_array_extended as from_array, to_array_extended as 
 
 
 def randomize_proto(
-    onx: Union[ModelProto, GraphProto, FunctionProto, NodeProto, TensorProto]
+    onx: Union[ModelProto, GraphProto, FunctionProto, NodeProto, TensorProto],
 ) -> Union[ModelProto, GraphProto, FunctionProto, NodeProto, TensorProto]:
     """
     Randomizes float initializers or constant nodes.
