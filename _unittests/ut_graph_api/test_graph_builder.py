@@ -3,7 +3,7 @@ import io
 import unittest
 import numpy as np
 import onnx
-from onnx_array_api.ext_test_case import ExtTestCase
+from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_apple
 from onnx_array_api.graph_api.graph_builder import GraphBuilder, OptimizationOptions
 from onnx_array_api.reference import (
     from_array_extended,
@@ -107,7 +107,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
-    @skip_ci_apple("libomp is missing")
+    @skipif_ci_apple("libomp is missing")
     def test_constant_folding(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
@@ -134,7 +134,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
-    @skip_ci_apple("libomp is missing")
+    @skipif_ci_apple("libomp is missing")
     def test_constant_folding2(self):
         g = GraphBuilder(
             optimization_options=OptimizationOptions(constant_folding=True)
@@ -272,7 +272,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
-    @skip_ci_apple("libomp is missing")
+    @skipif_ci_apple("libomp is missing")
     def test_constant_array(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
@@ -293,7 +293,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
-    @skip_ci_apple("libomp is missing")
+    @skipif_ci_apple("libomp is missing")
     def test_constant_array_2(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
