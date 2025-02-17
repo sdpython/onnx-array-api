@@ -107,6 +107,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
+    @skip_ci_apple("libomp is missing")
     def test_constant_folding(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
@@ -133,6 +134,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
+    @skip_ci_apple("libomp is missing")
     def test_constant_folding2(self):
         g = GraphBuilder(
             optimization_options=OptimizationOptions(constant_folding=True)
@@ -270,6 +272,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
+    @skip_ci_apple("libomp is missing")
     def test_constant_array(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
@@ -290,6 +293,7 @@ class TestGraphBuilder(ExtTestCase):
             got = ref.run(None, feeds)
             self.assertEqualArray(expected, got[0])
 
+    @skip_ci_apple("libomp is missing")
     def test_constant_array_2(self):
         with contextlib.redirect_stdout(io.StringIO()):
             g = GraphBuilder(verbose=10)
