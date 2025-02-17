@@ -1,16 +1,7 @@
 from typing import Any, Optional
-import warnings
 import numpy as np
 from onnx import TensorProto
-
-try:
-    import array_api_strict
-
-    Array = type(array_api_strict.ones((1,)))
-except ImportError:
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        from numpy.array_api._array_object import Array
+import array_api_strict
 
 from ..npx.npx_types import (
     DType,
@@ -34,6 +25,9 @@ from ..npx.npx_functions import (
     ones as generic_ones,
     zeros as generic_zeros,
 )
+
+
+Array = type(array_api_strict.ones((1,)))
 
 
 # These functions with no specific code do not have to be
