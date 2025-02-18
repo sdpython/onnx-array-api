@@ -194,6 +194,7 @@ class GraphBuilder:
             self._known_shapes = {}
             self._known_types = {}
             self.constants_ = {}
+            self.functions_ = {}
         elif isinstance(target_opset_or_existing_proto, ModelProto):
             assert (
                 not input_names
@@ -223,6 +224,8 @@ class GraphBuilder:
                     self.constants_[node.output[0]] = node
                     self.set_shape(node.output[0], self._get_tensor_shape(node))
                     self.set_type(node.output[0], self._get_tensor_type(node))
+            for f in proto.function:
+                self.add_function(f)
         else:
             raise NotImplementedError(
                 f"{type(target_opset_or_existing_proto)} is not supported."
@@ -230,6 +233,14 @@ class GraphBuilder:
 
         self.op = Opset(self, self.opsets[""]) if "" in self.opsets else None
         self._cache_array = []
+
+    def add_local_function(self, domain: str, name: str, gr: "GraphBuilder"):
+        "Adds a local function."
+        assert (
+            domain,
+            name,
+        ) not in self.functions_, f"Function {(domain, name)} was already added."
+        self.functions_[domain, name] = gr
 
     def _get_tensor_shape(
         self, proto: Union[NodeProto, TensorProto]
@@ -417,6 +428,8 @@ class GraphBuilder:
         name: Union[str, List[str]],
         elem_type: Optional[int] = None,
         shape: Optional[Tuple[int, ...]] = None,
+        is_dimension: bool = False,
+        indexed: bool = False,
     ) -> Union[str, List[str]]:
         if isinstance(name, list):
             res = []

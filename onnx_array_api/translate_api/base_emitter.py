@@ -25,6 +25,10 @@ class EventType(IntEnum):
     END_SIGNATURE = 16
     BEGIN_RETURN = 17
     END_RETURN = 18
+    BEGIN_FUNCTION_SIGNATURE = 19
+    END_FUNCTION_SIGNATURE = 20
+    BEGIN_FUNCTION_RETURN = 21
+    END_FUNCTION_RETURN = 22
 
     @classmethod
     def to_str(cls, self) -> str:
@@ -76,6 +80,12 @@ class BaseEmitter:
         if event == EventType.BEGIN_FUNCTION:
             return self._emit_begin_function(**kwargs)
 
+        if event == EventType.BEGIN_FUNCTION_SIGNATURE:
+            return self._emit_begin_function_signature(**kwargs)
+
+        if event == EventType.END_FUNCTION_SIGNATURE:
+            return self._emit_end_function_signature(**kwargs)
+
         if event == EventType.END_FUNCTION:
             return self._emit_end_function(**kwargs)
 
@@ -99,6 +109,12 @@ class BaseEmitter:
 
         if event == EventType.END_RETURN:
             return self._emit_end_return(**kwargs)
+
+        if event == EventType.BEGIN_FUNCTION_RETURN:
+            return self._emit_begin_function_return(**kwargs)
+
+        if event == EventType.END_FUNCTION_RETURN:
+            return self._emit_end_function_return(**kwargs)
 
         raise ValueError(f"Unexpected event {EventType.to_str(event)}.")
 
@@ -224,6 +240,12 @@ class BaseEmitter:
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
         )
 
+    def _emit_begin_function_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_function_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
     def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
         raise NotImplementedError(
             f"Method {inspect.currentframe().f_code.co_name!r} was not overloaded."
@@ -249,4 +271,10 @@ class BaseEmitter:
         return []
 
     def _emit_end_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_begin_function_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_function_return(self, **kwargs: Dict[str, Any]) -> List[str]:
         return []
