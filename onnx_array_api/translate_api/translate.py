@@ -35,7 +35,11 @@ class Translater:
         last_event = None
         if isinstance(self.proto_, ModelProto):
             opsets = {d.domain: d.version for d in self.proto_.opset_import}
-            rows.extend(self.emitter(EventType.START, opsets=opsets))
+            rows.extend(
+                self.emitter(
+                    EventType.START, opsets=opsets, ir_version=self.proto_.ir_version
+                )
+            )
             inputs = self.proto_.graph.input
             outputs = self.proto_.graph.output
             nodes = self.proto_.graph.node

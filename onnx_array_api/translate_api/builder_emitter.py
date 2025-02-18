@@ -4,10 +4,17 @@ from onnx.numpy_helper import to_array
 from .base_emitter import BaseEmitter
 
 _types = {
+    TensorProto.DOUBLE: "DOUBLE",
     TensorProto.FLOAT: "FLOAT",
     TensorProto.FLOAT16: "FLOAT16",
     TensorProto.INT64: "INT64",
     TensorProto.INT32: "INT32",
+    TensorProto.INT16: "INT16",
+    TensorProto.UINT64: "UINT64",
+    TensorProto.UINT32: "UINT32",
+    TensorProto.UINT16: "UINT16",
+    TensorProto.STRING: "STRING",
+    TensorProto.BOOL: "BOOL",
 }
 
 
@@ -20,6 +27,10 @@ class BuilderEmitter(BaseEmitter):
     Converts event into proper code.
     """
 
+    def __init__(self, make_model_function: str = ""):
+        super().__init__()
+        self.make_model_function = make_model_function
+
     def join(self, rows: List[str], single_line: bool = False) -> str:
         "Join the rows"
         assert (
@@ -29,6 +40,7 @@ class BuilderEmitter(BaseEmitter):
 
     def _emit_start(self, **kwargs: Dict[str, Any]) -> List[str]:
         self.opsets = kwargs.get("opsets", {})
+        self.ir_version = kwargs.get("ir_version", None)
         return []
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -43,12 +55,27 @@ class BuilderEmitter(BaseEmitter):
             )
         rows = [
             "",
-            f"g = GraphBuilder({self.opsets})",
+            (
+                f"g = GraphBuilder({self.opsets}, ir_version={self.ir_version})"
+                if self.ir_version
+                else f"GraphBuilder({self.opsets})"
+            ),
             *inputs,
             f"{self.name}({inps})",
             *outputs,
             "model = g.to_onnx()",
         ]
+        if self.make_model_function:
+            rows = [
+                "",
+                "",
+                f'def {self.make_model_function}() -> "ModelProto":',
+                *["    " + _ for _ in rows[1:]],
+                "    return model",
+                "",
+                "",
+                f"model = {self.make_model_function}()",
+            ]
         return rows
 
     def _emit_begin_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -78,13 +105,16 @@ class BuilderEmitter(BaseEmitter):
         name = kwargs["name"]
         itype = kwargs.get("elem_type", 0)
         shape = kwargs.get("shape", None)
+        name = self._clean_result_name(name)
         if itype == 0:
-            inp = "X"
+            inp = name or "X"
         else:
             if shape is None:
-                inp = f'X: "{_itype_to_string(itype)}"'
+                inp = f'{name}: "{_itype_to_string(itype)}"'
             else:
-                inp = f'X: "{_itype_to_string(itype)}[{", ".join(map(str, shape))}]"'
+                inp = (
+                    f'{name}: "{_itype_to_string(itype)}[{", ".join(map(str, shape))}]"'
+                )
         self.inputs_full.append(inp)
         self.inputs.append(name)
         self.inputs_full_.append((name, _itype_to_string(itype), shape))
@@ -113,6 +143,7 @@ class BuilderEmitter(BaseEmitter):
 
     def _emit_output(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
+        name = self._clean_result_name(name)
         itype = kwargs.get("elem_type", 0)
         shape = kwargs.get("shape", None)
         self.outputs.append(name)
@@ -126,6 +157,8 @@ class BuilderEmitter(BaseEmitter):
         if kwargs.get("domain", "") != "":
             domain = kwargs["domain"]
             op_type = f"{domain}.{op_type}"
+        else:
+            domain = ""
         atts = kwargs.get("atts", {})
         args = []
         for k, v in atts.items():
@@ -134,11 +167,22 @@ class BuilderEmitter(BaseEmitter):
                 raise NotImplementedError("Graph attribute not supported yet.")
             args.append(f"{k}={vatt}")
 
-        outs = ", ".join(outputs)
-        inps = ", ".join(inputs)
+        outs = ", ".join(map(self._clean_result_name, outputs))
+        inps = ", ".join(map(self._clean_result_name, inputs))
+        op_type = self._emit_node_type(op_type, domain)
+        sdomain = "" if not domain else f", domain={domain!r}"
         if args:
             sargs = ", ".join(args)
-            row = f"    {outs} = op.{op_type}({inps}, {sargs})"
+            if inps:
+                row = f"    {outs} = op.{op_type}({inps}, {sargs}{sdomain})"
+            else:
+                row = f"    {outs} = op.{op_type}({sargs}{sdomain})"
         else:
-            row = f"    {outs} = op.{op_type}({inps})"
+            row = f"    {outs} = op.{op_type}({inps}{sdomain})"
         return [row]
+
+    def _clean_result_name(self, name):
+        return name
+
+    def _emit_node_type(self, op_type, domain):
+        return op_type

@@ -1,6 +1,11 @@
 Change Logs
 ===========
 
+0.3.1
++++++
+
+* :pr:`95`: improves translation to GraphBuilder
+
 0.3.0
 +++++
 
