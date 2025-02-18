@@ -20,6 +20,10 @@ class BuilderEmitter(BaseEmitter):
     Converts event into proper code.
     """
 
+    def __init__(self, make_model_function: str = ""):
+        super().__init__()
+        self.make_model_function = make_model_function
+
     def join(self, rows: List[str], single_line: bool = False) -> str:
         "Join the rows"
         assert (
@@ -29,6 +33,7 @@ class BuilderEmitter(BaseEmitter):
 
     def _emit_start(self, **kwargs: Dict[str, Any]) -> List[str]:
         self.opsets = kwargs.get("opsets", {})
+        self.ir_version = kwargs.get("ir_version", None)
         return []
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -43,12 +48,27 @@ class BuilderEmitter(BaseEmitter):
             )
         rows = [
             "",
-            f"g = GraphBuilder({self.opsets})",
+            (
+                f"g = GraphBuilder({self.opsets}, ir_version={self.ir_version})"
+                if self.ir_version
+                else f"GraphBuilder({self.opsets})"
+            ),
             *inputs,
             f"{self.name}({inps})",
             *outputs,
             "model = g.to_onnx()",
         ]
+        if self.make_model_function:
+            rows = [
+                "",
+                "",
+                f'def {self.make_model_function}() -> "ModelProto":',
+                *["    " + _ for _ in rows[1:]],
+                "    return model",
+                "",
+                "",
+                f"model = {self.make_model_function}()",
+            ]
         return rows
 
     def _emit_begin_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -79,12 +99,14 @@ class BuilderEmitter(BaseEmitter):
         itype = kwargs.get("elem_type", 0)
         shape = kwargs.get("shape", None)
         if itype == 0:
-            inp = "X"
+            inp = name or "X"
         else:
             if shape is None:
-                inp = f'X: "{_itype_to_string(itype)}"'
+                inp = f'{name}: "{_itype_to_string(itype)}"'
             else:
-                inp = f'X: "{_itype_to_string(itype)}[{", ".join(map(str, shape))}]"'
+                inp = (
+                    f'{name}: "{_itype_to_string(itype)}[{", ".join(map(str, shape))}]"'
+                )
         self.inputs_full.append(inp)
         self.inputs.append(name)
         self.inputs_full_.append((name, _itype_to_string(itype), shape))
