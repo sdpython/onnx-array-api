@@ -4,10 +4,17 @@ from onnx.numpy_helper import to_array
 from .base_emitter import BaseEmitter
 
 _types = {
+    TensorProto.DOUBLE: "DOUBLE",
     TensorProto.FLOAT: "FLOAT",
     TensorProto.FLOAT16: "FLOAT16",
     TensorProto.INT64: "INT64",
     TensorProto.INT32: "INT32",
+    TensorProto.INT16: "INT16",
+    TensorProto.UINT64: "UINT64",
+    TensorProto.UINT32: "UINT32",
+    TensorProto.UINT16: "UINT16",
+    TensorProto.STRING: "STRING",
+    TensorProto.BOOL: "BOOL",
 }
 
 
@@ -98,6 +105,7 @@ class BuilderEmitter(BaseEmitter):
         name = kwargs["name"]
         itype = kwargs.get("elem_type", 0)
         shape = kwargs.get("shape", None)
+        name = self._clean_result_name(name)
         if itype == 0:
             inp = name or "X"
         else:
@@ -135,6 +143,7 @@ class BuilderEmitter(BaseEmitter):
 
     def _emit_output(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs["name"]
+        name = self._clean_result_name(name)
         itype = kwargs.get("elem_type", 0)
         shape = kwargs.get("shape", None)
         self.outputs.append(name)
@@ -158,16 +167,22 @@ class BuilderEmitter(BaseEmitter):
                 raise NotImplementedError("Graph attribute not supported yet.")
             args.append(f"{k}={vatt}")
 
-        outs = ", ".join(outputs)
-        inps = ", ".join(inputs)
+        outs = ", ".join(map(self._clean_result_name, outputs))
+        inps = ", ".join(map(self._clean_result_name, inputs))
         op_type = self._emit_node_type(op_type, domain)
         sdomain = "" if not domain else f", domain={domain!r}"
         if args:
             sargs = ", ".join(args)
-            row = f"    {outs} = op.{op_type}({inps}, {sargs}{sdomain})"
+            if inps:
+                row = f"    {outs} = op.{op_type}({inps}, {sargs}{sdomain})"
+            else:
+                row = f"    {outs} = op.{op_type}({sargs}{sdomain})"
         else:
             row = f"    {outs} = op.{op_type}({inps}{sdomain})"
         return [row]
+
+    def _clean_result_name(self, name):
+        return name
 
     def _emit_node_type(self, op_type, domain):
         return op_type
