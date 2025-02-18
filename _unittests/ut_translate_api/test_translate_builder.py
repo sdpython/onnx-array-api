@@ -20,7 +20,7 @@ class TestTranslateBuilder(ExtTestCase):
         self.maxDiff = None
 
     def test_exp(self):
-        onx = start(opset=19, ir_version=11).vin("X").Exp().rename("Y").vout().to_onnx()
+        onx = start(opset=19, ir_version=10).vin("X").Exp().rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
@@ -39,7 +39,7 @@ class TestTranslateBuilder(ExtTestCase):
             op.Identity(Y, outputs=["Y"])
             return Y
 
-        g = GraphBuilder({'': 19}, ir_version=11)
+        g = GraphBuilder({'': 19}, ir_version=10)
         g.make_tensor_input("X", TensorProto.FLOAT, ())
         light_api(g.op, "X")
         g.make_tensor_output("Y", TensorProto.FLOAT, ())
@@ -69,7 +69,7 @@ class TestTranslateBuilder(ExtTestCase):
 
     def test_zdoc(self):
         onx = (
-            start(opset=19, ir_version=11)
+            start(opset=19, ir_version=10)
             .vin("X")
             .reshape((-1, 1))
             .Transpose(perm=[1, 0])
@@ -90,7 +90,7 @@ class TestTranslateBuilder(ExtTestCase):
                 op.Identity(Y, outputs=["Y"])
                 return Y
 
-            g = GraphBuilder({'': 19}, ir_version=11)
+            g = GraphBuilder({'': 19}, ir_version=10)
             g.make_tensor_input("X", TensorProto.FLOAT, ())
             light_api(g.op, "X")
             g.make_tensor_output("Y", TensorProto.FLOAT, ())
@@ -119,7 +119,7 @@ class TestTranslateBuilder(ExtTestCase):
         check_model(model)
 
     def test_exp_f(self):
-        onx = start(opset=19, ir_version=11).vin("X").Exp().rename("Y").vout().to_onnx()
+        onx = start(opset=19, ir_version=10).vin("X").Exp().rename("Y").vout().to_onnx()
         self.assertIsInstance(onx, ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
@@ -142,7 +142,7 @@ class TestTranslateBuilder(ExtTestCase):
 
 
         def mm() -> "ModelProto":
-            g = GraphBuilder({'': 19}, ir_version=11)
+            g = GraphBuilder({'': 19}, ir_version=10)
             g.make_tensor_input("X", TensorProto.FLOAT, ())
             light_api(g.op, "X")
             g.make_tensor_output("Y", TensorProto.FLOAT, ())

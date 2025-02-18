@@ -148,6 +148,8 @@ class BuilderEmitter(BaseEmitter):
         if kwargs.get("domain", "") != "":
             domain = kwargs["domain"]
             op_type = f"{domain}.{op_type}"
+        else:
+            domain = ""
         atts = kwargs.get("atts", {})
         args = []
         for k, v in atts.items():
@@ -158,9 +160,14 @@ class BuilderEmitter(BaseEmitter):
 
         outs = ", ".join(outputs)
         inps = ", ".join(inputs)
+        op_type = self._emit_node_type(op_type, domain)
+        sdomain = "" if not domain else f", domain={domain!r}"
         if args:
             sargs = ", ".join(args)
-            row = f"    {outs} = op.{op_type}({inps}, {sargs})"
+            row = f"    {outs} = op.{op_type}({inps}, {sargs}{sdomain})"
         else:
-            row = f"    {outs} = op.{op_type}({inps})"
+            row = f"    {outs} = op.{op_type}({inps}{sdomain})"
         return [row]
+
+    def _emit_node_type(self, op_type, domain):
+        return op_type
