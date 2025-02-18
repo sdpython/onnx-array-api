@@ -4,7 +4,7 @@ Change Logs
 0.3.1
 +++++
 
-* :pr:`94`: improves translation to GraphBuilder
+* :pr:`95`: improves translation to GraphBuilder
 
 0.3.0
 +++++
