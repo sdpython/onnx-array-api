@@ -224,7 +224,7 @@ class GraphBuilder:
                     self.constants_[node.output[0]] = node
                     self.set_shape(node.output[0], self._get_tensor_shape(node))
                     self.set_type(node.output[0], self._get_tensor_type(node))
-            for f in proto.function:
+            for f in proto.functions:
                 self.add_function(f)
         else:
             raise NotImplementedError(

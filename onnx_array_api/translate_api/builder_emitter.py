@@ -134,7 +134,8 @@ class BuilderEmitter(BaseEmitter):
         for init in self.inits:
             val = to_array(init)
             stype = str(val.dtype).split(".")[-1]
-            rows.append(f"    {init.name} = np.array({val.tolist()}, dtype=np.{stype})")
+            name = self._clean_result_name(init.name)
+            rows.append(f"    {name} = np.array({val.tolist()}, dtype=np.{stype})")
         return rows
 
     def _emit_begin_return(self, **kwargs: Dict[str, Any]) -> List[str]:
