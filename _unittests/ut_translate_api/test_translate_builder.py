@@ -37,7 +37,7 @@ class TestTranslateBuilder(ExtTestCase):
             op: "GraphBuilder",
             X: "FLOAT[]",
         ):
-            Y = op.Exp(X)
+            Y = op.Exp(X, outputs=['Y'])
             op.Identity(Y, outputs=["Y"])
             return Y
 
@@ -57,7 +57,7 @@ class TestTranslateBuilder(ExtTestCase):
             op: "GraphBuilder",
             X: "FLOAT[]",  # noqa: F722
         ):
-            Y = op.Exp(X)
+            Y = op.Exp(X, outputs=["Y"])
             op.Identity(Y, outputs=["Y"])
             return Y
 
@@ -93,8 +93,8 @@ class TestTranslateBuilder(ExtTestCase):
                 X: "FLOAT[]",
             ):
                 r = np.array([-1, 1], dtype=np.int64)
-                r0_0 = op.Reshape(X, r)
-                Y = op.Transpose(r0_0, perm=[1, 0])
+                r0_0 = op.Reshape(X, r, outputs=['r0_0'])
+                Y = op.Transpose(r0_0, perm=[1, 0], outputs=['Y'])
                 op.Identity(Y, outputs=["Y"])
                 return Y
 
@@ -148,7 +148,7 @@ class TestTranslateBuilder(ExtTestCase):
             op: "GraphBuilder",
             X: "FLOAT[]",
         ):
-            Y = op.Exp(X)
+            Y = op.Exp(X, outputs=['Y'])
             op.Identity(Y, outputs=["Y"])
             return Y
 
@@ -240,8 +240,8 @@ class TestTranslateBuilder(ExtTestCase):
                 A: "FLOAT[, ]",
                 B: "FLOAT[, ]",
             ):
-                Y1 = op.LinearRegression(X, A, B, domain='custom')
-                Y = op.Abs(Y1)
+                Y1 = op.LinearRegression(X, A, B, domain='custom', outputs=['Y1'])
+                Y = op.Abs(Y1, outputs=['Y'])
                 op.Identity(Y, outputs=["Y"])
                 return Y
 
@@ -252,8 +252,8 @@ class TestTranslateBuilder(ExtTestCase):
                 a = gr.make_tensor_input('a')
                 b = gr.make_tensor_input('b')
                 op = gr.op
-                xa = op.MatMul(x, a)
-                y = op.Add(xa, b)
+                xa = op.MatMul(x, a, outputs=['xa'])
+                y = op.Add(xa, b, outputs=['y'])
                 gr.make_tensor_output(y)
                 g.add_function(builder=gr)
                 return gr
