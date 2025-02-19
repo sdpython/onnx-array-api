@@ -4,6 +4,7 @@ Change Logs
 0.3.1
 +++++
 
+* :pr:`96`: supports local functions in translator
 * :pr:`95`: improves translation to GraphBuilder
 
 0.3.0
