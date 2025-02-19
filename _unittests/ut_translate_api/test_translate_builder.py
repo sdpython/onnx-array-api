@@ -227,6 +227,7 @@ class TestTranslateBuilder(ExtTestCase):
             graph,
             opset_imports=[oh.make_opsetid("", 14), oh.make_opsetid(new_domain, 1)],
             functions=[linear_regression],
+            ir_version=10,
         )
         tr = Translater(onnx_model, emitter=BuilderEmitter("mm"))
         code = tr.export(as_str=True)
@@ -260,7 +261,7 @@ class TestTranslateBuilder(ExtTestCase):
 
 
             def mm() -> "ModelProto":
-                g = GraphBuilder({'': 14, 'custom': 1}, ir_version=11)
+                g = GraphBuilder({'': 14, 'custom': 1}, ir_version=10)
                 g.make_tensor_input("X", TensorProto.FLOAT, ('', ''))
                 g.make_tensor_input("A", TensorProto.FLOAT, ('', ''))
                 g.make_tensor_input("B", TensorProto.FLOAT, ('', ''))
