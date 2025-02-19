@@ -77,6 +77,7 @@ class Translater:
                     EventType.BEGIN_FUNCTION,
                     name=self.proto_.name,
                     domain=self.proto_.domain,
+                    opsets={d.domain: d.version for d in self.proto_.opset_import},
                 )
             )
         elif isinstance(self.proto_, GraphProto):
@@ -96,7 +97,13 @@ class Translater:
                 )
             )
 
-        rows.extend(self.emitter(EventType.BEGIN_SIGNATURE))
+        rows.extend(
+            self.emitter(
+                EventType.BEGIN_FUNCTION_SIGNATURE
+                if is_function
+                else EventType.BEGIN_SIGNATURE
+            )
+        )
 
         for i in inputs:
             if is_function:
@@ -119,7 +126,13 @@ class Translater:
                 self.emitter(EventType.FUNCTION_ATTRIBUTES, attributes=list(attributes))
             )
 
-        rows.extend(self.emitter(EventType.END_SIGNATURE))
+        rows.extend(
+            self.emitter(
+                EventType.END_FUNCTION_SIGNATURE
+                if is_function
+                else EventType.END_SIGNATURE
+            )
+        )
 
         for node in nodes:
             atts = self.extract_attributes(node)
@@ -134,7 +147,13 @@ class Translater:
                 )
             )
 
-        rows.extend(self.emitter(EventType.BEGIN_RETURN))
+        rows.extend(
+            self.emitter(
+                EventType.BEGIN_FUNCTION_RETURN
+                if is_function
+                else EventType.BEGIN_RETURN
+            )
+        )
 
         for o in outputs:
             if is_function:
@@ -152,7 +171,11 @@ class Translater:
                     )
                 )
 
-        rows.extend(self.emitter(EventType.END_RETURN))
+        rows.extend(
+            self.emitter(
+                EventType.END_FUNCTION_RETURN if is_function else EventType.END_RETURN
+            )
+        )
 
         if isinstance(self.proto_, (GraphProto, FunctionProto)):
             name = self.proto_.name

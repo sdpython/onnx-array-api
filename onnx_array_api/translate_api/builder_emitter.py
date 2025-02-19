@@ -41,6 +41,7 @@ class BuilderEmitter(BaseEmitter):
     def _emit_start(self, **kwargs: Dict[str, Any]) -> List[str]:
         self.opsets = kwargs.get("opsets", {})
         self.ir_version = kwargs.get("ir_version", None)
+        self.function_calls = []
         return []
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -51,7 +52,8 @@ class BuilderEmitter(BaseEmitter):
         outputs = []
         for inp, stype, shape in self.outputs_full_:
             outputs.append(
-                f'g.make_tensor_output("{inp}", TensorProto.{stype}, {shape})'
+                f'g.make_tensor_output("{inp}", TensorProto.{stype}, '
+                f"{shape}, is_dimension=False, indexed=False)"
             )
         rows = [
             "",
@@ -63,6 +65,7 @@ class BuilderEmitter(BaseEmitter):
             *inputs,
             f"{self.name}({inps})",
             *outputs,
+            *self.function_calls,
             "model = g.to_onnx()",
         ]
         if self.make_model_function:
@@ -131,7 +134,8 @@ class BuilderEmitter(BaseEmitter):
         for init in self.inits:
             val = to_array(init)
             stype = str(val.dtype).split(".")[-1]
-            rows.append(f"    {init.name} = np.array({val.tolist()}, dtype=np.{stype})")
+            name = self._clean_result_name(init.name)
+            rows.append(f"    {name} = np.array({val.tolist()}, dtype=np.{stype})")
         return rows
 
     def _emit_begin_return(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -154,11 +158,7 @@ class BuilderEmitter(BaseEmitter):
         op_type = kwargs["op_type"]
         inputs = kwargs["inputs"]
         outputs = kwargs["outputs"]
-        if kwargs.get("domain", "") != "":
-            domain = kwargs["domain"]
-            op_type = f"{domain}.{op_type}"
-        else:
-            domain = ""
+        domain = kwargs.get("domain", "")
         atts = kwargs.get("atts", {})
         args = []
         for k, v in atts.items():
@@ -167,10 +167,13 @@ class BuilderEmitter(BaseEmitter):
                 raise NotImplementedError("Graph attribute not supported yet.")
             args.append(f"{k}={vatt}")
 
-        outs = ", ".join(map(self._clean_result_name, outputs))
+        cleaned_outputs = list(map(self._clean_result_name, outputs))
+        outs = ", ".join(cleaned_outputs)
         inps = ", ".join(map(self._clean_result_name, inputs))
         op_type = self._emit_node_type(op_type, domain)
-        sdomain = "" if not domain else f", domain={domain!r}"
+        # Let's add output names to make it easier to debug.
+        soutputs = f", outputs={cleaned_outputs}"
+        sdomain = soutputs if not domain else f", domain={domain!r}{soutputs}"
         if args:
             sargs = ", ".join(args)
             if inps:
@@ -186,3 +189,54 @@ class BuilderEmitter(BaseEmitter):
 
     def _emit_node_type(self, op_type, domain):
         return op_type
+
+    def _emit_begin_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        self.f_inputs = []
+        self.f_outputs = []
+        self.f_inits = []
+        self.f_name = kwargs["name"]
+        self.f_domain = kwargs["domain"]
+        self.f_attributes = []
+        self.f_opsets = kwargs["opsets"]
+        return []
+
+    def _emit_begin_function_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_function_signature(self, **kwargs: Dict[str, Any]) -> List[str]:
+        self.f_call_name = f"make_{self.f_domain}_{self.f_name}"
+        return [
+            "",
+            "",
+            f'def {self.f_call_name}(g: "GraphBuilder"):',
+            f"    gr = GraphBuilder({self.f_opsets}, as_function=True)",
+            *[f"    {name} = gr.make_tensor_input({name!r})" for name in self.f_inputs],
+            "    op = gr.op",
+        ]
+
+    def _emit_to_onnx_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return ["    return gr"]
+
+    def _emit_function_input(self, **kwargs: Dict[str, Any]) -> List[str]:
+        self.f_inputs.append(kwargs["name"])
+        return []
+
+    def _emit_function_output(self, **kwargs: Dict[str, Any]) -> List[str]:
+        self.f_outputs.append(kwargs["name"])
+        return []
+
+    def _emit_function_attributes(self, **kwargs: Dict[str, Any]) -> List[str]:
+        raise NotImplementedError("Function attribute are not implemented yet.")
+
+    def _emit_end_function(self, **kwargs: Dict[str, Any]) -> List[str]:
+        self.function_calls.append(f"{self.f_call_name}(g)")
+        return [
+            *[f"    gr.make_tensor_output({name})" for name in self.f_outputs],
+            "    g.add_function(builder=gr)",
+        ]
+
+    def _emit_begin_function_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
+
+    def _emit_end_function_return(self, **kwargs: Dict[str, Any]) -> List[str]:
+        return []
