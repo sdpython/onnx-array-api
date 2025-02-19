@@ -167,10 +167,13 @@ class BuilderEmitter(BaseEmitter):
                 raise NotImplementedError("Graph attribute not supported yet.")
             args.append(f"{k}={vatt}")
 
-        outs = ", ".join(map(self._clean_result_name, outputs))
+        cleaned_outputs = list(map(self._clean_result_name, outputs))
+        outs = ", ".join(cleaned_outputs)
         inps = ", ".join(map(self._clean_result_name, inputs))
         op_type = self._emit_node_type(op_type, domain)
-        sdomain = "" if not domain else f", domain={domain!r}"
+        # Let's add output names to make it easier to debug.
+        soutputs = f", outputs={cleaned_outputs}"
+        sdomain = soutputs if not domain else f", domain={domain!r}{soutputs}"
         if args:
             sargs = ", ".join(args)
             if inps:
