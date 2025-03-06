@@ -446,7 +446,7 @@ class DistanceExecution:
                 ):
                     disc = discrepancies(d1.value, d2.value)
                     a, r = disc["aerr"], disc["rerr"]
-                    line += f" | a={a:.3f} r={r:.3f}"
+                    line += f" | a={a:.5g} r={r:.5g}"
             elif i == last[0]:
                 d2 = s2[j]
                 line = (
