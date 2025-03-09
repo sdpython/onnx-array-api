@@ -178,6 +178,75 @@ class TestTranslateClassic(ExtTestCase):
         self.maxDiff = None
         self.assertEqual(expected, code)
 
+    def test_transpose_short(self):
+        onx = (
+            start(opset=19)
+            .vin("X")
+            .reshape((-1, 1))
+            .Transpose(perm=[1, 0])
+            .rename("Y")
+            .vout()
+            .to_onnx()
+        )
+        self.assertIsInstance(onx, ModelProto)
+        self.assertIn("Transpose", str(onx))
+        ref = ReferenceEvaluator(onx)
+        a = np.arange(10).astype(np.float32)
+        got = ref.run(None, {"X": a})[0]
+        self.assertEqualArray(a.reshape((-1, 1)).T, got)
+
+        code = translate(onx, api="onnx-short")
+        expected = dedent(
+            """
+            opset_imports = [
+                make_opsetid('', 19),
+            ]
+            inputs = []
+            outputs = []
+            nodes = []
+            initializers = []
+            sparse_initializers = []
+            functions = []
+            initializers.append(
+                from_array(
+                    np.array([-1, 1], dtype=np.int64),
+                    name='r'
+                )
+            )
+            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            nodes.append(
+                make_node_extended(
+                    'Reshape',
+                    ['X', 'r'],
+                    ['r0_0']
+                )
+            )
+            nodes.append(
+                make_node_extended(
+                    'Transpose',
+                    ['r0_0'],
+                    ['Y'],
+                    perm=[1, 0]
+                )
+            )
+            outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            graph = make_graph(
+                nodes,
+                'light_api',
+                inputs,
+                outputs,
+                initializers,
+                sparse_initializer=sparse_initializers,
+            )
+            model = make_model(
+                graph,
+                functions=functions,
+                opset_imports=opset_imports
+            )"""
+        ).strip("\n")
+        self.maxDiff = None
+        self.assertEqual(expected, code)
+
     def test_topk_reverse(self):
         onx = (
             start(opset=19)

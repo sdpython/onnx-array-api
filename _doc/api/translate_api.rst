@@ -39,6 +39,12 @@ InnerEmitter
 .. autoclass:: onnx_array_api.translate_api.inner_emitter.InnerEmitter
     :members:
 
+InnerEmitterShortInitializer
+++++++++++++++++++++++++++++
+
+.. autoclass:: onnx_array_api.translate_api.inner_emitter.InnerEmitterShortInitializer
+    :members:
+
 LightEmitter
 ++++++++++++
 

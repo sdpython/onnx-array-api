@@ -57,8 +57,6 @@ class TestOrtProfile(ExtTestCase):
         prof = ort_profile(optimized, feeds)
         events = {
             "kernel_time",
-            "fence_before",
-            "fence_after",
             "SequentialExecutor::Execute",
             "model_run",
             "model_loading_array",

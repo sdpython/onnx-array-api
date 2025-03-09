@@ -106,6 +106,7 @@ class InnerEmitter(BaseEmitter):
                 raise NotImplementedError(f"Unexpected dtype={sdtype}.")
         else:
             sdtype = f"np.{sdtype}"
+
         return [
             "initializers.append(",
             f"    {fra}(",
@@ -209,3 +210,57 @@ class InnerEmitter(BaseEmitter):
             ")",
         ]
         return lines
+
+
+class InnerEmitterShortInitializer(InnerEmitter):
+    """
+    Converts event into proper code.
+    Initializer are replaced by random values if too big.
+    """
+
+    def _emit_initializer(self, **kwargs: Dict[str, Any]) -> List[str]:
+        name = kwargs["name"]
+        value = kwargs["value"]
+        repl = {"bool": "bool_", "object": "object_", "str": "str_"}
+        fra = "from_array"
+        sdtype = repl.get(str(value.dtype), str(value.dtype))
+        if sdtype.startswith("("):
+            from onnx.reference.custom_element_types import float8e4m3fn
+
+            if sdtype == str(float8e4m3fn):
+                sdtype = "float8e4m3fn"
+                fra = "from_array_extended"
+            else:
+                raise NotImplementedError(f"Unexpected dtype={sdtype}.")
+        else:
+            sdtype = f"np.{sdtype}"
+        if value.size <= 16:
+            return [
+                "initializers.append(",
+                f"    {fra}(",
+                f"        np.array({value.tolist()}, dtype={sdtype}),",
+                f"        name={name!r}",
+                "    )",
+                ")",
+            ]
+        if "int" in sdtype:
+            return [
+                f"value = np.random.randint(0, 10, size={value.shape})"
+                f".astype({sdtype})",
+                "initializers.append(",
+                f"    {fra}(",
+                f"        np.array(value, dtype={sdtype}),",
+                f"        name={name!r}",
+                "    )",
+                ")",
+            ]
+        return [
+            f"value = np.random.randn({', '.join(map(str,value.shape))})"
+            f".astype({sdtype})",
+            "initializers.append(",
+            f"    {fra}(",
+            f"        np.array(value, dtype={sdtype}),",
+            f"        name={name!r}",
+            "    )",
+            ")",
+        ]

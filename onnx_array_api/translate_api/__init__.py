@@ -1,6 +1,6 @@
 from onnx import ModelProto
 from .translate import Translater
-from .inner_emitter import InnerEmitter
+from .inner_emitter import InnerEmitter, InnerEmitterShortInitializer
 from .builder_emitter import BuilderEmitter
 
 
@@ -16,7 +16,8 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
         :class:`onnx_array_api.translate_api.light_emitter.LightEmitter`,
         another value is `"onnx"` which is the inner API implemented
         in onnx package, `"builder"` follows the syntax for the
-        class :class:`onnx_array_api.graph_api.GraphBuilder`
+        class :class:`onnx_array_api.graph_api.GraphBuilder`,
+        `"onnx-short"` replaces long initializer with random values
     :return: code
 
     .. runpython::
@@ -83,6 +84,9 @@ def translate(proto: ModelProto, single_line: bool = False, api: str = "light") 
         return tr.export(single_line=single_line, as_str=True)
     if api == "onnx":
         tr = Translater(proto, emitter=InnerEmitter())
+        return tr.export(as_str=True)
+    if api == "onnx-short":
+        tr = Translater(proto, emitter=InnerEmitterShortInitializer())
         return tr.export(as_str=True)
     if api == "builder":
         tr = Translater(proto, emitter=BuilderEmitter())
