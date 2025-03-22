@@ -51,7 +51,7 @@ def get_parser_translate() -> ArgumentParser:
     parser.add_argument(
         "-a",
         "--api",
-        choices=["onnx", "light"],
+        choices=["onnx", "light", "onnx-short", "builder"],
         default="onnx",
         help="API to choose, API from onnx package or light API.",
     )
