@@ -4,6 +4,7 @@ Change Logs
 0.3.1
 +++++
 
+* :pr:`100`: updates requirements, add 3.12
 * :pr:`96`: supports local functions in translator
 * :pr:`95`: improves translation to GraphBuilder
 
