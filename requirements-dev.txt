@@ -1,3 +1,5 @@
+array_api_compat
+array_api_strict
 autopep8
 black
 coverage
