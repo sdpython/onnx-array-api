@@ -64,7 +64,10 @@ def onnx_text_plot_tree(node):
             self.nodes_missing_value_tracks_true = None
             for k, v in atts.items():
                 if k.startswith("nodes"):
-                    setattr(self, k, v[i])
+                    if k.endswith("_as_tensor"):
+                        setattr(self, k.replace("_as_tensor", ""), v[i])
+                    else:
+                        setattr(self, k, v[i])
             self.depth = 0
             self.true_false = ""
             self.targets = []
@@ -120,10 +123,7 @@ def onnx_text_plot_tree(node):
             ]
             for k, v in atts.items():
                 if k.startswith(prefix):
-                    if "classlabels" in k:
-                        short[k] = list(v)
-                    else:
-                        short[k] = [v[i] for i in idx]
+                    short[k] = list(v) if "classlabels" in k else [v[i] for i in idx]
 
         nodes = OrderedDict()
         for i in range(len(short["nodes_treeids"])):
@@ -132,9 +132,10 @@ def onnx_text_plot_tree(node):
         for i in range(len(short[f"{prefix}_treeids"])):
             idn = short[f"{prefix}_nodeids"][i]
             node = nodes[idn]
-            node.append_target(
-                tid=short[f"{prefix}_ids"][i], weight=short[f"{prefix}_weights"][i]
-            )
+            key = f"{prefix}_weights"
+            if key not in short:
+                key = f"{prefix}_weights_as_tensor"
+            node.append_target(tid=short[f"{prefix}_ids"][i], weight=short[key][i])
 
         def iterate(nodes, node, depth=0, true_false=""):
             node.depth = depth
