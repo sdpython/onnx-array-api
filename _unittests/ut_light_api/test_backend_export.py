@@ -19,7 +19,11 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
-from onnx.reference.op_run import to_array_extended
+
+try:
+    from onnx.reference.op_run import to_array_extended
+except ImportError:
+    from onnx.numpy_helper import to_array as to_array_extended
 from onnx.numpy_helper import from_array, to_array
 from onnx.backend.base import Device, DeviceType
 from onnx_array_api.reference import ExtendedReferenceEvaluator

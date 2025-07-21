@@ -1,17 +1,23 @@
 from onnx.helper import np_dtype_to_tensor_dtype
 from onnx.onnx_pb import TensorProto
 from onnx.reference.op_run import OpRun
-from onnx.reference.ops.op_cast import (
-    bfloat16,
-    cast_to,
-    float8e4m3fn,
-    float8e4m3fnuz,
-    float8e5m2,
-    float8e5m2fnuz,
-)
+from onnx.reference.ops.op_cast import cast_to
+
+try:
+    from onnx.reference.ops.op_cast import (
+        bfloat16,
+        float8e4m3fn,
+        float8e4m3fnuz,
+        float8e5m2,
+        float8e5m2fnuz,
+    )
+except ImportError:
+    bfloat16 = None
 
 
 def _cast_like(x, y, saturate):
+    if bfloat16 is None:
+        return (cast_to(x, y.dtype, saturate),)
     if y.dtype == bfloat16 and y.dtype.descr[0][0] == "bfloat16":
         # np.uint16 == np.uint16 is True as well as np.uint16 == bfloat16
         to = TensorProto.BFLOAT16

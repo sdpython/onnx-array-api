@@ -2,13 +2,17 @@ from typing import Optional
 import numpy as np
 from onnx import TensorProto
 from onnx.numpy_helper import from_array as onnx_from_array
-from onnx.reference.ops.op_cast import (
-    bfloat16,
-    float8e4m3fn,
-    float8e4m3fnuz,
-    float8e5m2,
-    float8e5m2fnuz,
-)
+
+try:
+    from onnx.reference.ops.op_cast import (
+        bfloat16,
+        float8e4m3fn,
+        float8e4m3fnuz,
+        float8e5m2,
+        float8e5m2fnuz,
+    )
+except ImportError:
+    bfloat16 = None
 from onnx.reference.op_run import to_array_extended
 from .evaluator import ExtendedReferenceEvaluator
 from .evaluator_yield import (
@@ -28,6 +32,8 @@ def from_array_extended(tensor: np.array, name: Optional[str] = None) -> TensorP
     :param name: name
     :return: TensorProto
     """
+    if bfloat16 is None:
+        return onnx_from_array(tensor, name)
     dt = tensor.dtype
     if dt == float8e4m3fn and dt.descr[0][0] == "e4m3fn":
         to = TensorProto.FLOAT8E4M3FN
