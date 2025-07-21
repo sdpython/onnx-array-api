@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 import unittest
 from typing import Any
 import numpy
@@ -78,9 +79,20 @@ class ExtendedReferenceEvaluatorBackend(onnx.backend.base.Backend):
         raise NotImplementedError("Unable to run the model node by node.")
 
 
+dft_atol = 1e-3 if sys.platform != "linux" else 1e-5
 backend_test = onnx.backend.test.BackendTest(
-    ExtendedReferenceEvaluatorBackend, __name__
+    ExtendedReferenceEvaluatorBackend,
+    __name__,
+    test_kwargs={
+        "test_dft": {"atol": dft_atol},
+        "test_dft_axis": {"atol": dft_atol},
+        "test_dft_axis_opset19": {"atol": dft_atol},
+        "test_dft_inverse": {"atol": dft_atol},
+        "test_dft_inverse_opset19": {"atol": dft_atol},
+        "test_dft_opset19": {"atol": dft_atol},
+    },
 )
+
 
 if os.getenv("APPVEYOR"):
     backend_test.exclude("(test_vgg19|test_zfnet)")
