@@ -1,6 +1,11 @@
 Change Logs
 ===========
 
+0.3.2
++++++
+
+* :pr:`101`: fix as_tensor in onnx_text_plot_tree
+
 0.3.1
 +++++
 

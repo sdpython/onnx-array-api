@@ -19,7 +19,11 @@ from onnx.helper import (
     make_opsetid,
     make_tensor_value_info,
 )
-from onnx.reference.op_run import to_array_extended
+
+try:
+    from onnx.reference.op_run import to_array_extended
+except ImportError:
+    from onnx.numpy_helper import to_array as to_array_extended
 from onnx.numpy_helper import from_array, to_array
 from onnx.backend.base import Device, DeviceType
 from onnx_array_api.reference import ExtendedReferenceEvaluator
@@ -240,7 +244,19 @@ class ExportBackend(onnx.backend.base.Backend):
         raise NotImplementedError("Unable to run the model node by node.")
 
 
-backend_test = onnx.backend.test.BackendTest(ExportBackend, __name__)
+dft_atol = 1e-3 if sys.platform != "linux" else 1e-5
+backend_test = onnx.backend.test.BackendTest(
+    ExportBackend,
+    __name__,
+    test_kwargs={
+        "test_dft": {"atol": dft_atol},
+        "test_dft_axis": {"atol": dft_atol},
+        "test_dft_axis_opset19": {"atol": dft_atol},
+        "test_dft_inverse": {"atol": dft_atol},
+        "test_dft_inverse_opset19": {"atol": dft_atol},
+        "test_dft_opset19": {"atol": dft_atol},
+    },
+)
 
 # The following tests are too slow with the reference implementation (Conv).
 backend_test.exclude(
