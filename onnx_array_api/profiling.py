@@ -437,7 +437,8 @@ def _process_pstats(
             stall = 0
             if verbose and fLOG is not None:
                 fLOG(
-                    "[pstats] %s=%r" % (clean_text(k[0].replace("\\", "/"), *k[1:]), v)
+                    "[pstats] %s=%r"
+                    % ((clean_text(k[0].replace("\\", "/")), *k[1:]), v)
                 )
             if len(v) < 5:
                 continue

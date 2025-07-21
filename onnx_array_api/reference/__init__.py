@@ -13,7 +13,10 @@ try:
     )
 except ImportError:
     bfloat16 = None
-from onnx.reference.op_run import to_array_extended
+try:
+    from onnx.reference.op_run import to_array_extended
+except ImportError:
+    from onnx.numpy_helper import to_array as to_array_extended
 from .evaluator import ExtendedReferenceEvaluator
 from .evaluator_yield import (
     DistanceExecution,
