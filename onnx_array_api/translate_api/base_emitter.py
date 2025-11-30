@@ -129,8 +129,9 @@ class BaseEmitter:
         if value[0].type == AttributeProto.TENSOR:
             repl = {"bool": "bool_", "object": "object_", "str": "str_"}
             sdtype = repl.get(str(v.dtype), str(str(v.dtype)))
+            package = "np" if hasattr(np, sdtype) else "ml_dtypes"
             return [], (
-                f"from_array(np.array({v.tolist()}, dtype=np.{sdtype}), "
+                f"from_array(np.array({v.tolist()}, dtype={package}.{sdtype}), "
                 f"name={value[0].name!r})"
             )
         if isinstance(v, (int, float, list)):

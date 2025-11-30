@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+import numpy as np
 from onnx import TensorProto
 from onnx.numpy_helper import to_array
 from .base_emitter import BaseEmitter
@@ -135,7 +136,10 @@ class BuilderEmitter(BaseEmitter):
             val = to_array(init)
             stype = str(val.dtype).split(".")[-1]
             name = self._clean_result_name(init.name)
-            rows.append(f"    {name} = np.array({val.tolist()}, dtype=np.{stype})")
+            package = "np" if hasattr(np, stype) else "ml_dtypes"
+            rows.append(
+                f"    {name} = np.array({val.tolist()}, dtype={package}.{stype})"
+            )
         return rows
 
     def _emit_begin_return(self, **kwargs: Dict[str, Any]) -> List[str]:

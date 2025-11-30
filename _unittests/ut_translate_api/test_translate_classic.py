@@ -406,7 +406,7 @@ class TestTranslateClassic(ExtTestCase):
         import onnx.helper
         import onnx.numpy_helper
         import onnx_array_api.translate_api.make_helper
-        import onnx.reference.custom_element_types
+        import ml_dtypes
 
         def from_array_extended(tensor, name=None):
             dt = tensor.dtype
@@ -433,7 +433,7 @@ class TestTranslateClassic(ExtTestCase):
         globs.update(onnx.helper.__dict__)
         globs.update(onnx.numpy_helper.__dict__)
         globs.update(onnx_array_api.translate_api.make_helper.__dict__)
-        globs.update(onnx.reference.custom_element_types.__dict__)
+        globs.update(ml_dtypes.__dict__)
         globs["from_array_extended"] = from_array_extended
         locs = {}
         try:
