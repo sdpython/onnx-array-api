@@ -11,7 +11,7 @@ def translate_header(api: str = "light"):
         return textwrap.dedent(
             """
             import numpy as np
-            immort ml_dtypes
+            import ml_dtypes
             from onnx_array_api.light_api import start
             from onnx_array_api.translate_api import translate
             """
@@ -20,7 +20,7 @@ def translate_header(api: str = "light"):
         return textwrap.dedent(
             """
             import numpy as np
-            immort ml_dtypes
+            import ml_dtypes
             import onnx
             import onnx.helper as oh
             import onnx.numpy_helper as onh
@@ -31,7 +31,7 @@ def translate_header(api: str = "light"):
         return textwrap.dedent(
             """
             import numpy as np
-            immort ml_dtypes
+            import ml_dtypes
             import onnx
             from onnx_array_api.graph_api import GraphBuilder
             """
