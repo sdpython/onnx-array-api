@@ -23,7 +23,7 @@ class InnerEmitter(BaseEmitter):
             rows = tr.export(as_str=False, single_line=False)
             new_rows = [f"def _make_local_graph_{value[0].name}():"]
             for line in rows:
-                if "make_model" in line:
+                if "oh.make_model" in line:
                     break
                 new_rows.append("    " + line)
             new_rows.append("    return graph")
@@ -35,10 +35,9 @@ class InnerEmitter(BaseEmitter):
     def _make_attribute(
         self, name: str, attr_type: int, ref_attr_name: Optional[str] = None
     ) -> str:
-        if ref_attr_name is None:
-            raise NotImplementedError(
-                f"Cannot create attribute with name={name!r}, attr_type={attr_type}."
-            )
+        assert (
+            ref_attr_name is not None
+        ), f"Cannot create attribute with name={name!r}, attr_type={attr_type}."
         return (
             f"make_ref_attribute(key={name!r}, attr_type={attr_type}, "
             f"ref_attr_name={ref_attr_name!r})"
@@ -52,13 +51,13 @@ class InnerEmitter(BaseEmitter):
         lines = ["opset_imports = ["]
         opsets = kwargs.get("opsets", {})
         for k, v in opsets.items():
-            lines.append(f"    make_opsetid({k!r}, {v!r}),")
+            lines.append(f"    oh.make_opsetid({k!r}, {v!r}),")
         lines.append("]")
         return lines
 
     def _emit_to_onnx_model(self, **kwargs: Dict[str, Any]) -> List[str]:
         lines = [
-            "model = make_model(",
+            "model = oh.make_model(",
             "    graph,",
             "    functions=functions,",
             "    opset_imports=opset_imports",
@@ -80,7 +79,7 @@ class InnerEmitter(BaseEmitter):
     def _emit_end_graph(self, **kwargs: Dict[str, Any]) -> List[str]:
         name = kwargs.get("name", "noname")
         lines = [
-            "graph = make_graph(",
+            "graph = oh.make_graph(",
             "    nodes,",
             f"    {name!r},",
             "    inputs,",
@@ -95,18 +94,9 @@ class InnerEmitter(BaseEmitter):
         name = kwargs["name"]
         value = kwargs["value"]
         repl = {"bool": "bool_", "object": "object_", "str": "str_"}
-        fra = "from_array"
+        fra = "onh.from_array"
         sdtype = repl.get(str(value.dtype), str(value.dtype))
-        if sdtype.startswith("("):
-            from onnx.reference.custom_element_types import float8e4m3fn
-
-            if sdtype == str(float8e4m3fn):
-                sdtype = "float8e4m3fn"
-                fra = "from_array_extended"
-            else:
-                raise NotImplementedError(f"Unexpected dtype={sdtype}.")
-        else:
-            sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
+        sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
 
         return [
             "initializers.append(",
@@ -123,17 +113,17 @@ class InnerEmitter(BaseEmitter):
         shape = kwargs.get("shape", None)
         if elem_type and shape:
             return [
-                f"{container}.append(make_tensor_value_info({name!r}, "
+                f"{container}.append(oh.make_tensor_value_info({name!r}, "
                 f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
             ]
         if elem_type:
             return [
-                f"{container}.append(make_tensor_value_info({name!r}, "
+                f"{container}.append(oh.make_tensor_value_info({name!r}, "
                 f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
             ]
         return [
-            f"{container}.append(make_tensor_value_info({name!r}, "
-            f"TensorProto.UNDEFINED, []))"
+            f"{container}.append(oh.make_tensor_value_info({name!r}, "
+            f"onnx.TensorProto.UNDEFINED, []))"
         ]
 
     def _emit_input(self, **kwargs: Dict[str, Any]) -> List[str]:
@@ -199,7 +189,7 @@ class InnerEmitter(BaseEmitter):
     def _emit_end_function(self, **kwargs: Dict[str, Any]) -> List[str]:
         lines = [
             "functions.append(",
-            "    make_function(",
+            "    oh.make_function(",
             "        domain_f, ",
             "        name_f, ",
             "        inputs, ",
@@ -223,18 +213,9 @@ class InnerEmitterShortInitializer(InnerEmitter):
         name = kwargs["name"]
         value = kwargs["value"]
         repl = {"bool": "bool_", "object": "object_", "str": "str_"}
-        fra = "from_array"
+        fra = "onh.from_array"
         sdtype = repl.get(str(value.dtype), str(value.dtype))
-        if sdtype.startswith("("):
-            from onnx.reference.custom_element_types import float8e4m3fn
-
-            if sdtype == str(float8e4m3fn):
-                sdtype = "float8e4m3fn"
-                fra = "from_array_extended"
-            else:
-                raise NotImplementedError(f"Unexpected dtype={sdtype}.")
-        else:
-            sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
+        sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
         if value.size <= 16:
             return [
                 "initializers.append(",

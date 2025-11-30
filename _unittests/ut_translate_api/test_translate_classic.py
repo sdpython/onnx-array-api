@@ -2,17 +2,13 @@ import unittest
 import os
 from textwrap import dedent
 import numpy as np
+import onnx
+import onnx.helper as oh
+import onnx.numpy_helper as onh
 from onnx import ModelProto, TensorProto, load
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx.reference.op_run import OpRun
-from onnx.helper import (
-    make_tensor_value_info,
-    make_node,
-    make_graph,
-    make_model,
-    make_opsetid,
-)
 from onnx.checker import check_model
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.light_api import start
@@ -23,19 +19,17 @@ OPSET_API = min(19, onnx_opset_version() - 1)
 
 class TestTranslateClassic(ExtTestCase):
     def test_check_code(self):
-        opset_imports = [
-            make_opsetid("", 19),
-        ]
+        opset_imports = [oh.make_opsetid("", 19)]
         inputs = []
         outputs = []
         nodes = []
         initializers = []
         sparse_initializers = []
         functions = []
-        inputs.append(make_tensor_value_info("X", TensorProto.FLOAT, shape=[]))
-        nodes.append(make_node("Exp", ["X"], ["Y"]))
-        outputs.append(make_tensor_value_info("Y", TensorProto.FLOAT, shape=[]))
-        graph = make_graph(
+        inputs.append(oh.make_tensor_value_info("X", TensorProto.FLOAT, shape=[]))
+        nodes.append(oh.make_node("Exp", ["X"], ["Y"]))
+        outputs.append(oh.make_tensor_value_info("Y", TensorProto.FLOAT, shape=[]))
+        graph = oh.make_graph(
             nodes,
             "onename",
             inputs,
@@ -43,7 +37,7 @@ class TestTranslateClassic(ExtTestCase):
             initializers,
             sparse_initializer=sparse_initializers,
         )
-        model = make_model(graph, functions=functions, opset_imports=opset_imports)
+        model = oh.make_model(graph, functions=functions, opset_imports=opset_imports)
         check_model(model)
 
     def test_exp(self):
@@ -60,7 +54,7 @@ class TestTranslateClassic(ExtTestCase):
         expected = dedent(
             """
         opset_imports = [
-            make_opsetid('', 19),
+            oh.make_opsetid('', 19),
         ]
         inputs = []
         outputs = []
@@ -68,7 +62,7 @@ class TestTranslateClassic(ExtTestCase):
         initializers = []
         sparse_initializers = []
         functions = []
-        inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+        inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
         nodes.append(
             make_node_extended(
                 'Exp',
@@ -76,8 +70,8 @@ class TestTranslateClassic(ExtTestCase):
                 ['Y']
             )
         )
-        outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
-        graph = make_graph(
+        outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+        graph = oh.make_graph(
             nodes,
             'light_api',
             inputs,
@@ -85,7 +79,7 @@ class TestTranslateClassic(ExtTestCase):
             initializers,
             sparse_initializer=sparse_initializers,
         )
-        model = make_model(
+        model = oh.make_model(
             graph,
             functions=functions,
             opset_imports=opset_imports
@@ -130,7 +124,7 @@ class TestTranslateClassic(ExtTestCase):
         expected = dedent(
             """
             opset_imports = [
-                make_opsetid('', 19),
+                oh.make_opsetid('', 19),
             ]
             inputs = []
             outputs = []
@@ -139,12 +133,12 @@ class TestTranslateClassic(ExtTestCase):
             sparse_initializers = []
             functions = []
             initializers.append(
-                from_array(
+                onh.from_array(
                     np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -160,8 +154,8 @@ class TestTranslateClassic(ExtTestCase):
                     perm=[1, 0]
                 )
             )
-            outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
-            graph = make_graph(
+            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            graph = oh.make_graph(
                 nodes,
                 'light_api',
                 inputs,
@@ -169,7 +163,7 @@ class TestTranslateClassic(ExtTestCase):
                 initializers,
                 sparse_initializer=sparse_initializers,
             )
-            model = make_model(
+            model = oh.make_model(
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
@@ -199,7 +193,7 @@ class TestTranslateClassic(ExtTestCase):
         expected = dedent(
             """
             opset_imports = [
-                make_opsetid('', 19),
+                oh.make_opsetid('', 19),
             ]
             inputs = []
             outputs = []
@@ -208,12 +202,12 @@ class TestTranslateClassic(ExtTestCase):
             sparse_initializers = []
             functions = []
             initializers.append(
-                from_array(
+                onh.from_array(
                     np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -229,8 +223,8 @@ class TestTranslateClassic(ExtTestCase):
                     perm=[1, 0]
                 )
             )
-            outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
-            graph = make_graph(
+            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            graph = oh.make_graph(
                 nodes,
                 'light_api',
                 inputs,
@@ -238,7 +232,7 @@ class TestTranslateClassic(ExtTestCase):
                 initializers,
                 sparse_initializer=sparse_initializers,
             )
-            model = make_model(
+            model = oh.make_model(
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
@@ -270,7 +264,7 @@ class TestTranslateClassic(ExtTestCase):
         expected = dedent(
             """
             opset_imports = [
-                make_opsetid('', 19),
+                oh.make_opsetid('', 19),
             ]
             inputs = []
             outputs = []
@@ -278,8 +272,8 @@ class TestTranslateClassic(ExtTestCase):
             initializers = []
             sparse_initializers = []
             functions = []
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
-            inputs.append(make_tensor_value_info('K', TensorProto.INT64, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('K', TensorProto.INT64, shape=[]))
             nodes.append(
                 make_node_extended(
                     'TopK',
@@ -290,9 +284,9 @@ class TestTranslateClassic(ExtTestCase):
                     sorted=1
                 )
             )
-            outputs.append(make_tensor_value_info('Values', TensorProto.FLOAT, shape=[]))
-            outputs.append(make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
-            graph = make_graph(
+            outputs.append(oh.make_tensor_value_info('Values', TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
+            graph = oh.make_graph(
                 nodes,
                 'light_api',
                 inputs,
@@ -300,7 +294,7 @@ class TestTranslateClassic(ExtTestCase):
                 initializers,
                 sparse_initializer=sparse_initializers,
             )
-            model = make_model(
+            model = oh.make_model(
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
@@ -338,8 +332,8 @@ class TestTranslateClassic(ExtTestCase):
         expected = dedent(
             """
             opset_imports = [
-                make_opsetid('', 19),
-                make_opsetid('ai.onnx.ml', 3),
+                oh.make_opsetid('', 19),
+                oh.make_opsetid('ai.onnx.ml', 3),
             ]
             inputs = []
             outputs = []
@@ -348,12 +342,12 @@ class TestTranslateClassic(ExtTestCase):
             sparse_initializers = []
             functions = []
             initializers.append(
-                from_array(
+                onh.from_array(
                     np.array([-1, 1], dtype=np.int64),
                     name='r'
                 )
             )
-            inputs.append(make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -370,8 +364,8 @@ class TestTranslateClassic(ExtTestCase):
                     norm='MAX'
                 )
             )
-            outputs.append(make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
-            graph = make_graph(
+            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            graph = oh.make_graph(
                 nodes,
                 'light_api',
                 inputs,
@@ -379,7 +373,7 @@ class TestTranslateClassic(ExtTestCase):
                 initializers,
                 sparse_initializer=sparse_initializers,
             )
-            model = make_model(
+            model = oh.make_model(
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
@@ -402,9 +396,6 @@ class TestTranslateClassic(ExtTestCase):
                 f"Compilation failed due to {e}\n---\n{cls._code_line(code)}\n---\n{e}"
             ) from e
 
-        import onnx
-        import onnx.helper
-        import onnx.numpy_helper
         import onnx_array_api.translate_api.make_helper
         import ml_dtypes
 
@@ -430,10 +421,11 @@ class TestTranslateClassic(ExtTestCase):
             return t
 
         globs = onnx.__dict__.copy()
-        globs.update(onnx.helper.__dict__)
-        globs.update(onnx.numpy_helper.__dict__)
         globs.update(onnx_array_api.translate_api.make_helper.__dict__)
-        globs.update(ml_dtypes.__dict__)
+        globs["np"] = np
+        globs["oh"] = oh
+        globs["onh"] = onh
+        globs["ml_dtypes"] = ml_dtypes
         globs["from_array_extended"] = from_array_extended
         locs = {}
         try:
