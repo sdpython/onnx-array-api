@@ -26,9 +26,9 @@ class TestTranslateClassic(ExtTestCase):
         initializers = []
         sparse_initializers = []
         functions = []
-        inputs.append(oh.make_tensor_value_info("X", TensorProto.FLOAT, shape=[]))
+        inputs.append(oh.make_tensor_value_info("X", onnx.TensorProto.FLOAT, shape=[]))
         nodes.append(oh.make_node("Exp", ["X"], ["Y"]))
-        outputs.append(oh.make_tensor_value_info("Y", TensorProto.FLOAT, shape=[]))
+        outputs.append(oh.make_tensor_value_info("Y", onnx.TensorProto.FLOAT, shape=[]))
         graph = oh.make_graph(
             nodes,
             "onename",
@@ -62,7 +62,7 @@ class TestTranslateClassic(ExtTestCase):
         initializers = []
         sparse_initializers = []
         functions = []
-        inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+        inputs.append(oh.make_tensor_value_info('X', onnx.TensorProto.FLOAT, shape=[]))
         nodes.append(
             make_node_extended(
                 'Exp',
@@ -70,7 +70,7 @@ class TestTranslateClassic(ExtTestCase):
                 ['Y']
             )
         )
-        outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+        outputs.append(oh.make_tensor_value_info('Y', onnx.TensorProto.FLOAT, shape=[]))
         graph = oh.make_graph(
             nodes,
             'light_api',
@@ -138,7 +138,7 @@ class TestTranslateClassic(ExtTestCase):
                     name='r'
                 )
             )
-            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', onnx.TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -154,7 +154,7 @@ class TestTranslateClassic(ExtTestCase):
                     perm=[1, 0]
                 )
             )
-            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Y', onnx.TensorProto.FLOAT, shape=[]))
             graph = oh.make_graph(
                 nodes,
                 'light_api',
@@ -207,7 +207,7 @@ class TestTranslateClassic(ExtTestCase):
                     name='r'
                 )
             )
-            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', onnx.TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -223,7 +223,7 @@ class TestTranslateClassic(ExtTestCase):
                     perm=[1, 0]
                 )
             )
-            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Y', onnx.TensorProto.FLOAT, shape=[]))
             graph = oh.make_graph(
                 nodes,
                 'light_api',
@@ -272,8 +272,8 @@ class TestTranslateClassic(ExtTestCase):
             initializers = []
             sparse_initializers = []
             functions = []
-            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
-            inputs.append(oh.make_tensor_value_info('K', TensorProto.INT64, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', onnx.TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('K', onnx.TensorProto.INT64, shape=[]))
             nodes.append(
                 make_node_extended(
                     'TopK',
@@ -284,8 +284,8 @@ class TestTranslateClassic(ExtTestCase):
                     sorted=1
                 )
             )
-            outputs.append(oh.make_tensor_value_info('Values', TensorProto.FLOAT, shape=[]))
-            outputs.append(oh.make_tensor_value_info('Indices', TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Values', onnx.TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Indices', onnx.TensorProto.FLOAT, shape=[]))
             graph = oh.make_graph(
                 nodes,
                 'light_api',
@@ -347,7 +347,7 @@ class TestTranslateClassic(ExtTestCase):
                     name='r'
                 )
             )
-            inputs.append(oh.make_tensor_value_info('X', TensorProto.FLOAT, shape=[]))
+            inputs.append(oh.make_tensor_value_info('X', onnx.TensorProto.FLOAT, shape=[]))
             nodes.append(
                 make_node_extended(
                     'Reshape',
@@ -364,7 +364,7 @@ class TestTranslateClassic(ExtTestCase):
                     norm='MAX'
                 )
             )
-            outputs.append(oh.make_tensor_value_info('Y', TensorProto.FLOAT, shape=[]))
+            outputs.append(oh.make_tensor_value_info('Y', onnx.TensorProto.FLOAT, shape=[]))
             graph = oh.make_graph(
                 nodes,
                 'light_api',
@@ -405,13 +405,13 @@ class TestTranslateClassic(ExtTestCase):
                 dt == onnx.reference.custom_element_types.float8e4m3fn
                 and dt.descr[0][0] == "e4m3fn"
             ):
-                to = TensorProto.FLOAT8E4M3FN
+                to = onnx.TensorProto.FLOAT8E4M3FN
                 dt_to = np.uint8
             elif (
                 dt == onnx.reference.custom_element_types.bfloat16
                 and dt.descr[0][0] == "bfloat16"
             ):
-                to = TensorProto.BFLOAT16
+                to = onnx.TensorProto.BFLOAT16
                 dt_to = np.uint16
             else:
                 return onnx.numpy_helper.from_array(tensor, name)

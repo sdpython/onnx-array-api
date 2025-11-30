@@ -7,9 +7,7 @@ from .translate import Translater
 
 
 class InnerEmitter(BaseEmitter):
-    """
-    Converts event into proper code.
-    """
+    """Converts event into proper code."""
 
     def render_attribute_value(self, value: Any) -> Tuple[List[str], str]:
         """
@@ -114,12 +112,12 @@ class InnerEmitter(BaseEmitter):
         if elem_type and shape:
             return [
                 f"{container}.append(oh.make_tensor_value_info({name!r}, "
-                f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
+                f"onnx.TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r}))"
             ]
         if elem_type:
             return [
                 f"{container}.append(oh.make_tensor_value_info({name!r}, "
-                f"TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
+                f"onnx.TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, shape=[]))"
             ]
         return [
             f"{container}.append(oh.make_tensor_value_info({name!r}, "

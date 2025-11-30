@@ -49,11 +49,13 @@ class BuilderEmitter(BaseEmitter):
         inps = ", ".join(["g.op", *[f'"{i}"' for i in self.inputs]])
         inputs = []
         for inp, stype, shape in self.inputs_full_:
-            inputs.append(f'g.make_tensor_input("{inp}", TensorProto.{stype}, {shape})')
+            inputs.append(
+                f'g.make_tensor_input("{inp}", onnx.TensorProto.{stype}, {shape})'
+            )
         outputs = []
         for inp, stype, shape in self.outputs_full_:
             outputs.append(
-                f'g.make_tensor_output("{inp}", TensorProto.{stype}, '
+                f'g.make_tensor_output("{inp}", onnx.TensorProto.{stype}, '
                 f"{shape}, is_dimension=False, indexed=False)"
             )
         rows = [

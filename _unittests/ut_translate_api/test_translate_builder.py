@@ -2,7 +2,7 @@ import unittest
 from textwrap import dedent
 import numpy as np
 import onnx.helper as oh
-from onnx import ModelProto, TensorProto
+import onnx
 from onnx.checker import check_model
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
@@ -22,7 +22,7 @@ class TestTranslateBuilder(ExtTestCase):
 
     def test_exp(self):
         onx = start(opset=19, ir_version=10).vin("X").Exp().rename("Y").vout().to_onnx()
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
         a = np.arange(10).astype(np.float32)
@@ -42,9 +42,9 @@ class TestTranslateBuilder(ExtTestCase):
             return Y
 
         g = GraphBuilder({'': 19}, ir_version=10)
-        g.make_tensor_input("X", TensorProto.FLOAT, ())
+        g.make_tensor_input("X", onnx.TensorProto.FLOAT, ())
         light_api(g.op, "X")
-        g.make_tensor_output("Y", TensorProto.FLOAT, ()__SUFFIX__)
+        g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
         model = g.to_onnx()
         """
             )
@@ -62,10 +62,10 @@ class TestTranslateBuilder(ExtTestCase):
             return Y
 
         g2 = GraphBuilder({"": 19})
-        g2.make_tensor_input("X", TensorProto.FLOAT, ("A",))
+        g2.make_tensor_input("X", onnx.TensorProto.FLOAT, ("A",))
         light_api(g2.op, "X")
         g2.make_tensor_output(
-            "Y", TensorProto.FLOAT, ("A",), is_dimension=False, indexed=False
+            "Y", onnx.TensorProto.FLOAT, ("A",), is_dimension=False, indexed=False
         )
         onx2 = g2.to_onnx()
 
@@ -99,9 +99,9 @@ class TestTranslateBuilder(ExtTestCase):
                 return Y
 
             g = GraphBuilder({'': 19}, ir_version=10)
-            g.make_tensor_input("X", TensorProto.FLOAT, ())
+            g.make_tensor_input("X", onnx.TensorProto.FLOAT, ())
             light_api(g.op, "X")
-            g.make_tensor_output("Y", TensorProto.FLOAT, ()__SUFFIX__)
+            g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
             model = g.to_onnx()
             """
             )
@@ -122,16 +122,16 @@ class TestTranslateBuilder(ExtTestCase):
             return Y
 
         g = GraphBuilder({"": 21})
-        X = g.make_tensor_input("X", TensorProto.FLOAT, ())
+        X = g.make_tensor_input("X", onnx.TensorProto.FLOAT, ())
         light_api(g.op, X)
-        g.make_tensor_output("Y", TensorProto.FLOAT, ())
+        g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ())
         model = g.to_onnx()
         self.assertNotEmpty(model)
         check_model(model)
 
     def test_exp_f(self):
         onx = start(opset=19, ir_version=10).vin("X").Exp().rename("Y").vout().to_onnx()
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
         a = np.arange(10).astype(np.float32)
@@ -155,9 +155,9 @@ class TestTranslateBuilder(ExtTestCase):
 
         def mm() -> "ModelProto":
             g = GraphBuilder({'': 19}, ir_version=10)
-            g.make_tensor_input("X", TensorProto.FLOAT, ())
+            g.make_tensor_input("X", onnx.TensorProto.FLOAT, ())
             light_api(g.op, "X")
-            g.make_tensor_output("Y", TensorProto.FLOAT, ()__SUFFIX__)
+            g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
             model = g.to_onnx()
             return model
 
@@ -179,10 +179,10 @@ class TestTranslateBuilder(ExtTestCase):
             return Y
 
         g2 = GraphBuilder({"": 19})
-        g2.make_tensor_input("X", TensorProto.FLOAT, ("A",))
+        g2.make_tensor_input("X", onnx.TensorProto.FLOAT, ("A",))
         light_api(g2.op, "X")
         g2.make_tensor_output(
-            "Y", TensorProto.FLOAT, ("A",), is_dimension=False, indexed=False
+            "Y", onnx.TensorProto.FLOAT, ("A",), is_dimension=False, indexed=False
         )
         onx2 = g2.to_onnx()
 
@@ -216,11 +216,11 @@ class TestTranslateBuilder(ExtTestCase):
             ],
             "example",
             [
-                oh.make_tensor_value_info("X", TensorProto.FLOAT, [None, None]),
-                oh.make_tensor_value_info("A", TensorProto.FLOAT, [None, None]),
-                oh.make_tensor_value_info("B", TensorProto.FLOAT, [None, None]),
+                oh.make_tensor_value_info("X", onnx.TensorProto.FLOAT, [None, None]),
+                oh.make_tensor_value_info("A", onnx.TensorProto.FLOAT, [None, None]),
+                oh.make_tensor_value_info("B", onnx.TensorProto.FLOAT, [None, None]),
             ],
-            [oh.make_tensor_value_info("Y", TensorProto.FLOAT, None)],
+            [oh.make_tensor_value_info("Y", onnx.TensorProto.FLOAT, None)],
         )
 
         onnx_model = oh.make_model(
@@ -262,11 +262,11 @@ class TestTranslateBuilder(ExtTestCase):
 
             def mm() -> "ModelProto":
                 g = GraphBuilder({'': 14, 'custom': 1}, ir_version=10)
-                g.make_tensor_input("X", TensorProto.FLOAT, ('', ''))
-                g.make_tensor_input("A", TensorProto.FLOAT, ('', ''))
-                g.make_tensor_input("B", TensorProto.FLOAT, ('', ''))
+                g.make_tensor_input("X", onnx.TensorProto.FLOAT, ('', ''))
+                g.make_tensor_input("A", onnx.TensorProto.FLOAT, ('', ''))
+                g.make_tensor_input("B", onnx.TensorProto.FLOAT, ('', ''))
                 example(g.op, "X", "A", "B")
-                g.make_tensor_output("Y", TensorProto.FLOAT, ()__SUFFIX__)
+                g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
                 make_custom_LinearRegression(g)
                 model = g.to_onnx()
                 return model
