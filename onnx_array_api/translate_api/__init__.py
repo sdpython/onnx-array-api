@@ -36,6 +36,7 @@ def translate_header(api: str = "light"):
             from onnx_array_api.graph_api import GraphBuilder
             """
         )
+    raise ValueError(f"Unexpected value {api!r} for api.")
 
 
 def translate(proto: ModelProto, single_line: bool = False, api: str = "light") -> str:

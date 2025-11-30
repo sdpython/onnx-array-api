@@ -69,7 +69,7 @@ class TestCommandLines1(ExtTestCase):
                 main(args)
 
             code = st.getvalue()
-            self.assertIn("model = make_model(", code)
+            self.assertIn("model = oh.make_model(", code)
 
             args = ["translate", "-m", model_file, "-a", "light"]
             st = StringIO()

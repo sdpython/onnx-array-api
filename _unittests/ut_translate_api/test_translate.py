@@ -6,7 +6,7 @@ from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.light_api import start, g
-from onnx_array_api.translate_api import translate
+from onnx_array_api.translate_api import translate, translate_header
 from onnx_array_api.translate_api.base_emitter import EventType
 
 OPSET_API = min(19, onnx_opset_version() - 1)
@@ -17,6 +17,11 @@ class TestTranslate(ExtTestCase):
         self.assertEqual(
             EventType.to_str(EventType.INITIALIZER), "EventType.INITIALIZER"
         )
+
+    def test_translate_header(self):
+        for f in ["light", "onnx", "builder"]:
+            translate_header(f)
+        self.assertRaise(lambda: translate_header("NONE"), ValueError)
 
     def test_exp(self):
         onx = start(opset=19).vin("X").Exp().rename("Y").vout().to_onnx()
