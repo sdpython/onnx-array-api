@@ -126,7 +126,7 @@ def measure_inference(fct, X, repeat, max_time=5, quantile=1):
 # model for a random forest and onnxruntime after it was converted
 # into ONNX and for the following configurations.
 
-small = cpu_count() < 12
+small = cpu_count() < 25
 if small:
     N = 1000
     n_features = 10
