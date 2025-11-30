@@ -56,12 +56,13 @@ class LightEmitter(BaseEmitter):
         shape = kwargs.get("shape", None)
         if elem_type and shape:
             return [
-                f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, "
-                f"shape={shape!r})"
+                f"vin({name!r}, elem_type=onnx.TensorProto."
+                f"{ELEMENT_TYPE_NAME[elem_type]}, shape={shape!r})"
             ]
         if elem_type:
             return [
-                f"vin({name!r}, elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})"
+                f"vin({name!r}, elem_type=onnx.TensorProto."
+                f"{ELEMENT_TYPE_NAME[elem_type]})"
             ]
         return [f"vin({name!r})"]
 
@@ -74,11 +75,13 @@ class LightEmitter(BaseEmitter):
         shape = kwargs.get("shape", None)
         if elem_type and shape:
             inst.append(
-                f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, "
+                f"vout(elem_type=onnx.TensorProto.{ELEMENT_TYPE_NAME[elem_type]}, "
                 f"shape={shape!r})"
             )
         elif elem_type:
-            inst.append(f"vout(elem_type=TensorProto.{ELEMENT_TYPE_NAME[elem_type]})")
+            inst.append(
+                f"vout(elem_type=onnx.TensorProto.{ELEMENT_TYPE_NAME[elem_type]})"
+            )
         else:
             inst.append("vout()")
         return inst

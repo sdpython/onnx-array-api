@@ -4,12 +4,15 @@ from typing import Any, Dict, List, Optional
 from difflib import unified_diff
 import packaging.version as pv
 import numpy
+import ml_dtypes
 from numpy.testing import assert_allclose
 from onnx.defs import onnx_opset_version
 import onnx.backend.base
 import onnx.backend.test
 import onnx.shape_inference
 import onnx.version_converter
+import onnx.helper as oh
+import onnx.numpy_helper as onh
 from onnx import ModelProto, TensorProto, __version__ as onnx_version
 from onnx.helper import (
     make_function,
@@ -94,6 +97,10 @@ class ExportWrapper:
 
             locs = {
                 "np": numpy,
+                "ml_dtypes": ml_dtypes,
+                "onnx": onnx,
+                "oh": oh,
+                "onh": onh,
                 "to_array": to_array,
                 "to_array_extended": to_array_extended,
                 "from_array": from_array,

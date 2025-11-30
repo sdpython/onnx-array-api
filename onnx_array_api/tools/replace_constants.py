@@ -52,7 +52,6 @@ def replace_initializer_by_constant_of_shape(
                     )
                 )
                 dtype = cst.dtype
-                assert op_type != "Constant"
                 new_nodes.append(
                     make_node(
                         op_type,

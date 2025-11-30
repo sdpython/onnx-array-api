@@ -1,12 +1,12 @@
 import unittest
 from textwrap import dedent
 import numpy as np
-from onnx import ModelProto, TensorProto
+import onnx
 from onnx.defs import onnx_opset_version
 from onnx.reference import ReferenceEvaluator
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.light_api import start, g
-from onnx_array_api.translate_api import translate
+from onnx_array_api.translate_api import translate, translate_header
 from onnx_array_api.translate_api.base_emitter import EventType
 
 OPSET_API = min(19, onnx_opset_version() - 1)
@@ -18,9 +18,14 @@ class TestTranslate(ExtTestCase):
             EventType.to_str(EventType.INITIALIZER), "EventType.INITIALIZER"
         )
 
+    def test_translate_header(self):
+        for f in ["light", "onnx", "builder"]:
+            translate_header(f)
+        self.assertRaise(lambda: translate_header("NONE"), ValueError)
+
     def test_exp(self):
         onx = start(opset=19).vin("X").Exp().rename("Y").vout().to_onnx()
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         self.assertIn("Exp", str(onx))
         ref = ReferenceEvaluator(onx)
         a = np.arange(10).astype(np.float32)
@@ -32,12 +37,12 @@ class TestTranslate(ExtTestCase):
             """
         (
             start(opset=19)
-            .vin('X', elem_type=TensorProto.FLOAT)
+            .vin('X', elem_type=onnx.TensorProto.FLOAT)
             .bring('X')
             .Exp()
             .rename('Y')
             .bring('Y')
-            .vout(elem_type=TensorProto.FLOAT)
+            .vout(elem_type=onnx.TensorProto.FLOAT)
             .to_onnx()
         )"""
         ).strip("\n")
@@ -45,12 +50,12 @@ class TestTranslate(ExtTestCase):
 
         onx2 = (
             start(opset=19)
-            .vin("X", elem_type=TensorProto.FLOAT)
+            .vin("X", elem_type=onnx.TensorProto.FLOAT)
             .bring("X")
             .Exp()
             .rename("Y")
             .bring("Y")
-            .vout(elem_type=TensorProto.FLOAT)
+            .vout(elem_type=onnx.TensorProto.FLOAT)
             .to_onnx()
         )
         ref = ReferenceEvaluator(onx2)
@@ -68,7 +73,7 @@ class TestTranslate(ExtTestCase):
             .vout()
             .to_onnx()
         )
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         self.assertIn("Transpose", str(onx))
         ref = ReferenceEvaluator(onx)
         a = np.arange(10).astype(np.float32)
@@ -82,7 +87,7 @@ class TestTranslate(ExtTestCase):
                 start(opset=19)
                 .cst(np.array([-1, 1], dtype=np.int64))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
+                .vin('X', elem_type=onnx.TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()
                 .rename('r0_0')
@@ -90,7 +95,7 @@ class TestTranslate(ExtTestCase):
                 .Transpose(perm=[1, 0])
                 .rename('Y')
                 .bring('Y')
-                .vout(elem_type=TensorProto.FLOAT)
+                .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
             )"""
         ).strip("\n")
@@ -107,7 +112,7 @@ class TestTranslate(ExtTestCase):
             .vout()
             .to_onnx()
         )
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         ref = ReferenceEvaluator(onx)
         x = np.array([[0, 1, 2, 3], [9, 8, 7, 6]], dtype=np.float32)
         k = np.array([2], dtype=np.int64)
@@ -120,15 +125,15 @@ class TestTranslate(ExtTestCase):
             """
             (
                 start(opset=19)
-                .vin('X', elem_type=TensorProto.FLOAT)
-                .vin('K', elem_type=TensorProto.INT64)
+                .vin('X', elem_type=onnx.TensorProto.FLOAT)
+                .vin('K', elem_type=onnx.TensorProto.INT64)
                 .bring('X', 'K')
                 .TopK(axis=-1, largest=0, sorted=1)
                 .rename('Values', 'Indices')
                 .bring('Values')
-                .vout(elem_type=TensorProto.FLOAT)
+                .vout(elem_type=onnx.TensorProto.FLOAT)
                 .bring('Indices')
-                .vout(elem_type=TensorProto.FLOAT)
+                .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
             )"""
         ).strip("\n")
@@ -152,7 +157,7 @@ class TestTranslate(ExtTestCase):
             .to_onnx()
         )
 
-        self.assertIsInstance(onx, ModelProto)
+        self.assertIsInstance(onx, onnx.ModelProto)
         ref = ReferenceEvaluator(onx)
         x = np.array([[0, 1, 2, 3], [9, 8, 7, 6]], dtype=np.float32)
         k = np.array([2], dtype=np.int64)
@@ -162,11 +167,11 @@ class TestTranslate(ExtTestCase):
         code = translate(onx)
         selse = (
             "g().cst(np.array([0], dtype=np.int64)).rename('Z')."
-            "bring('Z').vout(elem_type=TensorProto.FLOAT)"
+            "bring('Z').vout(elem_type=onnx.TensorProto.FLOAT)"
         )
         sthen = (
             "g().cst(np.array([1], dtype=np.int64)).rename('Z')."
-            "bring('Z').vout(elem_type=TensorProto.FLOAT)"
+            "bring('Z').vout(elem_type=onnx.TensorProto.FLOAT)"
         )
         expected = dedent(
             f"""
@@ -174,7 +179,7 @@ class TestTranslate(ExtTestCase):
                 start(opset=19)
                 .cst(np.array([0.0], dtype=np.float32))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
+                .vin('X', elem_type=onnx.TensorProto.FLOAT)
                 .bring('X')
                 .ReduceSum(keepdims=1, noop_with_empty_axes=0)
                 .rename('Xs')
@@ -185,7 +190,7 @@ class TestTranslate(ExtTestCase):
                 .If(else_branch={selse}, then_branch={sthen})
                 .rename('W')
                 .bring('W')
-                .vout(elem_type=TensorProto.FLOAT)
+                .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
             )"""
         ).strip("\n")
@@ -210,7 +215,7 @@ class TestTranslate(ExtTestCase):
                 start(opset=19, opsets={'ai.onnx.ml': 3})
                 .cst(np.array([-1, 1], dtype=np.int64))
                 .rename('r')
-                .vin('X', elem_type=TensorProto.FLOAT)
+                .vin('X', elem_type=onnx.TensorProto.FLOAT)
                 .bring('X', 'r')
                 .Reshape()
                 .rename('USE')
@@ -218,7 +223,7 @@ class TestTranslate(ExtTestCase):
                 .ai.onnx.ml.Normalizer(norm='MAX')
                 .rename('Y')
                 .bring('Y')
-                .vout(elem_type=TensorProto.FLOAT)
+                .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
             )"""
         ).strip("\n")
