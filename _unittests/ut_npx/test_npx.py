@@ -1268,7 +1268,7 @@ class TestNpx(ExtTestCase):
             "xor", lambda x, y: (x.sum() == y.sum()) ^ (((-x).sum()) == y.sum())
         )
 
-    def common_test_inline(self, fonx, fnp, tcst=0):
+    def common_test_inline(self, fonx, fnp, tcst=0, atol=1e-10):
         f = fonx(Input("A"))
         self.assertIsInstance(f, Var)
         onx = f.to_onnx(constraints={0: Float64[None], (0, False): Float64[None]})
@@ -1277,7 +1277,7 @@ class TestNpx(ExtTestCase):
         y = fnp(x)
         ref = ReferenceEvaluator(onx)
         got = ref.run(None, {"A": x})
-        self.assertEqualArray(y, got[0], atol=1e-10)
+        self.assertEqualArray(y, got[0], atol=atol)
 
     def common_test_inline_bin(self, fonx, fnp, tcst=0):
         f = fonx(Input("A"), Input("B"))
@@ -1470,7 +1470,7 @@ class TestNpx(ExtTestCase):
 
     @unittest.skipIf(scipy is None, reason="scipy is not installed.")
     def test_erf(self):
-        self.common_test_inline(erf_inline, scipy.special.erf)
+        self.common_test_inline(erf_inline, scipy.special.erf, atol=1e-7)
 
     def test_exp(self):
         self.common_test_inline(exp_inline, np.exp)

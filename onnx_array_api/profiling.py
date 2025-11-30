@@ -281,7 +281,12 @@ class ProfileNode:
             return text[:h] + "..." + text[-h + 1 :]
 
         dicts = self.as_dict(filter_node=filter_node, sort_key=sort_key)
-        max_nc = max(max(_["nc1"] for _ in dicts), max(_["nc2"] for _ in dicts))
+        set1 = [_["nc1"] for _ in dicts]
+        set2 = [_["nc1"] for _ in dicts]
+        if set1 or set2:
+            max_nc = max([*set1, *set2])
+        else:
+            max_nc = 1
         dg = int(math.log(max_nc) / math.log(10) + 1.5)
         line_format = (
             "{indent}{fct} -- {nc1: %dd} {nc2: %dd} -- {tin:1.5f} {tall:1.5f}"

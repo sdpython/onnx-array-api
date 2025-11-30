@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Tuple
+import numpy as np
 from onnx import AttributeProto
 from ..annotations import ELEMENT_TYPE_NAME
 from .base_emitter import BaseEmitter
@@ -105,7 +106,7 @@ class InnerEmitter(BaseEmitter):
             else:
                 raise NotImplementedError(f"Unexpected dtype={sdtype}.")
         else:
-            sdtype = f"np.{sdtype}"
+            sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
 
         return [
             "initializers.append(",
@@ -233,7 +234,7 @@ class InnerEmitterShortInitializer(InnerEmitter):
             else:
                 raise NotImplementedError(f"Unexpected dtype={sdtype}.")
         else:
-            sdtype = f"np.{sdtype}"
+            sdtype = f"np.{sdtype}" if hasattr(np, sdtype) else f"ml_dtypes.{sdtype}"
         if value.size <= 16:
             return [
                 "initializers.append(",

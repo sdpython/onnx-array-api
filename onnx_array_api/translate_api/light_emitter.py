@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+import numpy as np
 from ..annotations import ELEMENT_TYPE_NAME
 from .base_emitter import BaseEmitter
 
@@ -43,8 +44,9 @@ class LightEmitter(BaseEmitter):
         value = kwargs["value"]
         repl = {"bool": "bool_", "object": "object_", "str": "str_"}
         sdtype = repl.get(str(value.dtype), str(str(value.dtype)))
+        package = "np" if hasattr(np, sdtype) else "ml_dtypes"
         return [
-            f"cst(np.array({value.tolist()}, dtype=np.{sdtype}))",
+            f"cst(np.array({value.tolist()}, dtype={package}.{sdtype}))",
             f"rename({name!r})",
         ]
 
