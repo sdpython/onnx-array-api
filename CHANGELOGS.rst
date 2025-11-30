@@ -4,6 +4,7 @@ Change Logs
 0.3.2
 +++++
 
+* :pr:`104`: add code rendering when conveting a model into code
 * :pr:`103`: fix import issue with the latest onnx version
 * :pr:`101`: fix as_tensor in onnx_text_plot_tree
 
