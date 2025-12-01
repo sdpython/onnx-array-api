@@ -1,7 +1,11 @@
 from typing import Any, Optional
 import numpy as np
 from onnx import TensorProto
-import array_api_strict
+
+try:
+    import array_api_strict
+except ImportError:
+    array_api_strict = None
 
 from ..npx.npx_types import (
     DType,
@@ -27,7 +31,7 @@ from ..npx.npx_functions import (
 )
 
 
-Array = type(array_api_strict.ones((1,)))
+Array = type(array_api_strict.ones((1,))) if array_api_strict else None
 
 
 # These functions with no specific code do not have to be
