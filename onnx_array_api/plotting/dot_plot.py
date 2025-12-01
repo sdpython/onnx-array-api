@@ -110,7 +110,7 @@ def to_dot(
         x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
         y = np.array([[0.11, 0.22], [0.33, 0.44]], dtype=np.float32)
         res = jitted_myloss(x, y)
-        print(to_dot(jitted_myloss.get_onnx()))
+        print("DOT-SECTION", to_dot(jitted_myloss.get_onnx()))
     """
     clean_label_reg1 = re.compile("\\\\x\\{[0-9A-F]{1,6}\\}")
     clean_label_reg2 = re.compile("\\\\p\\{[0-9P]{1,6}\\}")
