@@ -30,7 +30,6 @@ from ..npx.npx_functions import (
     zeros as generic_zeros,
 )
 
-
 Array = type(array_api_strict.ones((1,))) if array_api_strict else None
 
 

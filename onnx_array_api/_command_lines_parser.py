@@ -15,16 +15,14 @@ def get_main_parser() -> ArgumentParser:
     parser.add_argument(
         "cmd",
         choices=["translate", "compare", "replace"],
-        help=dedent(
-            """
+        help=dedent("""
         Selects a command.
 
         'translate' exports an onnx graph into a piece of code replicating it,
         'compare' compares the execution of two onnx models,
         'replace' replaces constant and initliazers by ConstantOfShape
                   to make the model lighter
-        """
-        ),
+        """),
     )
     return parser
 
@@ -32,12 +30,10 @@ def get_main_parser() -> ArgumentParser:
 def get_parser_translate() -> ArgumentParser:
     parser = ArgumentParser(
         prog="translate",
-        description=dedent(
-            """
+        description=dedent("""
         Translates an onnx model into a piece of code to replicate it.
         The result is printed on the standard output.
-        """
-        ),
+        """),
         epilog="This is mostly used to write unit tests without adding "
         "an onnx file to the repository.",
     )
@@ -71,11 +67,9 @@ def _cmd_translate(argv: List[Any]):
 def get_parser_compare() -> ArgumentParser:
     parser = ArgumentParser(
         prog="compare",
-        description=dedent(
-            """
+        description=dedent("""
         Compares the execution of two onnx models.
-        """
-        ),
+        """),
         epilog="This is used when two models are different but "
         "should produce the same results.",
     )
@@ -148,12 +142,10 @@ def _cmd_compare(argv: List[Any]):
 def get_parser_replace() -> ArgumentParser:
     parser = ArgumentParser(
         prog="translate",
-        description=dedent(
-            """
+        description=dedent("""
         Replaces constants and initializes by ConstOfShape or any other nodes
         to make the model smaller.
-        """
-        ),
+        """),
         epilog="This is mostly used to write unit tests without adding "
         "a big file to the repository.",
     )

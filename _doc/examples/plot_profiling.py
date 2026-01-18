@@ -25,7 +25,6 @@ from onnx_array_api.ort.ort_optimizers import ort_optimized_model
 from onnx_array_api.ort.ort_profile import ort_profile, merge_ort_profile
 from onnx_array_api.plotting.stat_plot import plot_ort_profile
 
-
 suffix = ""
 filename = example_path(f"data/small{suffix}.onnx")
 optimized = filename + ".optimized.onnx"

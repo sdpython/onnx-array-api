@@ -7,7 +7,6 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from onnx_array_api.ext_test_case import ExtTestCase, ignore_warnings
 from onnx_array_api.npx.npx_numpy_tensors import EagerNumpyTensor
 
-
 DEFAULT_OPSET = onnx_opset_version()
 
 

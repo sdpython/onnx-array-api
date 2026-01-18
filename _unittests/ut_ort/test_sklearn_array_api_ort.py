@@ -7,7 +7,6 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from onnx_array_api.ext_test_case import ExtTestCase, skipif_ci_windows
 from onnx_array_api.ort.ort_tensors import EagerOrtTensor, OrtTensor
 
-
 DEFAULT_OPSET = onnx_opset_version()
 
 

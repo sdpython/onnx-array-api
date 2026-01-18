@@ -12,7 +12,6 @@ from .ops.op_memcpy_host import MemcpyFromHost, MemcpyToHost
 from .ops.op_quick_gelu import QuickGelu
 from .ops.op_scatter_elements import ScatterElements
 
-
 logger = getLogger("onnx-array-api-eval")
 
 

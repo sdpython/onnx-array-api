@@ -6,7 +6,6 @@ from .._helpers import np_dtype_to_tensor_dtype
 from ..npx.npx_types import DType
 from ..npx import npx_functions
 
-
 supported_functions = [
     "abs",
     "absolute",

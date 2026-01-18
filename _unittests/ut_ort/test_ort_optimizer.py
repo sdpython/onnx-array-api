@@ -6,7 +6,6 @@ from onnx_array_api.npx import absolute, jit_onnx
 from onnx_array_api.ext_test_case import ExtTestCase
 from onnx_array_api.ort.ort_optimizers import ort_optimized_model
 
-
 DEFAULT_OPSET = onnx_opset_version()
 
 

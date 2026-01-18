@@ -773,7 +773,7 @@ class _GraphBuilder:
                 packed = self._function_to_onnx(
                     var.onnx_op[1], len(var.inputs), var.n_var_outputs
                 )
-                (onx_fn, in_types, out_types, att_types) = packed
+                onx_fn, in_types, out_types, att_types = packed
                 domop = (onx_fn.domain, onx_fn.name)
 
                 for inp, index, dt in zip(var.inputs, var.input_indices, in_types):

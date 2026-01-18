@@ -431,55 +431,43 @@ class TestArrayTensor(ExtTestCase):
             005=|RESULTfloat322:2x2CEIOLinearRegressioY1|RESULTfloat322:2x2CEIOLinearRegressioY1
             006~|RESULTfloat322:2x2CEIOAbsY|RESULTfloat322:2x3CEIPAbsZ
             007~|OUTPUTfloat322:2x2CEIOY|OUTPUTfloat322:2x2CEIPY
-        """.replace(
-            "            ", ""
-        ).strip(
-            "\n "
-        )
+        """.replace("            ", "").strip("\n ")
         self.maxDiff = None
         self.assertEqual(expected, text.replace(" ", "").strip("\n"))
 
     def test_compare_execution(self):
-        m1 = parse_model(
-            """
+        m1 = parse_model("""
             <ir_version: 8, opset_import: [ "": 18]>
             agraph (float[N] x) => (float[N] z) {
                 two = Constant <value_float=2.0> ()
                 four = Add(two, two)
                 z = Mul(x, x)
-            }"""
-        )
-        m2 = parse_model(
-            """
+            }""")
+        m2 = parse_model("""
             <ir_version: 8, opset_import: [ "": 18]>
             agraph (float[N] x) => (float[N] z) {
                 two = Constant <value_float=2.0> ()
                 z = Mul(x, x)
-            }"""
-        )
+            }""")
         res1, res2, align, dc = compare_onnx_execution(m1, m2)
         text = dc.to_str(res1, res2, align)
         self.assertIn("CAAA Constant", text)
         self.assertEqual(len(align), 5)
 
     def test_compare_execution_discrepancies(self):
-        m1 = parse_model(
-            """
+        m1 = parse_model("""
             <ir_version: 8, opset_import: [ "": 18]>
             agraph (float[N] x) => (float[N] z) {
                 two = Constant <value_float=2.0> ()
                 four = Add(two, two)
                 z = Mul(x, x)
-            }"""
-        )
-        m2 = parse_model(
-            """
+            }""")
+        m2 = parse_model("""
             <ir_version: 8, opset_import: [ "": 18]>
             agraph (float[N] x) => (float[N] z) {
                 two = Constant <value_float=2.0> ()
                 z = Mul(x, x)
-            }"""
-        )
+            }""")
         res1, res2, align, dc = compare_onnx_execution(m1, m2, keep_tensor=True)
         text = dc.to_str(res1, res2, align)
         print(text)

@@ -8,34 +8,28 @@ from .builder_emitter import BuilderEmitter
 def translate_header(api: str = "light"):
     """Returns the necessary header for each api."""
     if api == "light":
-        return textwrap.dedent(
-            """
+        return textwrap.dedent("""
             import numpy as np
             import ml_dtypes
             from onnx_array_api.light_api import start
             from onnx_array_api.translate_api import translate
-            """
-        )
+            """)
     if api == "onnx":
-        return textwrap.dedent(
-            """
+        return textwrap.dedent("""
             import numpy as np
             import ml_dtypes
             import onnx
             import onnx.helper as oh
             import onnx.numpy_helper as onh
             from onnx_array_api.translate_api.make_helper import make_node_extended
-            """
-        )
+            """)
     if api == "builder":
-        return textwrap.dedent(
-            """
+        return textwrap.dedent("""
             import numpy as np
             import ml_dtypes
             import onnx
             from onnx_array_api.graph_api import GraphBuilder
-            """
-        )
+            """)
     raise ValueError(f"Unexpected value {api!r} for api.")
 
 

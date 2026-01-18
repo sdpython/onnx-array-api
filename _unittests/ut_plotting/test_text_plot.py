@@ -69,8 +69,7 @@ class TestTextPlot(ExtTestCase):
             model_def = load(f)
         res = onnx_text_plot_tree(model_def.graph.node[0])
         self.assertIn("n_classes=3", res)
-        expected = textwrap.dedent(
-            """
+        expected = textwrap.dedent("""
             n_classes=3
             n_trees=1
             ----
@@ -92,8 +91,7 @@ class TestTextPlot(ExtTestCase):
                         -f 0:0 1:0 2:1
                         +f 0:0 1:1 2:0
                +f 0:1 1:0 2:0
-        """
-        ).strip(" \n\r")
+        """).strip(" \n\r")
         res = res.replace("np.float32(", "").replace(")", "")
         self.assertEqual(expected, res.strip(" \n\r"))
 
@@ -104,8 +102,7 @@ class TestTextPlot(ExtTestCase):
         model.fit(x)
         onx = to_onnx(model, x.astype(numpy.float32), target_opset=15)
         text = onnx_simple_text_plot(onx)
-        expected1 = textwrap.dedent(
-            """
+        expected1 = textwrap.dedent("""
         ReduceSumSquare(X, axes=[1], keepdims=1) -> Re_reduced0
           Mul(Re_reduced0, Mu_Mulcst) -> Mu_C0
             Gemm(X, Ge_Gemmcst, Mu_C0, alpha=-2.00, transB=1) -> Ge_Y0
@@ -113,10 +110,8 @@ class TestTextPlot(ExtTestCase):
             Add(Ad_Addcst, Ad_C01) -> Ad_C0
               Sqrt(Ad_C0) -> scores
               ArgMin(Ad_C0, axis=1, keepdims=0) -> label
-        """
-        ).strip(" \n")
-        expected2 = textwrap.dedent(
-            """
+        """).strip(" \n")
+        expected2 = textwrap.dedent("""
         ReduceSumSquare(X, axes=[1], keepdims=1) -> Re_reduced0
           Mul(Re_reduced0, Mu_Mulcst) -> Mu_C0
             Gemm(X, Ge_Gemmcst, Mu_C0, alpha=-2.00, transB=1) -> Ge_Y0
@@ -124,10 +119,8 @@ class TestTextPlot(ExtTestCase):
             Add(Ad_Addcst, Ad_C01) -> Ad_C0
               Sqrt(Ad_C0) -> scores
               ArgMin(Ad_C0, axis=1, keepdims=0) -> label
-        """
-        ).strip(" \n")
-        expected3 = textwrap.dedent(
-            """
+        """).strip(" \n")
+        expected3 = textwrap.dedent("""
         ReduceSumSquare(X, axes=[1], keepdims=1) -> Re_reduced0
           Mul(Re_reduced0, Mu_Mulcst) -> Mu_C0
             Gemm(X, Ge_Gemmcst, Mu_C0, alpha=-2.00, transB=1) -> Ge_Y0
@@ -135,8 +128,7 @@ class TestTextPlot(ExtTestCase):
             Add(Ad_Addcst, Ad_C01) -> Ad_C0
               ArgMin(Ad_C0, axis=1, keepdims=0) -> label
               Sqrt(Ad_C0) -> scores
-        """
-        ).strip(" \n")
+        """).strip(" \n")
         if expected1 not in text and expected2 not in text and expected3 not in text:
             raise AssertionError(f"Unexpected value:\n{text}")
 
@@ -165,8 +157,7 @@ class TestTextPlot(ExtTestCase):
             {"X": x.astype(numpy.float32)}, outputs={"Y": x}, target_opset=15
         )
         text = onnx_simple_text_plot(onx, verbose=False)
-        expected = textwrap.dedent(
-            """
+        expected = textwrap.dedent("""
         Add(X, Ad_Addcst) -> Ad_C0
           Abs(Ad_C0) -> Ab_Y0
         Identity(Ad_Addcst) -> Su_Subcst
@@ -174,8 +165,7 @@ class TestTextPlot(ExtTestCase):
             Abs(Su_C0) -> Ab_Y02
             Div(Ab_Y0, Ab_Y02) -> Di_C0
               Abs(Di_C0) -> Y
-        """
-        ).strip(" \n")
+        """).strip(" \n")
         self.assertIn(expected, text)
         text2, out, err = self.capture(lambda: onnx_simple_text_plot(onx, verbose=True))
         self.assertEqual(text, text2)
@@ -188,11 +178,9 @@ class TestTextPlot(ExtTestCase):
             {"X": FloatTensorType()}, outputs={"Y": FloatTensorType()}, target_opset=15
         )
         text = onnx_simple_text_plot(onx)
-        expected = textwrap.dedent(
-            """
+        expected = textwrap.dedent("""
         LeakyRelu(X, alpha=0.50) -> Y
-        """
-        ).strip(" \n")
+        """).strip(" \n")
         self.assertIn(expected, text)
 
     def test_onnx_text_plot_io(self):
@@ -201,11 +189,9 @@ class TestTextPlot(ExtTestCase):
             {"X": FloatTensorType()}, outputs={"Y": FloatTensorType()}, target_opset=15
         )
         text = onnx_text_plot_io(onx)
-        expected = textwrap.dedent(
-            """
+        expected = textwrap.dedent("""
         input:
-        """
-        ).strip(" \n")
+        """).strip(" \n")
         self.assertIn(expected, text)
 
     def test_onnx_simple_text_plot_if(self):
@@ -244,11 +230,9 @@ class TestTextPlot(ExtTestCase):
             {"x1": x1, "x2": x2}, target_opset=opv, outputs=[("y", FloatTensorType())]
         )
         text = onnx_simple_text_plot(model_def)
-        expected = textwrap.dedent(
-            """
+        expected = textwrap.dedent("""
         input:
-        """
-        ).strip(" \n")
+        """).strip(" \n")
         self.assertIn(expected, text)
         self.assertIn("If(Gr_C0, else_branch=G1, then_branch=G2)", text)
 
