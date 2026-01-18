@@ -19,7 +19,6 @@ from skl2onnx import to_onnx
 from onnx_array_api.reference import compare_onnx_execution
 from onnx_array_api.plotting.text_plot import onnx_simple_text_plot
 
-
 data = load_iris()
 X_train, X_test = train_test_split(data.data)
 model = GaussianMixture()

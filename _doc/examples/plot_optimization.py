@@ -29,7 +29,6 @@ from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 from onnx_array_api.ext_test_case import measure_time
 from onnx_array_api.ort.ort_optimizers import ort_optimized_model
 
-
 filename = example_path("data/small.onnx")
 optimized = filename + ".optimized.onnx"
 

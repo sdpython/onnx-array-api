@@ -12,7 +12,6 @@ from onnx_array_api.graph_api import GraphBuilder
 from onnx_array_api.translate_api import translate, Translater
 from onnx_array_api.translate_api.builder_emitter import BuilderEmitter
 
-
 OPSET_API = min(19, onnx_opset_version() - 1)
 
 
@@ -30,9 +29,7 @@ class TestTranslateBuilder(ExtTestCase):
         self.assertEqualArray(np.exp(a), got)
 
         code = translate(onx, api="builder")
-        expected = (
-            dedent(
-                """
+        expected = dedent("""
         def light_api(
             op: "GraphBuilder",
             X: "FLOAT[]",
@@ -46,11 +43,7 @@ class TestTranslateBuilder(ExtTestCase):
         light_api(g.op, "X")
         g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
         model = g.to_onnx()
-        """
-            )
-            .strip("\n")
-            .replace("__SUFFIX__", ", is_dimension=False, indexed=False")
-        )
+        """).strip("\n").replace("__SUFFIX__", ", is_dimension=False, indexed=False")
         self.assertEqual(expected, code.strip("\n"))
 
         def light_api(
@@ -86,8 +79,7 @@ class TestTranslateBuilder(ExtTestCase):
         )
         code = translate(onx, api="builder")
         expected = (
-            dedent(
-                """
+            dedent("""
             def light_api(
                 op: "GraphBuilder",
                 X: "FLOAT[]",
@@ -103,8 +95,7 @@ class TestTranslateBuilder(ExtTestCase):
             light_api(g.op, "X")
             g.make_tensor_output("Y", onnx.TensorProto.FLOAT, ()__SUFFIX__)
             model = g.to_onnx()
-            """
-            )
+            """)
             .strip("\n")
             .replace("__SUFFIX__", ", is_dimension=False, indexed=False")
         )
@@ -141,9 +132,7 @@ class TestTranslateBuilder(ExtTestCase):
         tr = Translater(onx, emitter=BuilderEmitter("mm"))
         code = tr.export(as_str=True)
 
-        expected = (
-            dedent(
-                """
+        expected = dedent("""
         def light_api(
             op: "GraphBuilder",
             X: "FLOAT[]",
@@ -163,11 +152,7 @@ class TestTranslateBuilder(ExtTestCase):
 
 
         model = mm()
-        """
-            )
-            .strip("\n")
-            .replace("__SUFFIX__", ", is_dimension=False, indexed=False")
-        )
+        """).strip("\n").replace("__SUFFIX__", ", is_dimension=False, indexed=False")
         self.assertEqual(expected, code.strip("\n"))
 
         def light_api(
@@ -232,9 +217,7 @@ class TestTranslateBuilder(ExtTestCase):
         tr = Translater(onnx_model, emitter=BuilderEmitter("mm"))
         code = tr.export(as_str=True)
 
-        expected = (
-            dedent(
-                """
+        expected = dedent("""
             def example(
                 op: "GraphBuilder",
                 X: "FLOAT[, ]",
@@ -273,11 +256,7 @@ class TestTranslateBuilder(ExtTestCase):
 
 
             model = mm()
-        """
-            )
-            .strip("\n")
-            .replace("__SUFFIX__", ", is_dimension=False, indexed=False")
-        )
+        """).strip("\n").replace("__SUFFIX__", ", is_dimension=False, indexed=False")
         self.assertEqual(expected, code.strip("\n"))
 
 

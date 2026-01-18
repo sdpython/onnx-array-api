@@ -13,15 +13,13 @@ from onnx_array_api.plotting.graphviz_helper import draw_graph_graphviz, plot_do
 class TestGraphviz(ExtTestCase):
     @classmethod
     def _get_graph(cls):
-        return onnx.parser.parse_model(
-            """
+        return onnx.parser.parse_model("""
             <ir_version: 8, opset_import: [ "": 18]>
             agraph (float[N] x) => (float[N] z) {
                 two = Constant <value_float=2.0> ()
                 four = Add(two, two)
                 z = Mul(x, x)
-            }"""
-        )
+            }""")
 
     @skipif_ci_windows("graphviz not installed")
     @skipif_ci_apple("graphviz not installed")

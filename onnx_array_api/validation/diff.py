@@ -8,8 +8,7 @@ from onnx import ModelProto
 def _get_diff_template():
     import jinja2
 
-    tpl = textwrap.dedent(
-        """
+    tpl = textwrap.dedent("""
             <div id="{{ div_name }}"></div>
             <link rel="stylesheet" type="text/css" href="__PATH__/diff2html.min.css" />
             <script type="text/javascript" src="__PATH__/diff2html-ui-slim.min.js">
@@ -39,8 +38,7 @@ def _get_diff_template():
             diff2htmlUi.highlightCode();
             });
             </script>
-            """
-    )
+            """)
     path = os.path.abspath(os.path.dirname(__file__))
     path = path.replace("\\", "/")
     path = f"file://{path}"

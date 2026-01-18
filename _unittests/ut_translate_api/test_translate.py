@@ -33,8 +33,7 @@ class TestTranslate(ExtTestCase):
         self.assertEqualArray(np.exp(a), got)
 
         code = translate(onx)
-        expected = dedent(
-            """
+        expected = dedent("""
         (
             start(opset=19)
             .vin('X', elem_type=onnx.TensorProto.FLOAT)
@@ -44,8 +43,7 @@ class TestTranslate(ExtTestCase):
             .bring('Y')
             .vout(elem_type=onnx.TensorProto.FLOAT)
             .to_onnx()
-        )"""
-        ).strip("\n")
+        )""").strip("\n")
         self.assertEqual(expected, code)
 
         onx2 = (
@@ -81,8 +79,7 @@ class TestTranslate(ExtTestCase):
         self.assertEqualArray(a.reshape((-1, 1)).T, got)
 
         code = translate(onx)
-        expected = dedent(
-            """
+        expected = dedent("""
             (
                 start(opset=19)
                 .cst(np.array([-1, 1], dtype=np.int64))
@@ -97,8 +94,7 @@ class TestTranslate(ExtTestCase):
                 .bring('Y')
                 .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.assertEqual(expected, code)
 
     def test_topk_reverse(self):
@@ -121,8 +117,7 @@ class TestTranslate(ExtTestCase):
         self.assertEqualArray(np.array([[0, 1], [3, 2]], dtype=np.int64), got[1])
 
         code = translate(onx)
-        expected = dedent(
-            """
+        expected = dedent("""
             (
                 start(opset=19)
                 .vin('X', elem_type=onnx.TensorProto.FLOAT)
@@ -135,8 +130,7 @@ class TestTranslate(ExtTestCase):
                 .bring('Indices')
                 .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.assertEqual(expected, code)
 
     def test_export_if(self):
@@ -173,8 +167,7 @@ class TestTranslate(ExtTestCase):
             "g().cst(np.array([1], dtype=np.int64)).rename('Z')."
             "bring('Z').vout(elem_type=onnx.TensorProto.FLOAT)"
         )
-        expected = dedent(
-            f"""
+        expected = dedent(f"""
             (
                 start(opset=19)
                 .cst(np.array([0.0], dtype=np.float32))
@@ -192,8 +185,7 @@ class TestTranslate(ExtTestCase):
                 .bring('W')
                 .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
@@ -209,8 +201,7 @@ class TestTranslate(ExtTestCase):
             .to_onnx()
         )
         code = translate(onx)
-        expected = dedent(
-            """
+        expected = dedent("""
             (
                 start(opset=19, opsets={'ai.onnx.ml': 3})
                 .cst(np.array([-1, 1], dtype=np.int64))
@@ -225,8 +216,7 @@ class TestTranslate(ExtTestCase):
                 .bring('Y')
                 .vout(elem_type=onnx.TensorProto.FLOAT)
                 .to_onnx()
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 

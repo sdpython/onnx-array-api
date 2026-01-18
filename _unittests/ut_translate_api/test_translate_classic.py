@@ -51,8 +51,7 @@ class TestTranslateClassic(ExtTestCase):
 
         code = translate(onx, api="onnx")
 
-        expected = dedent(
-            """
+        expected = dedent("""
         opset_imports = [
             oh.make_opsetid('', 19),
         ]
@@ -83,8 +82,7 @@ class TestTranslateClassic(ExtTestCase):
             graph,
             functions=functions,
             opset_imports=opset_imports
-        )"""
-        ).strip("\n")
+        )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
@@ -121,8 +119,7 @@ class TestTranslateClassic(ExtTestCase):
         self.assertEqualArray(a.reshape((-1, 1)).T, got)
 
         code = translate(onx, api="onnx")
-        expected = dedent(
-            """
+        expected = dedent("""
             opset_imports = [
                 oh.make_opsetid('', 19),
             ]
@@ -167,8 +164,7 @@ class TestTranslateClassic(ExtTestCase):
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
@@ -190,8 +186,7 @@ class TestTranslateClassic(ExtTestCase):
         self.assertEqualArray(a.reshape((-1, 1)).T, got)
 
         code = translate(onx, api="onnx-short")
-        expected = dedent(
-            """
+        expected = dedent("""
             opset_imports = [
                 oh.make_opsetid('', 19),
             ]
@@ -236,8 +231,7 @@ class TestTranslateClassic(ExtTestCase):
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
@@ -261,8 +255,7 @@ class TestTranslateClassic(ExtTestCase):
         self.assertEqualArray(np.array([[0, 1], [3, 2]], dtype=np.int64), got[1])
 
         code = translate(onx, api="onnx")
-        expected = dedent(
-            """
+        expected = dedent("""
             opset_imports = [
                 oh.make_opsetid('', 19),
             ]
@@ -298,8 +291,7 @@ class TestTranslateClassic(ExtTestCase):
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
@@ -329,8 +321,7 @@ class TestTranslateClassic(ExtTestCase):
             .to_onnx()
         )
         code = translate(onx, api="onnx")
-        expected = dedent(
-            """
+        expected = dedent("""
             opset_imports = [
                 oh.make_opsetid('', 19),
                 oh.make_opsetid('ai.onnx.ml', 3),
@@ -377,8 +368,7 @@ class TestTranslateClassic(ExtTestCase):
                 graph,
                 functions=functions,
                 opset_imports=opset_imports
-            )"""
-        ).strip("\n")
+            )""").strip("\n")
         self.maxDiff = None
         self.assertEqual(expected, code)
 
